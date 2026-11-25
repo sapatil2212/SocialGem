@@ -703,7 +703,7 @@ export default function LiveDevicePreview({
               </div>
               <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between">
                 <span className="px-2 py-0.5 rounded-full bg-black/75 backdrop-blur-sm text-[10px] text-zinc-200 truncate max-w-[150px]">
-                  muapi.ai
+                  yourwebsite.com
                 </span>
                 <div className="w-6 h-6 rounded-full bg-white/90 text-zinc-950 flex items-center justify-center text-[10px] shadow">
                   <FiShare2 />

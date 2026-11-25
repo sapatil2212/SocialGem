@@ -141,6 +141,9 @@ export default function WorkspaceDashboard() {
       if (res.ok) {
         setPosts((prev) => prev.filter((p) => p.id !== postId));
         setViewingPost(null);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || "The post could not be deleted.");
       }
     } catch (err) {
       console.error("Failed to delete post:", err);

@@ -114,6 +114,9 @@ const X_REPLY_OPTIONS = [
 
 const POPULAR_HASHTAGS = ["#trending", "#ai", "#tech", "#innovation", "#growth", "#viral", "#creators"];
 
+const localDay = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
 export default function PostComposerModal({
   isOpen,
   onClose,
@@ -127,7 +130,7 @@ export default function PostComposerModal({
   const [connectedAccounts, setConnectedAccounts] = useState([]);
   const [platformAccountMap, setPlatformAccountMap] = useState({});
   const [accountName, setAccountName] = useState("Creator Studio");
-  const [accountId, setAccountId] = useState("101");
+  const [accountId, setAccountId] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState("");
@@ -310,7 +313,7 @@ export default function PostComposerModal({
       setAccountName(initialPost.accountName || "Creator Studio");
       if (initialPost.scheduledAt) {
         const d = new Date(initialPost.scheduledAt);
-        setScheduledDate(d.toISOString().split("T")[0]);
+        setScheduledDate(localDay(d));
         setScheduledTime(d.toTimeString().slice(0, 5));
         setIsScheduled(true);
       }
@@ -318,7 +321,7 @@ export default function PostComposerModal({
       setCustomTag("");
       setTagColor("");
       const d = new Date(initialDate);
-      setScheduledDate(d.toISOString().split("T")[0]);
+      setScheduledDate(localDay(d));
       setScheduledTime("14:00");
       setIsScheduled(true);
     } else {
@@ -326,9 +329,9 @@ export default function PostComposerModal({
       setTagColor("");
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
-      setScheduledDate(tomorrow.toISOString().split("T")[0]);
+      setScheduledDate(localDay(tomorrow));
       setScheduledTime("12:00");
-      setIsScheduled(false); // Default to Post Now for new posts
+      setIsScheduled(true);
     }
   }, [initialDate, initialPost, isOpen]);
 
@@ -385,7 +388,7 @@ export default function PostComposerModal({
       setAccountId(String(matched.id));
       setAccountName(matched.account_name);
     } else {
-      setAccountId("101");
+      setAccountId("");
       setAccountName("Creator Studio");
     }
   }, [activePreviewPlatform, connectedAccounts, platformAccountMap]);
@@ -417,8 +420,6 @@ export default function PostComposerModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           platform: connectingPlatform.key,
-          accountName: label,
-          redirectUrl: window.location.href,
         }),
       });
 
@@ -570,13 +571,9 @@ export default function PostComposerModal({
         body: formData,
       });
 
-      let finalUrl = "";
-      if (!res.ok) {
-        finalUrl = URL.createObjectURL(file);
-      } else {
-        const data = await res.json();
-        finalUrl = data.url || URL.createObjectURL(file);
-      }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.url) throw new Error(data.error || "The upload failed.");
+      const finalUrl = data.url;
 
       if (activeComposerTab === "all") {
         setMediaUrl(finalUrl);
@@ -590,21 +587,10 @@ export default function PostComposerModal({
         }));
       }
     } catch (err) {
-      console.warn("Upload fallback used:", err);
-      const fallbackUrl = URL.createObjectURL(file);
-      if (activeComposerTab === "all") {
-        setMediaUrl(fallbackUrl);
-      } else {
-        setPlatformOverrides((prev) => ({
-          ...prev,
-          [activeComposerTab]: {
-            ...prev[activeComposerTab],
-            mediaUrl: fallbackUrl,
-          },
-        }));
-      }
+      setErrorMsg(err.message || "The upload failed.");
     } finally {
       setUploading(false);
+      e.target.value = "";
     }
   };
 
@@ -630,27 +616,19 @@ export default function PostComposerModal({
   };
 
   const handleSubmit = async (statusOverride = null, forceImmediate = false) => {
-    const hasAnyMedia = mediaUrl || Object.values(platformOverrides).some((o) => !!o.mediaUrl);
-    if (!hasAnyMedia) {
-      setErrorMsg("Please upload or provide a media URL for your post.");
-      return;
-    }
-
     setSubmitting(true);
     setErrorMsg("");
 
     try {
       let combinedScheduledAt = null;
-      const willSchedule = forceImmediate ? false : (statusOverride === "draft" ? false : isScheduled);
-      if (willSchedule && scheduledDate && scheduledTime) {
+      const mode = statusOverride === "draft" ? "draft" : forceImmediate || !isScheduled ? "now" : "schedule";
+      if (mode !== "now" && scheduledDate && scheduledTime) {
         combinedScheduledAt = new Date(`${scheduledDate}T${scheduledTime}:00`).toISOString();
       }
 
       const payload = {
+        mode,
         platforms: selectedPlatforms,
-        platform: activePreviewPlatform,
-        accountId: parseInt(accountId) || 101,
-        accountName,
         platformAccountMap,
         platformOverrides,
         title,
@@ -660,17 +638,12 @@ export default function PostComposerModal({
         tagColor: tagColor || null,
         mediaUrl,
         privacy,
-        scheduledAt: statusOverride === "draft" ? null : combinedScheduledAt,
+        scheduledAt: combinedScheduledAt,
         disableComment,
         disableDuet,
         disableStitch,
         categoryId,
         madeForKids,
-        placement,
-        shareToFeed,
-        destinationLink,
-        boardId,
-        replySettings,
       };
 
       const url = initialPost?.id ? `/api/posts/${initialPost.id}` : "/api/posts";
@@ -688,7 +661,7 @@ export default function PostComposerModal({
       }
 
       const savedPost = await res.json();
-      if (onPostSaved) onPostSaved(savedPost);
+      if (onPostSaved) (savedPost.posts || [savedPost]).forEach((post) => onPostSaved(post));
       onClose();
     } catch (err) {
       setErrorMsg(err.message || "Something went wrong. Please try again.");

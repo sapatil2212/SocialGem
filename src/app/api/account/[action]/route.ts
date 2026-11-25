@@ -2,19 +2,11 @@ import { NextResponse } from "next/server";
 import type { z } from "zod";
 import { forgotSchema, resetSchema, signUpSchema } from "@/lib/auth-schemas";
 import { register, requestReset, resetPassword, verifyEmail } from "@/server/account";
+import { sameOrigin } from "@/server/guard";
 import { allow, clientIp } from "@/server/rate-limit";
 
 const fail = (status: number, code: string, message: string, fields?: Record<string, string>) =>
   NextResponse.json({ error: { code, message, fields } }, { status });
-
-function sameOrigin(request: Request) {
-  const origin = request.headers.get("origin");
-  try {
-    return Boolean(origin) && new URL(origin!).host === request.headers.get("host");
-  } catch {
-    return false;
-  }
-}
 
 function invalid(error: z.ZodError) {
   const fields: Record<string, string> = {};
@@ -25,6 +17,7 @@ function invalid(error: z.ZodError) {
 export async function POST(request: Request, { params }: { params: Promise<{ action: string }> }) {
   const { action } = await params;
   if (!sameOrigin(request)) return fail(403, "ORIGIN", "This request was blocked.");
+  if (Number(request.headers.get("content-length") || 0) > 8192) return fail(413, "TOO_LARGE", "That request is too large.");
   const body: unknown = await request.json().catch(() => null);
 
   try {

@@ -96,16 +96,9 @@ export default function IntegrationsPage() {
   
   // Request access interest states
   const [requestedPlatforms, setRequestedPlatforms] = useState([]);
-  const [interestCounts, setInterestCounts] = useState({});
   const [requesting, setRequesting] = useState(null);
 
   useEffect(() => {
-    // Fetch interest counts from MuAPI public endpoint
-    fetch("https://muapi.ai/api/social/integration-interest-counts")
-      .then((res) => res.json())
-      .then((data) => setInterestCounts(data || {}))
-      .catch(() => {});
-    
     // Load requested platforms from localStorage
     const localRequested = localStorage.getItem("requested_platforms");
     if (localRequested) {
@@ -133,34 +126,6 @@ export default function IntegrationsPage() {
         const fetchedAccounts = Array.isArray(data) ? data : [];
         setAccounts(fetchedAccounts);
         
-        // Auto-rename YouTube account if there's a pending label
-        const pendingYoutubeLabel = localStorage.getItem("pending_youtube_label");
-        if (pendingYoutubeLabel && session?.user?.email) {
-          const email = session.user.email;
-          const targetAccount = fetchedAccounts.find(
-            (acc) => acc.platform === 1 && acc.account_name === email
-          );
-          if (targetAccount) {
-            fetch(`/api/social/accounts/${targetAccount.id}`, {
-              method: "PATCH",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ accountName: pendingYoutubeLabel })
-            })
-              .then((res) => {
-                if (res.ok) {
-                  setAccounts((prev) =>
-                    prev.map((a) =>
-                      a.id === targetAccount.id
-                        ? { ...a, account_name: pendingYoutubeLabel }
-                        : a
-                    )
-                  );
-                  localStorage.removeItem("pending_youtube_label");
-                }
-              })
-              .catch((err) => console.error("Failed to auto-rename YouTube account:", err));
-          }
-        }
       })
       .catch((err) => console.error("Failed to load accounts:", err))
       .finally(() => setLoading(false));
@@ -191,8 +156,6 @@ export default function IntegrationsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           platform: platform.key,
-          accountName: label,
-          redirectUrl: window.location.href
         })
       });
       const data = await res.json();
@@ -267,19 +230,7 @@ export default function IntegrationsPage() {
       setRequestedPlatforms(updated);
       localStorage.setItem("requested_platforms", JSON.stringify(updated));
       
-      setInterestCounts((prev) => ({
-        ...prev,
-        [platform.name]: (prev[platform.name] || 0) + 1
-      }));
-
-      // Call MuAPI (ignore errors due to session auth requirement)
-      await fetch("https://muapi.ai/api/social/integration-interest", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ platform_name: platform.name })
-      }).catch(() => {});
-
-      alert(`Got it! We'll notify you when ${platform.name} is ready.`);
+      alert(`Got it! Noted on this device.`);
     } catch (err) {
       console.error(err);
     } finally {
@@ -395,7 +346,6 @@ export default function IntegrationsPage() {
             const { key, platformId, name, Icon, iconColor, description, comingSoon, requestAccess } = platform;
             const connected = getAccountsForPlatform(platformId, key);
             const requested = requestedPlatforms.includes(name);
-            const requestCount = interestCounts[name] || 0;
 
             return (
               <div key={key} className="bg-white dark:bg-[#1a1919] border border-zinc-200 dark:border-[#252525] rounded-xl p-5 flex flex-col gap-4 shadow-xs dark:shadow-none transition-colors">
@@ -525,9 +475,7 @@ export default function IntegrationsPage() {
 
                 {comingSoon && requestAccess && (
                   <p className="text-xs text-zinc-500 border-t border-zinc-900 pt-3">
-                    {requestCount > 0
-                      ? `${requestCount} ${requestCount === 1 ? "person has" : "people have"} requested this integration.`
-                      : "Request access and we'll notify you when it's live."}
+                    {"Request access and we'll notify you when it's live."}
                   </p>
                 )}
               </div>

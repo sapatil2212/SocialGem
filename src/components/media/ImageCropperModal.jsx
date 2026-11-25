@@ -225,7 +225,7 @@ export default function ImageCropperModal({
   const handleInsertIntoPost = async () => {
     setSaving(true);
     try {
-      const { blob, dataUrl } = await generateCroppedBlob();
+      const { blob } = await generateCroppedBlob();
       const fileName = `cropped-${selectedPreset.replace(":", "x")}-${imageName || "asset.jpg"}`;
 
       const formData = new FormData();
@@ -236,11 +236,9 @@ export default function ImageCropperModal({
         body: formData,
       });
 
-      let finalUrl = dataUrl;
-      if (uploadRes.ok) {
-        const uploadData = await uploadRes.json();
-        if (uploadData.url) finalUrl = uploadData.url;
-      }
+      const uploadData = await uploadRes.json().catch(() => ({}));
+      if (!uploadRes.ok || !uploadData.url) throw new Error(uploadData.error || "The upload failed.");
+      const finalUrl = uploadData.url;
 
       if (onApplyToComposer) {
         onApplyToComposer(finalUrl);
@@ -248,7 +246,7 @@ export default function ImageCropperModal({
       onClose();
     } catch (err) {
       console.error(err);
-      toast.error("Failed to attach cropped image");
+      toast.error(err.message || "Failed to attach cropped image");
     } finally {
       setSaving(false);
     }
