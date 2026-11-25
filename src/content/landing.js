@@ -28,36 +28,6 @@ export const BUSINESSES = [
 
 export const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-export const SCENARIOS = [
-  {
-    key: "ok",
-    tab: "All goes well",
-    steps: ["Scheduled", "Sending", "Published"],
-    end: "good",
-    text: "At 9:00 your post goes out with no one signed in. You get the result, and one post comes off your plan.",
-  },
-  {
-    key: "drop",
-    tab: "The line drops",
-    steps: ["Scheduled", "Sending", "Needs check"],
-    end: "warn",
-    text: "We cannot tell whether the post arrived, so we stop. Trying again could post it twice, so it is checked first.",
-  },
-  {
-    key: "account",
-    tab: "Account disconnected",
-    steps: ["Scheduled", "Checked", "Failed"],
-    end: "bad",
-    text: "Nothing is sent to the wrong place. You are told which account to reconnect, and nothing comes off your plan.",
-  },
-  {
-    key: "late",
-    tab: "A long outage",
-    steps: ["Scheduled", "Waiting", "Missed"],
-    end: "warn",
-    text: "A breakfast offer should not appear at dinner. If it is hours late, we hold it back and tell you.",
-  },
-];
 
 export const CAPABILITIES = [
   { platform: "Facebook Pages", stage: "Launch", text: true, photo: true, video: true, limit: 63206 },

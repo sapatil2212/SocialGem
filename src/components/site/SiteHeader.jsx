@@ -1,42 +1,27 @@
 "use client";
 
 import Link from "next/link";
-import { useTheme } from "next-themes";
-import { FiMoon, FiSun } from "react-icons/fi";
 import { motion, useScroll, useSpring } from "motion/react";
 
 export default function SiteHeader() {
-  const { resolvedTheme, setTheme } = useTheme();
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, { stiffness: 140, damping: 30 });
 
   return (
-    <header className="sg-top">
-      <div className="sg-wrap sg-top-in">
+    <header className="sg-top" data-ui>
+      <div className="sg-wrap">
         <Link href="/" className="sg-logo">
-          <svg viewBox="0 0 32 28" width="26" height="23" aria-hidden="true">
-            <path d="M8 1h16l7 9H1z" fill="var(--garnet)" />
-            <path d="M1 10h10l5 17z" fill="var(--sapphire)" />
-            <path d="M11 10h10l-5 17z" fill="var(--emerald)" />
-            <path d="M21 10h10L16 27z" fill="var(--topaz)" />
+          <svg viewBox="0 0 32 28" width="26" height="23" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" aria-hidden="true">
+            <path d="M8 2h16l6 8-14 16L2 10zM2 10h28M11 10l5 16 5-16M8 2l3 8 5-8 5 8 3-8" />
           </svg>
           SocialGem
         </Link>
         <nav aria-label="Main">
-          <a href="#try">Try it</a>
-          <a href="#publishing">Publishing</a>
+          <a href="#flight">Simulator</a>
+          <a href="#make">Composer</a>
           <a href="#platforms">Platforms</a>
-          <a href="#pricing">Pricing</a>
+          <a href="#end">Pricing</a>
         </nav>
-        <button
-          type="button"
-          className="sg-icon"
-          aria-label="Switch between light and dark"
-          onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-        >
-          <FiMoon className="sg-when-light" />
-          <FiSun className="sg-when-dark" />
-        </button>
         <Link href="/login" className="sg-signin">Sign in</Link>
       </div>
       <motion.div className="sg-progress" style={{ scaleX }} aria-hidden="true" />
