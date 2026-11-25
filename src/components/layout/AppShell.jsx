@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { Dialog, DropdownMenu } from "radix-ui";
 import { MotionConfig, motion } from "motion/react";
-import { Bot, CalendarDays, ChartNoAxesColumn, ChevronsUpDown, CircleHelp, CreditCard, Image as ImageIcon, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Plus, Search, Share2, Sparkles, X } from "lucide-react";
+import { Bot, CalendarDays, ChartNoAxesColumn, ChevronsUpDown, CircleHelp, CreditCard, Image as ImageIcon, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Plus, Search, Settings, Share2, Sparkles, X } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 import WorkspaceSwitcher from "@/components/layout/WorkspaceSwitcher";
 import Logo, { Mark } from "@/components/site/Logo";
@@ -31,6 +31,7 @@ const GROUPS = [
   {
     name: "Account",
     items: [
+      { name: "Account settings", path: "/account", Icon: Settings, hint: "Your profile and ways to log in" },
       { name: "Pricing", path: "/pricing", Icon: CreditCard, hint: "Plans and limits" },
       { name: "Help", path: "/help", Icon: CircleHelp, hint: "Answers to common questions" },
     ],
@@ -92,7 +93,8 @@ function UserMenu({ user, compact }) {
             <b className="block truncate text-sm font-semibold">{user?.name || "Your account"}</b>
             <span className="block truncate text-xs text-muted-ink">{user?.email}</span>
           </div>
-          <DropdownMenu.Item asChild className={cn(item, "mt-1.5")}><Link href="/integrations"><Share2 className="size-4" /> Connected channels</Link></DropdownMenu.Item>
+          <DropdownMenu.Item asChild className={cn(item, "mt-1.5")}><Link href="/account"><Settings className="size-4" /> Account settings</Link></DropdownMenu.Item>
+          <DropdownMenu.Item asChild className={item}><Link href="/integrations"><Share2 className="size-4" /> Connected channels</Link></DropdownMenu.Item>
           <DropdownMenu.Item asChild className={item}><Link href="/help"><CircleHelp className="size-4" /> Help centre</Link></DropdownMenu.Item>
           <DropdownMenu.Item className={cn(item, "text-destructive")} onSelect={() => signOut({ callbackUrl: "/login" })}><LogOut className="size-4" /> Log out</DropdownMenu.Item>
         </DropdownMenu.Content>

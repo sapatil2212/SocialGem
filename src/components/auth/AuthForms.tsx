@@ -50,7 +50,7 @@ export function Spinner() {
   return <LoaderCircle aria-hidden className="animate-spin motion-reduce:animate-none" />;
 }
 
-function Google({ next, enabled, onError }: { next: string; enabled: boolean; onError: (m: string) => void }) {
+function Google({ next, enabled, label, onError }: { next: string; enabled: boolean; label: string; onError: (m: string) => void }) {
   const [busy, setBusy] = useState(false);
   return (
     <>
@@ -71,7 +71,7 @@ function Google({ next, enabled, onError }: { next: string; enabled: boolean; on
           }
         }}
       >
-        {busy ? <Spinner /> : <FcGoogle />} {busy ? "Opening Google" : "Continue with Google"}
+        {busy ? <Spinner /> : <FcGoogle />} {busy ? "Opening Google" : label}
       </Button>
       {!enabled && <p className="-mt-2 text-sm text-muted-ink">Google sign-in is not set up on this server yet.</p>}
       <p className="flex items-center gap-4 text-sm text-muted-ink before:h-px before:flex-1 before:bg-hairline after:h-px after:flex-1 after:bg-hairline">or use email</p>
@@ -165,7 +165,7 @@ function LoginFields({ next, error, google, done, email }: Props & { email: stri
           <p role="status" className="flex items-center gap-2.5 rounded-xl border border-success/30 bg-success/5 p-3.5 text-sm font-medium text-success"><CircleCheck aria-hidden className="size-4 shrink-0" />{message}</p>
         )}
         {problem && <FormAlert>{problem}</FormAlert>}
-        <Google next={next} enabled={google} onError={setProblem} />
+        <Google label="Log in with Google" next={next} enabled={google} onError={setProblem} />
         <Field label="Email" error={formState.errors.email?.message}>
           <Input type="email" autoComplete="email" inputMode="email" placeholder="you@business.com" {...register("email")} />
         </Field>
@@ -226,7 +226,7 @@ export function SignUpForm({ next, error, google }: Props) {
       <Head title="Create your account" text="We will email you a 6-digit code to confirm it is you." />
       <form noValidate onSubmit={handleSubmit(submit)} className="grid gap-4">
         {problem && <FormAlert>{problem}</FormAlert>}
-        <Google next={next} enabled={google} onError={setProblem} />
+        <Google label="Sign up with Google" next={next} enabled={google} onError={setProblem} />
         <Field label="Your name" error={errors.name?.message}>
           <Input autoComplete="name" placeholder="Asha Patil" {...register("name")} />
         </Field>
@@ -241,7 +241,7 @@ export function SignUpForm({ next, error, google }: Props) {
           {isSubmitting ? <><Spinner /> Creating your account</> : <>Create account <ArrowRight /></>}
         </Button>
         <p className="text-sm text-muted-ink">
-          SocialGem is in development. See the draft <Link href="/terms" className="underline">terms</Link> and <Link href="/privacy" className="underline">privacy policy</Link>.
+          By signing up, with email or Google, you accept the draft <Link href="/terms" className="underline">terms</Link> and <Link href="/privacy" className="underline">privacy policy</Link>.
         </p>
       </form>
     </>

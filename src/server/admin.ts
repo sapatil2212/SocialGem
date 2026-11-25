@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import type { Prisma } from "@prisma/client";
 import { emailSchema } from "@/lib/auth-schemas";
 import { prisma } from "@/lib/prisma";
+import { googleReady } from "./entry";
 import { HttpError, notFound } from "./errors";
 
 // Separate from the customer session: its own cookie, a short life, and a row that can be revoked.
@@ -154,7 +155,7 @@ export async function adminHealth() {
       { name: "HTTPS address", ok: secure },
       { name: "Email sending", ok: set("EMAIL_HOST", "EMAIL_USERNAME", "EMAIL_PASSWORD") },
       { name: "MuAPI key", ok: set("MUAPI_API_KEY") || set("MUAPIAPP_API_KEY") },
-      { name: "Google sign-in", ok: set("GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET") },
+      { name: "Google sign-in", ok: googleReady() },
     ],
   };
 }
