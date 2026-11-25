@@ -126,26 +126,37 @@ describe.skipIf(!local)("database rules (local MySQL)", async () => {
   });
 
   // The query the M4 worker will use, proven here on real MySQL.
-  const claim = (client: PrismaClient, limit: number, wait = 0) =>
+  const claim = (client: PrismaClient, limit: number, hold?: { locked: () => void; until: Promise<void> }) =>
     client.$transaction(
       async (tx) => {
         const rows = await tx.$queryRaw<{ id: string }[]>`SELECT id FROM PostTarget FORCE INDEX (PostTarget_claimAt_idx) WHERE claimAt <= UTC_TIMESTAMP(3) ORDER BY claimAt LIMIT ${limit} FOR UPDATE SKIP LOCKED`;
-        if (wait) await new Promise((r) => setTimeout(r, wait));
+        if (hold) {
+          hold.locked();
+          await hold.until;
+        }
         if (rows.length) await tx.$executeRaw`UPDATE PostTarget SET status = 'QUEUED', claimAt = UTC_TIMESTAMP(3) + INTERVAL 2 MINUTE WHERE id IN (${Prisma.join(rows.map((r) => r.id))})`;
         return rows.map((r) => r.id);
       },
       { isolationLevel: "ReadCommitted", timeout: 15_000 }
     );
 
+  // Holds the locks until released, so the tests depend on order and not on the clock.
+  async function holdClaim() {
+    let locked!: () => void, release!: () => void;
+    const ready = new Promise<void>((r) => (locked = r));
+    const until = new Promise<void>((r) => (release = r));
+    const taken = claim(db, 5, { locked, until });
+    await ready;
+    return { taken, release };
+  }
+
   describe("claiming", () => {
     it("two workers never take the same post, and neither waits", async () => {
       for (let i = 0; i < 12; i++) await dataFor(a.id).posts.create(newPost(a));
-      const slow = claim(db, 5, 1200);
-      await new Promise((r) => setTimeout(r, 300));
-      const start = Date.now();
+      const slow = await holdClaim();
       const fast = await claim(other, 5);
-      expect(Date.now() - start).toBeLessThan(800);
-      const first = await slow;
+      slow.release();
+      const first = await slow.taken;
       expect(first).toHaveLength(5);
       expect(fast).toHaveLength(5);
       expect(new Set([...first, ...fast]).size).toBe(10);
@@ -155,13 +166,11 @@ describe.skipIf(!local)("database rules (local MySQL)", async () => {
     it("does not block editing a post that was not taken", async () => {
       await dataFor(a.id).posts.create(newPost(a));
       const [later] = await dataFor(a.id).posts.create(newPost(a, { scheduledAt: new Date(Date.now() + 3600_000) }));
-      const slow = claim(db, 5, 1200);
-      await new Promise((r) => setTimeout(r, 300));
-      const start = Date.now();
+      const slow = await holdClaim();
       const current = (await dataFor(a.id).posts.raw(later.id))!;
       await dataFor(a.id).posts.update(current, { caption: "edited", scheduledAt: later.scheduledAt, status: "SCHEDULED" });
-      expect(Date.now() - start).toBeLessThan(800);
-      await slow;
+      slow.release();
+      expect(await slow.taken).toHaveLength(1);
     });
   });
 

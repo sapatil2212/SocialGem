@@ -51,7 +51,7 @@ export async function createWorkspace(userId: string, details: Details) {
       select: { id: true, name: true, timezone: true, businessType: true, emailOnFailure: true },
     });
     // READ COMMITTED: MySQL's default would count an old snapshot after the lock.
-  }, { isolationLevel: "ReadCommitted" });
+  }, { isolationLevel: "ReadCommitted", maxWait: 10_000, timeout: 15_000 });
 }
 
 export const updateWorkspace = (id: string, details: Partial<Details>) =>
