@@ -27,7 +27,7 @@ export default function Navbar() {
   const currentAppId = appMatch ? appMatch[1] : null;
 
   const navLinks = [
-    { name: "Calendar", path: "/" },
+    { name: "Calendar", path: "/app" },
     { name: "Channels", path: "/integrations" },
     { name: "Agent", path: "/agents" },
     { name: "Gallery", path: "/gallery" },
@@ -39,7 +39,7 @@ export default function Navbar() {
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         
         {/* Logo and Brand Title (Visible at all times) */}
-        <Link href="/" className="flex items-center gap-2.5 transition-transform hover:scale-[1.02] active:scale-95">
+        <Link href="/app" className="flex items-center gap-2.5 transition-transform hover:scale-[1.02] active:scale-95">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 via-purple-600 to-pink-500 text-white font-extrabold text-lg shadow-md shadow-indigo-500/30">
             {logoLetter}
           </div>

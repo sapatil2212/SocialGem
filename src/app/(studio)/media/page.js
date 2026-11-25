@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import AppShell from "@/components/layout/AppShell";
 import MediaGrid from "@/components/media/MediaGrid";
 import MediaUploaderModal from "@/components/media/MediaUploaderModal";
 import ImageCropperModal from "@/components/media/ImageCropperModal";
@@ -129,7 +128,7 @@ export default function MediaPage() {
   };
 
   return (
-    <AppShell>
+    <>
       <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
         {/* Top Header & Action Controls */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-zinc-200 dark:border-zinc-800">
@@ -400,6 +399,6 @@ export default function MediaPage() {
           toast.success("Post scheduled!");
         }}
       />
-    </AppShell>
+    </>
   );
 }

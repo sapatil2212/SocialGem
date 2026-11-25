@@ -254,7 +254,7 @@ export default function TopPostsTable({ posts = [], onRepurpose = null, loading 
                             if (onRepurpose) {
                               onRepurpose(post);
                             } else {
-                              window.location.href = `/?repurpose=${encodeURIComponent(post.id || "")}&title=${encodeURIComponent(post.title || "")}&desc=${encodeURIComponent(post.description || "")}`;
+                              window.location.href = `/app?repurpose=${encodeURIComponent(post.id || "")}&title=${encodeURIComponent(post.title || "")}&desc=${encodeURIComponent(post.description || "")}`;
                             }
                           }}
                           className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-[#612bd3]/10 dark:bg-[#612bd3]/20 hover:bg-[#612bd3] text-[#612bd3] dark:text-[#c4b5fd] hover:text-white border border-[#612bd3]/30 transition-all cursor-pointer flex items-center gap-1 shadow-2xs"

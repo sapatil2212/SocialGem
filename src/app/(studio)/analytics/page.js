@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import AppShell from "@/components/layout/AppShell";
 import MetricsSummaryCards from "@/components/analytics/MetricsSummaryCards";
 import GrowthChart from "@/components/analytics/GrowthChart";
 import TopPostsTable from "@/components/analytics/TopPostsTable";
@@ -78,7 +77,7 @@ export default function AnalyticsPage() {
   };
 
   return (
-    <AppShell>
+    <>
       <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
         {/* Top Header & Range Controls */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-zinc-200 dark:border-zinc-800">
@@ -171,6 +170,6 @@ export default function AnalyticsPage() {
           toast.success("Post saved!");
         }}
       />
-    </AppShell>
+    </>
   );
 }

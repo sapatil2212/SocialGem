@@ -9,7 +9,9 @@ function LoginContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get("callbackUrl") || searchParams.get("next") || "/";
+  const requested = searchParams.get("callbackUrl") || searchParams.get("next") || "";
+  // Same-origin paths only, so a crafted link cannot send people to another site.
+  const next = /^\/(?![\/\\])[^\s\\]*$/.test(requested) ? requested : "/app";
 
   useEffect(() => {
     if (status === "authenticated") {

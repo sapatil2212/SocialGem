@@ -1,30 +1,20 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
-import AppShell from "@/components/layout/AppShell";
 
-const inter = Inter({ 
-  variable: "--font-inter", 
-  subsets: ["latin"], 
-  display: "swap" 
-});
+const inter = Inter({ variable: "--font-inter", subsets: ["latin"], display: "swap" });
 
 export const metadata = {
-  title: "AI Social Media Scheduler & Creator Studio",
-  description: "Schedule, preview and publish AI-powered content across all your social platforms.",
+  title: { default: "SocialGem", template: "%s | SocialGem" },
+  description: "Plan, preview and schedule social posts for your business from one calendar.",
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" suppressHydrationWarning className="h-full w-full overflow-hidden">
-      <body className={`${inter.variable} ${inter.className} h-full w-full antialiased overflow-hidden`}>
-        <Providers>
-          <AppShell>
-            {children}
-          </AppShell>
-        </Providers>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.variable} ${inter.className} antialiased`}>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
 }
-

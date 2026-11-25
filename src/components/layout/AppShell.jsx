@@ -82,7 +82,7 @@ export default function AppShell({ children }) {
   const navItems = [
     {
       name: "Calendar",
-      path: "/",
+      path: "/app",
       icon: <FiCalendar className="w-5 h-5" />,
       exact: true,
     },
@@ -114,7 +114,7 @@ export default function AppShell({ children }) {
   ];
 
   const getPageTitle = () => {
-    if (pathname === "/") return "Calendar";
+    if (pathname === "/app") return "Calendar";
     if (pathname.startsWith("/analytics")) return "Analytics & Performance";
     if (pathname.startsWith("/agents")) return "AI Social Agent";
     if (pathname.startsWith("/integrations")) return "Channels & Integrations";
@@ -125,15 +125,15 @@ export default function AppShell({ children }) {
   };
 
   const handleCreatePost = () => {
-    if (pathname === "/") {
+    if (pathname === "/app") {
       window.dispatchEvent(new CustomEvent("open-composer", { detail: { withAi: false } }));
     } else {
-      router.push("/?compose=true");
+      router.push("/app?compose=true");
     }
   };
 
   const handleWriteWithAi = () => {
-    if (pathname === "/") {
+    if (pathname === "/app") {
       window.dispatchEvent(new CustomEvent("open-composer", { detail: { withAi: true } }));
     } else {
       router.push("/agents");
@@ -162,7 +162,7 @@ export default function AppShell({ children }) {
           {/* Top Logo & Menu Items */}
           <div className="flex flex-col items-center gap-4 w-full min-h-0 overflow-y-auto scrollbar-none">
             <Link
-              href="/"
+              href="/app"
               className="flex items-center justify-center transition-transform hover:scale-105 active:scale-95 shrink-0"
               title="Social Media Studio"
             >
