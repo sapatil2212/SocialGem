@@ -116,3 +116,10 @@ Sandbox keys (`is_test: true`) return mock output without billing. Whether this 
 12. When are results and media fetched and discarded? How long must `media_url` stay live?
 13. Is `publish_id` the platform's post ID, so that a link can be built?
 14. Is a Page picker offered for owners of several Facebook Pages?
+
+## 11. Live checks (25 Nov 2026, real key, nothing connected or published)
+- `GET /account/balance`: 200, `currency: USD`, `balance: 0.0`. Units are confirmed as USD.
+- `GET /social/ext/accounts` for an unknown `external_user_id`: 200 and an empty list.
+- `connect-url` for Facebook and Instagram: 200 with a `http://localhost` `redirect_to`.
+- **Confirmed: PostForMe is the upstream.** Both consent links return to `app.postforme.dev`. It must be named in the privacy policy.
+- Still unknown: what reaches our address after consent, and whether its path survives.
