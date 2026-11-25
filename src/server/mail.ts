@@ -1,11 +1,11 @@
-import nodemailer from "nodemailer";
+import nodemailer, { type Transporter } from "nodemailer";
 
 const env = (name: string) => process.env[name]?.trim() || "";
 export const mailReady = () => Boolean(env("EMAIL_HOST") && env("EMAIL_USERNAME") && env("EMAIL_PASSWORD"));
 
 const escape = (text: string) => text.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 
-let transport: nodemailer.Transporter | undefined;
+let transport: Transporter | undefined;
 
 function mailer() {
   const port = Number(env("EMAIL_PORT") || 587);
