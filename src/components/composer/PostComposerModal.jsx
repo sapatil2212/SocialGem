@@ -1,6 +1,7 @@
 "use client";
 
 import { inWorkspace } from "@/lib/workspace-client";
+import { CONNECT_MESSAGES, openConnect } from "@/lib/connect-client";
 import { useState, useRef, useEffect } from "react";
 import { 
   FaYoutube, 
@@ -415,25 +416,13 @@ export default function PostComposerModal({
     setIsConnecting(true);
     setConnectError("");
 
-    const label = accountNameInput.trim();
-    if (connectingPlatform.key === "youtube" && label) {
-      localStorage.setItem("pending_youtube_label", label);
-    }
-
     try {
-      const res = await fetch(inWorkspace("/accounts/connect"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          platform: connectingPlatform.key,
-        }),
-      });
-
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
+      const result = await openConnect(connectingPlatform.key);
+      if (result === "connected") {
+        setConnectingPlatform(null);
+        fetchAccounts();
       } else {
-        setConnectError(data.error || "Failed to initiate connection. Please try again.");
+        setConnectError(CONNECT_MESSAGES[result] || CONNECT_MESSAGES.failed);
       }
     } catch (err) {
       setConnectError(err.message || "Failed to connect to platform.");

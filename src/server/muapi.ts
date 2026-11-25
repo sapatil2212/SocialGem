@@ -9,6 +9,17 @@ const CONNECTABLE = ["facebook", "instagram", "youtube", "tiktok"];
 export const enabledPlatforms = () =>
   (process.env.PLATFORMS_ENABLED || "facebook,instagram").split(",").map((p) => p.trim()).filter(Boolean);
 
+/** Whether each platform can be connected here: ready, setup (no key), testing (no safe connect flow) or off. */
+export function platformStates() {
+  const on = enabledPlatforms();
+  return Object.fromEntries(
+    ["facebook", "instagram", "youtube", "tiktok", "x", "linkedin", "threads", "pinterest"].map((p) => {
+      const state = p === "x" ? "testing" : !on.includes(p) || !CONNECTABLE.includes(p) ? "off" : muapiReady() ? "ready" : "setup";
+      return [p === "x" ? "x_twitter" : p, state];
+    })
+  );
+}
+
 export const platformKey = (value: string) => (value === "x_twitter" || value === "twitter" ? "x" : value.toLowerCase());
 
 async function call(path: string, init: RequestInit = {}) {

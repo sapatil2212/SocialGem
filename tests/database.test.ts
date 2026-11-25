@@ -22,7 +22,7 @@ describe.skipIf(!local)("database rules (local MySQL)", async () => {
   const other = new PrismaClient({ datasourceUrl: url });
   const { dataFor } = await import("../src/server/data");
   const { createWorkspace, membership } = await import("../src/server/workspaces");
-  const { finishConnect, startConnect } = await import("../src/server/accounts");
+  const { attemptResult, finishConnect, startConnect } = await import("../src/server/accounts");
 
   type W = { id: string; userId: string; accountId: string };
   let a: W, b: W;
@@ -225,9 +225,9 @@ describe.skipIf(!local)("database rules (local MySQL)", async () => {
       });
     });
     const start = async (w: W) => {
-      await startConnect((await membership(w.userId, w.id))!, w.userId, "facebook");
+      const started = await startConnect((await membership(w.userId, w.id))!, w.userId, "facebook");
       const body = JSON.parse(sent.at(-1)!.body);
-      return { state: new URL(body.redirect_to).searchParams.get("state")!, external: body.external_user_id as string };
+      return { state: new URL(body.redirect_to).pathname.split("/").pop()!, external: body.external_user_id as string, attempt: started.attempt };
     };
     const count = (w: W) => db.socialAccount.count({ where: { workspaceId: w.id } });
 
@@ -254,6 +254,13 @@ describe.skipIf(!local)("database rules (local MySQL)", async () => {
       expect((await finishConnect(a.userId, s.state)).result).toBe("expired");
       expect(await count(a)).toBe(1);
     });
+    it("declining says nothing was connected, even with an account already there", async () => {
+      let s = await start(a);
+      remote = [page(650)];
+      await finishConnect(a.userId, s.state);
+      s = await start(a);
+      expect((await finishConnect(a.userId, s.state)).result).toBe("none");
+    });
     it("refuses a Page another workspace holds", async () => {
       let s = await start(a);
       remote = [page(700)];
@@ -264,13 +271,32 @@ describe.skipIf(!local)("database rules (local MySQL)", async () => {
       expect((await finishConnect(b.userId, s.state)).result).toBe("taken");
       expect(await count(b)).toBe(1);
     });
+    it("reports progress without ever adding an account", async () => {
+      const s = await start(a);
+      remote = [page(900)];
+      expect(await attemptResult(a.id, a.userId, s.attempt)).toBe("waiting");
+      expect(await count(a)).toBe(1);
+      expect(await attemptResult(a.id, b.userId, s.attempt)).toBeNull();
+      expect(await attemptResult(b.id, b.userId, s.attempt)).toBeNull();
+      await finishConnect(a.userId, s.state);
+      expect(await attemptResult(a.id, a.userId, s.attempt)).toBe("connected");
+    });
+    it("two returns at once add the account once", async () => {
+      const s = await start(a);
+      remote = [page(901)];
+      const r = await Promise.all([finishConnect(a.userId, s.state), finishConnect(a.userId, s.state)]);
+      expect(r.map((x) => x.result).sort()).toEqual(["connected", "expired"]);
+      expect(await count(a)).toBe(2);
+    });
     it("reconnects the same row", async () => {
       let s = await start(a);
       remote = [page(800)];
       await finishConnect(a.userId, s.state);
       const row = (await db.socialAccount.findUnique({ where: { muapiAccountId: 800 } }))!;
       await dataFor(a.id).accounts.disconnect(row.id);
+      remote = [page(800, { connected: false })];
       s = await start(a);
+      remote = [page(800)];
       expect((await finishConnect(a.userId, s.state)).result).toBe("connected");
       expect((await db.socialAccount.findUnique({ where: { id: row.id } }))!.status).toBe("ACTIVE");
       expect(await count(a)).toBe(2);

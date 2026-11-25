@@ -1,505 +1,236 @@
 "use client";
 
-import { inWorkspace } from "@/lib/workspace-client";
-import { useEffect, useState } from "react";
-import { useSession, signIn } from "next-auth/react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
-import { FaYoutube, FaInstagram, FaFacebook, FaLinkedin, FaPinterest } from "react-icons/fa";
-import { FaXTwitter, FaThreads } from "react-icons/fa6";
+import { FaFacebook, FaInstagram, FaLinkedin, FaPinterest, FaYoutube } from "react-icons/fa";
+import { FaThreads, FaXTwitter } from "react-icons/fa6";
 import { SiTiktok } from "react-icons/si";
-import { FiEdit2, FiTrash2, FiCheck, FiPlus, FiX, FiRefreshCw, FiAlertTriangle } from "react-icons/fi";
+import { FiAlertTriangle, FiCheck, FiEdit2, FiPlus, FiRefreshCw, FiTrash2, FiX } from "react-icons/fi";
+import { announceAccounts, CONNECT_MESSAGES, onAccountsChanged, openConnect } from "@/lib/connect-client";
+import { inWorkspace } from "@/lib/workspace-client";
 
 const PLATFORMS = [
-  {
-    key: "youtube",
-    platformId: 1,
-    name: "YouTube",
-    Icon: FaYoutube,
-    iconColor: "text-red-500",
-    description: "Publish videos directly to your YouTube channel.",
-    comingSoon: false,
-  },
-  {
-    key: "tiktok",
-    platformId: 2,
-    name: "TikTok",
-    Icon: SiTiktok,
-    iconColor: "text-zinc-100",
-    description: "Upload and publish videos to TikTok.",
-    comingSoon: false,
-  },
-  {
-    key: "instagram",
-    platformId: 3,
-    name: "Instagram",
-    Icon: FaInstagram,
-    iconColor: "text-pink-500",
-    description: "Publish Reels and images to Instagram Business.",
-    comingSoon: false,
-  },
-  {
-    key: "x_twitter",
-    platformId: 4,
-    name: "X (Twitter)",
-    Icon: FaXTwitter,
-    iconColor: "text-zinc-300",
-    description: "Publish posts and videos to X (Twitter).",
-    comingSoon: false,
-  },
-  {
-    key: "facebook",
-    platformId: 5,
-    name: "Facebook",
-    Icon: FaFacebook,
-    iconColor: "text-blue-600",
-    description: "Publish Reels and posts to Facebook Pages.",
-    comingSoon: false,
-  },
-  {
-    key: "linkedin",
-    platformId: 6,
-    name: "LinkedIn",
-    Icon: FaLinkedin,
-    iconColor: "text-sky-600",
-    description: "Share videos and posts to LinkedIn profiles and pages.",
-    comingSoon: false,
-  },
-  {
-    key: "threads",
-    platformId: 7,
-    name: "Threads",
-    Icon: FaThreads,
-    iconColor: "text-zinc-200",
-    description: "Publish posts and media to Threads.",
-    comingSoon: false,
-  },
-  {
-    key: "pinterest",
-    platformId: 8,
-    name: "Pinterest",
-    Icon: FaPinterest,
-    iconColor: "text-red-600",
-    description: "Publish Pins and boards to Pinterest.",
-    comingSoon: false,
-  },
+  { key: "facebook", name: "Facebook", Icon: FaFacebook, color: "#1877f2", text: "Pages you manage. Personal profiles and Groups are not possible on any tool." },
+  { key: "instagram", name: "Instagram", Icon: FaInstagram, color: "#e1306c", text: "Business or Creator accounts." },
+  { key: "youtube", name: "YouTube", Icon: FaYoutube, color: "#ff0000", text: "Videos on your channel." },
+  { key: "tiktok", name: "TikTok", Icon: SiTiktok, color: "currentColor", text: "Short videos." },
+  { key: "x_twitter", name: "X", Icon: FaXTwitter, color: "currentColor", text: "Text, photos and video." },
+  { key: "linkedin", name: "LinkedIn", Icon: FaLinkedin, color: "#0a66c2", text: "Profiles and pages." },
+  { key: "threads", name: "Threads", Icon: FaThreads, color: "currentColor", text: "Text and media." },
+  { key: "pinterest", name: "Pinterest", Icon: FaPinterest, color: "#e60023", text: "Pins." },
 ];
+const STATES = { ready: "", setup: "Not set up on the server yet", off: "Coming later", testing: "In testing" };
+const REFRESH = 20_000;
 
-export default function IntegrationsPage() {
-  const { data: session } = useSession();
-  const [accounts, setAccounts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  
-  // Connect / Rename states
-  const [connectingPlatform, setConnectingPlatform] = useState(null);
-  const [accountNameInput, setAccountNameInput] = useState("");
-  const [renamingId, setRenamingId] = useState(null);
-  const [renameValue, setRenameValue] = useState("");
-  const [disconnectingId, setDisconnectingId] = useState(null);
-  
-  // Request access interest states
-  const [requestedPlatforms, setRequestedPlatforms] = useState([]);
-  const [requesting, setRequesting] = useState(null);
+const say = (result) => (result === "connected" ? toast.success : toast)(CONNECT_MESSAGES[result] || CONNECT_MESSAGES.failed, { duration: 6000 });
+const small = "inline-flex min-h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors";
+const quiet = `${small} border border-zinc-200 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-500`;
 
-  useEffect(() => {
-    // Load requested platforms from localStorage
-    const localRequested = localStorage.getItem("requested_platforms");
-    if (localRequested) {
-      try {
-        setRequestedPlatforms(JSON.parse(localRequested));
-      } catch (e) {
-        setRequestedPlatforms([]);
-      }
-    }
-  }, []);
+async function json(path, options) {
+  const response = await fetch(inWorkspace(path), options);
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || "Something went wrong.");
+  return data;
+}
 
-  // Result of coming back from a connect flow
-  useEffect(() => {
-    const messages = {
-      connected: "Account connected.",
-      taken: "That account is already connected in another workspace. Disconnect it there first.",
-      none: "No new account was connected.",
-      expired: "That connection link has expired. Please try again.",
-      failed: "The social service did not respond. Please try again.",
-    };
-    const result = messages[new URLSearchParams(window.location.search).get("connect")];
-    if (!result) return;
-    toast(result, { duration: 6000 });
-    window.history.replaceState(null, "", "/integrations");
-  }, []);
-
-  useEffect(() => {
-    if (session?.user) {
-      fetchAccounts();
-    } else {
-      setLoading(false);
-    }
-  }, [session]);
-
-  const fetchAccounts = () => {
-    setLoading(true);
-    fetch(inWorkspace("/accounts"))
-      .then((res) => res.json())
-      .then((data) => {
-        const fetchedAccounts = Array.isArray(data) ? data : [];
-        setAccounts(fetchedAccounts);
-        
-      })
-      .catch((err) => console.error("Failed to load accounts:", err))
-      .finally(() => setLoading(false));
-  };
-
-  const handleConnect = (platform) => {
-    if (!session) {
-      signIn();
-      return;
-    }
-    setAccountNameInput("");
-    setConnectingPlatform(platform);
-  };
-
-  const confirmConnect = async () => {
-    if (!connectingPlatform) return;
-    const label = accountNameInput.trim();
-    const platform = connectingPlatform;
-    setConnectingPlatform(null);
-
-    if (platform.key === "youtube" && label) {
-      localStorage.setItem("pending_youtube_label", label);
-    }
-
+function AccountRow({ account, busy, onReconnect, onRenamed, onRemoved }) {
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(account.account_name);
+  const [working, setWorking] = useState(false);
+  const run = async (work) => {
+    setWorking(true);
     try {
-      const res = await fetch(inWorkspace("/accounts/connect"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          platform: platform.key,
-        })
-      });
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        alert(data.error || "Failed to initiate connection");
-      }
-    } catch (err) {
-      console.error(err);
-      alert(`Error connecting ${platform.name} account`);
-    }
-  };
-
-  const handleDisconnect = async (id) => {
-    if (!confirm("Are you sure you want to disconnect this account?")) return;
-    setDisconnectingId(id);
-    try {
-      const res = await fetch(inWorkspace(`/accounts/${id}`), {
-        method: "DELETE"
-      });
-      if (res.ok) {
-        setAccounts((prev) => prev.filter((a) => a.id !== id));
-      } else {
-        const data = await res.json();
-        alert(data.error || "Failed to disconnect");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Error disconnecting account");
+      await work();
+    } catch (error) {
+      toast.error(error.message);
     } finally {
-      setDisconnectingId(null);
+      setWorking(false);
     }
   };
-
-  const startRename = (acc) => {
-    setRenamingId(acc.id);
-    setRenameValue(acc.account_name || "");
+  const save = () =>
+    run(async () => {
+      const body = JSON.stringify({ accountName: name.trim() });
+      onRenamed(await json(`/accounts/${account.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body }));
+      setEditing(false);
+    });
+  const remove = () => {
+    if (!window.confirm(`Disconnect ${account.account_name}? Scheduled posts for it will not go out.`)) return;
+    run(async () => {
+      await json(`/accounts/${account.id}`, { method: "DELETE" });
+      onRemoved(account.id);
+      announceAccounts();
+    });
   };
-
-  const saveRename = async (id) => {
-    const trimmed = renameValue.trim();
-    if (!trimmed) return;
-    
-    try {
-      const res = await fetch(inWorkspace(`/accounts/${id}`), {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ accountName: trimmed })
-      });
-      if (res.ok) {
-        setAccounts((prev) =>
-          prev.map((a) => (a.id === id ? { ...a, account_name: trimmed } : a))
-        );
-        setRenamingId(null);
-      } else {
-        const data = await res.json();
-        alert(data.error || "Failed to rename account");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Error renaming account");
-    }
-  };
-
-  const handleRequestAccess = async (platform) => {
-    if (requestedPlatforms.includes(platform.name)) return;
-    setRequesting(platform.key);
-    try {
-      // Save locally
-      const updated = [...requestedPlatforms, platform.name];
-      setRequestedPlatforms(updated);
-      localStorage.setItem("requested_platforms", JSON.stringify(updated));
-      
-      alert(`Got it! Noted on this device.`);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setRequesting(null);
-    }
-  };
-
-  const getAccountsForPlatform = (platformId, platformKey) =>
-    accounts.filter(
-      (a) => a.platform === platformId || a.platform_name === platformKey || a.platform === platformKey
-    );
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 py-8 sm:px-6 text-slate-900 dark:text-white transition-colors duration-200">
-      
-      {/* Connect Platform Modal */}
-      {connectingPlatform && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/80 backdrop-blur-sm px-4">
-          <div className="bg-white dark:bg-[#1a1919] border border-zinc-200 dark:border-[#2e2d2d] rounded-2xl shadow-2xl p-6 w-full max-w-sm flex flex-col gap-4 text-slate-900 dark:text-white">
-            <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 pb-3">
-              <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
-                {connectingPlatform.Icon && <connectingPlatform.Icon className={connectingPlatform.iconColor} />}
-                Connect {connectingPlatform.name}
-              </h3>
-              <button
-                onClick={() => setConnectingPlatform(null)}
-                className="text-zinc-400 hover:text-zinc-700 dark:hover:text-white transition-colors cursor-pointer"
-              >
-                <FiX className="text-sm" />
-              </button>
-            </div>
-            
-            <div className="flex flex-col gap-2">
-              <label className="text-xs text-zinc-600 dark:text-zinc-400 font-medium">
-                Account label <span className="text-zinc-400 dark:text-zinc-500">(optional)</span>
-              </label>
-              <input
-                autoFocus
-                type="text"
-                placeholder={`e.g. "Main Channel", "Brand Account"`}
-                value={accountNameInput}
-                onChange={(e) => setAccountNameInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && confirmConnect()}
-                className="px-3 py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded-lg text-slate-900 dark:text-white text-xs outline-none focus:border-[#612bd3] focus:ring-1 focus:ring-[#612bd3]/20 transition-all"
-              />
-              <p className="text-[10px] text-zinc-500 leading-normal">
-                A friendly name to identify this account in the scheduler. You can change this later.
-              </p>
-            </div>
+    <li className="flex flex-wrap items-center gap-3 rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2.5 dark:border-zinc-800 dark:bg-zinc-900/50">
+      <span aria-hidden className={`size-2 rounded-full ${account.connected ? "bg-emerald-500" : "bg-amber-500"}`} />
+      {editing ? (
+        <input
+          autoFocus
+          aria-label="Account name"
+          value={name}
+          maxLength={80}
+          onChange={(e) => setName(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") save();
+            if (e.key === "Escape") setEditing(false);
+          }}
+          className="min-h-9 min-w-0 flex-1 rounded border border-[#612bd3] bg-white px-2 text-sm dark:bg-zinc-950"
+        />
+      ) : (
+        <span className="min-w-0 flex-1 truncate text-sm font-semibold">
+          {account.account_name}
+          <span className={`ml-2 text-xs font-medium ${account.connected ? "text-emerald-700 dark:text-emerald-400" : "text-amber-700 dark:text-amber-400"}`}>
+            {account.connected ? "Active" : "Needs reconnecting"}
+          </span>
+        </span>
+      )}
+      {editing ? (
+        <>
+          <button type="button" className={quiet} disabled={working || !name.trim()} onClick={save}><FiCheck /> Save</button>
+          <button type="button" className={quiet} disabled={working} onClick={() => setEditing(false)}><FiX /> Cancel</button>
+        </>
+      ) : (
+        <>
+          {!account.connected && <button type="button" className={quiet} disabled={busy} onClick={onReconnect}><FiRefreshCw /> Reconnect</button>}
+          <button type="button" className={quiet} disabled={working} aria-label={`Rename ${account.account_name}`} onClick={() => { setName(account.account_name); setEditing(true); }}><FiEdit2 /></button>
+          <button type="button" className={quiet} disabled={working} aria-label={`Disconnect ${account.account_name}`} onClick={remove}><FiTrash2 /></button>
+        </>
+      )}
+    </li>
+  );
+}
 
-            <div className="flex gap-2 justify-end border-t border-zinc-200 dark:border-zinc-800 pt-4 mt-1">
-              <button
-                onClick={() => setConnectingPlatform(null)}
-                className="px-4 py-2 rounded-lg text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white border border-zinc-300 dark:border-zinc-800 transition-colors cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmConnect}
-                className="px-4 py-2 rounded-lg text-xs bg-[#612bd3] hover:bg-[#7237e8] text-white font-semibold transition-colors flex items-center gap-1.5 cursor-pointer shadow-md shadow-[#612bd3]/30"
-              >
-                Connect with {connectingPlatform.name}
-              </button>
-            </div>
-          </div>
+export default function ChannelsPage() {
+  const [accounts, setAccounts] = useState(null);
+  const [states, setStates] = useState({});
+  const [problem, setProblem] = useState("");
+  const [connecting, setConnecting] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
+  const abort = useRef(null);
+
+  const load = useCallback(async (fresh = false) => {
+    try {
+      setAccounts(await json(`/accounts${fresh ? "?fresh=1" : ""}`));
+      setProblem("");
+    } catch (error) {
+      setProblem(error.message);
+    }
+  }, []);
+
+  useEffect(() => {
+    let live = true;
+    const first = setTimeout(() => {
+      load(true);
+      json("/accounts/platforms").then((data) => live && setStates(data)).catch(() => {});
+      const result = new URLSearchParams(window.location.search).get("connect");
+      if (result) {
+        say(result);
+        window.history.replaceState(null, "", "/integrations");
+      }
+    });
+    // Live: every 20 seconds while visible, when the tab is opened again, and when another tab changes something.
+    const visible = () => document.visibilityState === "visible" && load(true);
+    const timer = setInterval(visible, REFRESH);
+    document.addEventListener("visibilitychange", visible);
+    const stop = onAccountsChanged(() => load());
+    return () => {
+      live = false;
+      clearTimeout(first);
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", visible);
+      stop();
+      abort.current?.abort();
+    };
+  }, [load]);
+
+  const connect = async (platform) => {
+    abort.current = new AbortController();
+    setConnecting(platform);
+    try {
+      const result = await openConnect(platform, abort.current.signal);
+      if (result) say(result);
+      await load();
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setConnecting("");
+    }
+  };
+
+  return (
+    <div className="mx-auto w-full max-w-4xl px-4 py-8 text-slate-900 sm:px-6 dark:text-white">
+      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-zinc-200 pb-6 dark:border-zinc-800">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Channels</h1>
+          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Connections for this workspace only. The list updates by itself.</p>
         </div>
+        <button
+          type="button"
+          className={quiet}
+          disabled={refreshing}
+          onClick={async () => {
+            setRefreshing(true);
+            await load(true);
+            setRefreshing(false);
+          }}
+        >
+          <FiRefreshCw className={refreshing ? "animate-spin motion-reduce:animate-none" : ""} /> Refresh
+        </button>
+      </header>
+
+      {problem && (
+        <p role="alert" className="mt-6 flex items-center gap-3 rounded-lg border border-amber-500/40 bg-amber-500/10 p-4 text-sm">
+          <FiAlertTriangle className="shrink-0 text-amber-600" /> {problem}
+        </p>
       )}
 
-      <div className="mx-auto max-w-4xl flex flex-col gap-8">
-        
-        {/* Header */}
-        <div className="flex flex-col gap-2 w-full border-b border-zinc-200 dark:border-zinc-900 pb-6">
-          <div className="flex items-center justify-between gap-4">
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Integrations</h1>
-            {session?.user && (
-              <button
-                onClick={fetchAccounts}
-                disabled={loading}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white text-xs font-semibold transition-all disabled:opacity-50 cursor-pointer shadow-xs"
-              >
-                <FiRefreshCw className={loading ? "animate-spin" : ""} />
-                Refresh
-              </button>
-            )}
-          </div>
-          <p className="text-xs text-zinc-600 dark:text-zinc-400">
-            Connect your social media accounts to publish content directly.
-          </p>
-        </div>
-
-        {/* Guest Warning alert */}
-        {!session?.user && (
-          <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <FiAlertTriangle className="text-amber-500 text-lg shrink-0" />
-              <div className="flex flex-col gap-0.5">
-                <span className="text-xs font-bold text-amber-600 dark:text-amber-400">Sign in required</span>
-                <span className="text-[11px] text-zinc-600 dark:text-zinc-400">Connect your channels to schedule posts by logging in.</span>
-              </div>
-            </div>
-            <button
-              onClick={() => signIn()}
-              className="px-4 py-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-[11px] rounded-lg transition-colors cursor-pointer"
-            >
-              Sign In
-            </button>
-          </div>
-        )}
-
-        {/* Platforms list */}
-        <div className="flex flex-col gap-4">
-          {PLATFORMS.map((platform) => {
-            const { key, platformId, name, Icon, iconColor, description, comingSoon, requestAccess } = platform;
-            const connected = getAccountsForPlatform(platformId, key);
-            const requested = requestedPlatforms.includes(name);
-
-            return (
-              <div key={key} className="bg-white dark:bg-[#1a1919] border border-zinc-200 dark:border-[#252525] rounded-xl p-5 flex flex-col gap-4 shadow-xs dark:shadow-none transition-colors">
-                {/* Platform main row */}
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex items-center justify-center shrink-0">
-                      <Icon className={`text-xl ${iconColor}`} />
-                    </div>
-                    <div className="flex flex-col">
-                      <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        {name}
-                        {comingSoon && (
-                          <span className="text-[9px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/20">
-                            Coming soon
-                          </span>
-                        )}
-                      </h3>
-                      <p className="text-[11px] text-zinc-600 dark:text-zinc-400 mt-0.5">{description}</p>
-                    </div>
-                  </div>
-
-                  {!comingSoon ? (
-                    <button
-                      onClick={() => handleConnect(platform)}
-                      disabled={!session}
-                      className="px-3.5 py-1.5 bg-[#612bd3] hover:bg-[#7237e8] disabled:opacity-50 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <FiPlus /> Connect
-                    </button>
-                  ) : (
-                    requestAccess && (
-                      <button
-                        onClick={() => handleRequestAccess(platform)}
-                        disabled={requesting === key}
-                        className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors cursor-pointer disabled:opacity-50 ${
-                          requested
-                            ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400"
-                            : "bg-zinc-100 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white"
-                        }`}
-                      >
-                        {requested ? (
-                          <span className="flex items-center gap-1"><FiCheck /> Requested</span>
-                        ) : requesting === key ? (
-                          "Requesting…"
-                        ) : (
-                          "Request access"
-                        )}
-                      </button>
-                    )
-                  )}
+      <ul className="mt-6 grid gap-4">
+        {PLATFORMS.map(({ key, name, Icon, color, text }) => {
+          const mine = (accounts ?? []).filter((a) => a.platform_name === key);
+          const state = states[key];
+          const waiting = connecting === key;
+          return (
+            <li key={key} className="rounded-xl border border-zinc-200 bg-white p-5 dark:border-[#252525] dark:bg-[#1a1919]">
+              <div className="flex flex-wrap items-center gap-4">
+                <span className="grid size-11 shrink-0 place-items-center rounded-lg border border-zinc-200 bg-zinc-100 text-xl dark:border-zinc-800 dark:bg-zinc-900" style={{ color }}><Icon aria-hidden /></span>
+                <div className="min-w-40 flex-1">
+                  <h2 className="font-bold">{name}</h2>
+                  <p className="text-xs text-zinc-600 dark:text-zinc-400">{text}</p>
                 </div>
-
-                {/* Account list section */}
-                {!comingSoon && session && (
-                  <div className="border-t border-zinc-200 dark:border-[#252525] pt-3 flex flex-col gap-2">
-                    {loading ? (
-                      <div className="h-10 w-full bg-zinc-100 dark:bg-zinc-900/60 rounded-lg animate-pulse" />
-                    ) : connected.length > 0 ? (
-                      connected.map((acc) => (
-                        <div key={acc.id} className="bg-zinc-50 dark:bg-zinc-900/50 rounded-lg px-4 py-2.5 border border-zinc-200 dark:border-zinc-800 flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-2 truncate">
-                            {renamingId === acc.id ? (
-                              <input
-                                autoFocus
-                                value={renameValue}
-                                onChange={(e) => setRenameValue(e.target.value)}
-                                onKeyDown={(e) => {
-                                  if (e.key === "Enter") saveRename(acc.id);
-                                  if (e.key === "Escape") setRenamingId(null);
-                                }}
-                                className="px-2 py-0.5 text-xs bg-white dark:bg-zinc-950 border border-[#612bd3] rounded outline-none text-slate-900 dark:text-white w-44"
-                              />
-                            ) : (
-                              <span className="text-xs font-semibold text-slate-800 dark:text-zinc-200 truncate">
-                                {acc.account_name || `${name} Account`}
-                              </span>
-                            )}
-                          </div>
-
-                          {/* Account management buttons */}
-                          <div className="flex items-center gap-1.5 shrink-0">
-                            {renamingId === acc.id ? (
-                              <>
-                                <button
-                                  onClick={() => saveRename(acc.id)}
-                                  className="p-1.5 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 rounded transition-colors cursor-pointer"
-                                  title="Save"
-                                >
-                                  <FiCheck className="text-sm" />
-                                </button>
-                                <button
-                                  onClick={() => setRenamingId(null)}
-                                  className="p-1.5 text-zinc-500 hover:bg-zinc-500/10 rounded transition-colors cursor-pointer"
-                                  title="Cancel"
-                                >
-                                  <FiX className="text-sm" />
-                                </button>
-                              </>
-                            ) : (
-                              <>
-                                <button
-                                  onClick={() => startRename(acc)}
-                                  className="p-1.5 text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 hover:bg-zinc-200/60 dark:hover:bg-zinc-800 rounded transition-colors cursor-pointer"
-                                  title="Rename"
-                                >
-                                  <FiEdit2 className="text-xs" />
-                                </button>
-                                <button
-                                  onClick={() => handleDisconnect(acc.id)}
-                                  disabled={disconnectingId === acc.id}
-                                  className="p-1.5 text-zinc-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-500/10 rounded transition-colors disabled:opacity-50 cursor-pointer"
-                                  title="Disconnect"
-                                >
-                                  <FiTrash2 className="text-xs" />
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <span className="text-xs text-zinc-500">No accounts connected yet.</span>
-                    )}
-                  </div>
-                )}
-
-                {comingSoon && requestAccess && (
-                  <p className="text-xs text-zinc-500 border-t border-zinc-900 pt-3">
-                    {"Request access and we'll notify you when it's live."}
-                  </p>
+                {waiting ? (
+                  <span role="status" className="flex items-center gap-3 text-sm">
+                    <FiRefreshCw className="animate-spin motion-reduce:animate-none" /> Waiting for {name}
+                    <button type="button" className={quiet} onClick={() => { abort.current?.abort(); setConnecting(""); toast("Stopped waiting. You can close the other window."); }}>Cancel</button>
+                  </span>
+                ) : state === "ready" ? (
+                  <button type="button" className={`${small} bg-[#612bd3] text-white hover:bg-[#7237e8]`} disabled={Boolean(connecting)} onClick={() => connect(key)}>
+                    <FiPlus /> {mine.length ? "Add another" : "Connect"}
+                  </button>
+                ) : (
+                  <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">{STATES[state] ?? ""}</span>
                 )}
               </div>
-            );
-          })}
-        </div>
-      </div>
+              {accounts === null && state === "ready" && <div className="mt-4 h-11 animate-pulse rounded-lg bg-zinc-100 motion-reduce:animate-none dark:bg-zinc-900" />}
+              {mine.length > 0 && (
+                <ul className="mt-4 grid gap-2">
+                  {mine.map((account) => (
+                    <AccountRow
+                      key={account.id}
+                      account={account}
+                      busy={Boolean(connecting) || state !== "ready"}
+                      onReconnect={() => connect(key)}
+                      onRenamed={(next) => setAccounts((list) => list.map((a) => (a.id === next.id ? next : a)))}
+                      onRemoved={(id) => setAccounts((list) => list.filter((a) => a.id !== id))}
+                    />
+                  ))}
+                </ul>
+              )}
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }

@@ -993,6 +993,13 @@ Consequences of MySQL 8 for sections 4 to 7, to be designed before M1 code:
 | 25 Nov 2026 | Email and password sign-up added beside Google; remote MySQL server used | Migration applied 25 Nov 2026 over the unencrypted connection, with the owner's approval. Secure it before real customers |
 | 25 Nov 2026 | 6-digit email codes for sign-up and password reset; sign-up returns to log in, log in opens the dashboard. App uses the server database; only tests use local MySQL | Codes never use EMAIL_BCC |
 
+### M2 channels (25 Nov 2026)
+- [x] Live connection in a small window: one-time state in the path, finished only by the person who started
+- [x] List refreshes every 20 s, on focus and across tabs; reconnect, rename, disconnect
+- [x] 76 tests and 22 browser checks against a fake MuAPI
+- [ ] Real MuAPI: needs `MUAPI_API_KEY`. Check that `redirect_to` accepts localhost and keeps its path
+- [ ] X, LinkedIn, Threads, Pinterest: no safe per-customer connect endpoint (spec re-read 25 Nov 2026)
+
 ### M1 status (25 Nov 2026)
 - [x] 1.1 Demo login, secret fallback, in-memory stores, dummy account 101, download proxy and duplicate routes removed
 - [x] 1.2 Workspace schema built and tested on local MySQL 8.0.46. Applied to the server 25 Nov 2026
