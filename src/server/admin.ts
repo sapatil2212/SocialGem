@@ -5,7 +5,6 @@ import type { Prisma } from "@prisma/client";
 import { emailSchema } from "@/lib/auth-schemas";
 import { prisma } from "@/lib/prisma";
 import { HttpError, notFound } from "./errors";
-import { issueAdminCode, redeemAdminCode, requireAdminAllowance } from "./account";
 
 // Separate from the customer session: its own cookie, a short life, and a row that can be revoked.
 const secure = (process.env.NEXTAUTH_URL ?? "").startsWith("https://");
@@ -24,7 +23,7 @@ function credentials() {
 
 const same = (a: string, b: string) => timingSafeEqual(createHash("sha256").update(a).digest(), createHash("sha256").update(b).digest());
 
-// Sessions and codes carry this, so changing either setting ends them all.
+// Sessions carry this, so changing either setting ends them all.
 function stamp({ email, pass }: { email: string; pass: string }) {
   const secret = process.env.NEXTAUTH_SECRET;
   if (!secret) throw new Error("NEXTAUTH_SECRET is missing");
@@ -34,8 +33,8 @@ function stamp({ email, pass }: { email: string; pass: string }) {
 const audit = (actorUserId: string, action: string, entityType: string, entityId: string, change?: { before?: Prisma.InputJsonValue; after?: Prisma.InputJsonValue }) =>
   prisma.auditLog.create({ data: { actorUserId, action, entityType, entityId, ...change } });
 
-/** Step one. A wrong email and a wrong password give the same answer. */
-export async function startAdminLogin(email: string, password: string) {
+/** Opens the admin session. A wrong email and a wrong password give the same answer. */
+export async function adminLogin(email: string, password: string) {
   const admin = credentials();
   if (!admin) {
     console.error("[admin] ADMIN_USER must be an email and ADMIN_PASS at least 14 characters");
@@ -44,15 +43,6 @@ export async function startAdminLogin(email: string, password: string) {
   const okEmail = same(email, admin.email);
   const okPass = same(password, admin.pass);
   if (!okEmail || !okPass) throw new HttpError(400, "INVALID_LOGIN", "Those details do not match an admin account.");
-  await requireAdminAllowance(admin.email);
-  return issueAdminCode({ id: `${ADMIN_ID}-${stamp(admin)}`, email: admin.email });
-}
-
-/** Step two. Opens the admin session. */
-export async function finishAdminLogin(pending: string, code: string) {
-  const owner = await redeemAdminCode(pending, code);
-  const admin = credentials();
-  if (!admin || owner !== `${ADMIN_ID}-${stamp(admin)}`) throw new HttpError(400, "CODE", "That code is not right, or it has expired.");
   const token = randomBytes(32).toString("base64url");
   const expires = new Date(Date.now() + HOURS * 3_600_000);
   await prisma.$transaction([

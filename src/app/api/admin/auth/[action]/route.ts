@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { signInSchema, verifySchema } from "@/lib/auth-schemas";
-import { endAdminSession, finishAdminLogin, startAdminLogin } from "@/server/admin";
+import { signInSchema } from "@/lib/auth-schemas";
+import { adminLogin, endAdminSession } from "@/server/admin";
 import { HttpError } from "@/server/errors";
 import { sameOrigin } from "@/server/guard";
 import { allow, clientIp } from "@/server/rate-limit";
@@ -28,12 +28,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ act
       if (!input.success) return fail(400, "INVALID", "Enter a valid email and password.");
       const { email, password } = input.data;
       if (!(await allow(`admin-login:${ip}:${email}`, 5, 900)) || !(await allow(`admin-email:${email}`, 30, 900))) return busy();
-      return reply(200, { pending: await startAdminLogin(email, password) });
-    }
-    if (action === "verify") {
-      const input = verifySchema.safeParse(body);
-      if (!input.success) return fail(400, "INVALID", "Enter the 6-digit code.");
-      await finishAdminLogin(input.data.pending, input.data.code);
+      await adminLogin(email, password);
       return reply(200, { result: "ready" });
     }
     return fail(404, "NOT_FOUND", "Not found.");

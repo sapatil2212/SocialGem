@@ -10,4 +10,4 @@ Colours follow the logo: violet `#6d28d9` leads, cyan and pink are accents, deep
 - **Contact details** are in `src/content/company.ts`. `SUPPORT_EMAIL`, `CONTACT_PHONE` and `CONTACT_WHATSAPP` override them at build time.
 
 ## Super admin
-`/admin` has its own session, separate from the customer one: `ADMIN_USER` and `ADMIN_PASS` from the environment, then an emailed code, 4 hours, HttpOnly and SameSite=Strict cookie, revocable row, checked on each request. Changing either setting ends every admin session. Restart the app after changing them.
+`/admin` has its own session, separate from the customer one: `ADMIN_USER` and `ADMIN_PASS` from the environment, no second step, 4 hours, HttpOnly and SameSite=Strict cookie, revocable row, checked on each request. Changing either setting ends every admin session. Restart the app after changing them.

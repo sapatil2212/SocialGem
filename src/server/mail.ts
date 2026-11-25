@@ -43,8 +43,8 @@ async function send(to: string, subject: string, text: string, html: string) {
   await mailer().sendMail({ from: env("EMAIL_FROM") || { name: "SocialGem", address: env("EMAIL_USERNAME") }, to, subject, text, html });
 }
 
-export function sendCode(to: string, purpose: "verify" | "reset" | "admin", code: string) {
-  const heading = { verify: "Your sign-up code", reset: "Your password reset code", admin: "Your admin sign-in code" }[purpose];
+export function sendCode(to: string, purpose: "verify" | "reset", code: string) {
+  const heading = purpose === "verify" ? "Your sign-up code" : "Your password reset code";
   const body = "Enter this code in SocialGem. It works for 10 minutes.";
   return send(to, `${heading}`, `${body}\n\n${code}\n\nNever share this code.`, layout(heading, body, code));
 }

@@ -13,7 +13,7 @@ const routes = readdirSync(API, { recursive: true, encoding: "utf8" })
 const OWN_PROTECTION: Record<string, string> = {
   "auth/[...nextauth]/route.js": "NextAuth",
   "account/[action]/route.ts": "public by design: origin check, zod and rate limits",
-  "admin/auth/[action]/route.ts": "admin sign-in: origin check, zod, rate limits, emailed code",
+  "admin/auth/[action]/route.ts": "admin sign-in: origin check, zod, rate limits",
   "stripe/webhook/route.ts": "switched off until M6",
 };
 
