@@ -1001,3 +1001,5 @@ Consequences of MySQL 8 for sections 4 to 7, to be designed before M1 code:
 
 Switched off on purpose: publishing (M4), uploads (M3), billing (M6). The old Stripe code is in git history at `2c21498`.
 Account ownership is checked live with MuAPI per request until `SocialAccount` exists (M2).
+
+The MySQL schema is proposed in [SCHEMA.md](SCHEMA.md) and replaces section 5 once approved.
