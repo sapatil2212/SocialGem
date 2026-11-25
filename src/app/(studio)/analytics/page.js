@@ -1,5 +1,6 @@
 "use client";
 
+import { inWorkspace } from "@/lib/workspace-client";
 import React, { useState, useEffect } from "react";
 import MetricsSummaryCards from "@/components/analytics/MetricsSummaryCards";
 import GrowthChart from "@/components/analytics/GrowthChart";
@@ -34,7 +35,7 @@ export default function AnalyticsPage() {
   const fetchAnalytics = async (selectedRange = range) => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/analytics?range=${selectedRange}`);
+      const res = await fetch(inWorkspace(`/analytics?range=${selectedRange}`));
       if (res.ok) {
         const data = await res.json();
         setAnalyticsData(data);

@@ -1,5 +1,6 @@
 "use client";
 
+import { inWorkspace } from "@/lib/workspace-client";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -28,6 +29,7 @@ import {
   FiBarChart2
 } from "react-icons/fi";
 import ThemeToggle from "@/components/ThemeToggle";
+import WorkspaceSwitcher from "@/components/layout/WorkspaceSwitcher";
 
 // Custom Brand Logo
 export const StudioBrandLogo = ({ className = "w-10 h-10" }) => (
@@ -72,7 +74,7 @@ export default function AppShell({ children }) {
   // Fetch connected channels for top bar indicator
   useEffect(() => {
     if (status === "authenticated") {
-      fetch("/api/social/accounts")
+      fetch(inWorkspace("/accounts"))
         .then((res) => (res.ok ? res.json() : []))
         .then((data) => setConnectedAccounts(Array.isArray(data) ? data : []))
         .catch(() => {});
@@ -140,7 +142,6 @@ export default function AppShell({ children }) {
     }
   };
 
-  const credits = session?.user?.credits ?? 10;
 
   return (
     <div className="fixed inset-0 flex bg-[#f1f2f5] dark:bg-[#0e0e0e] text-slate-900 dark:text-white p-2 sm:p-2.5 font-sans overflow-hidden select-none transition-colors duration-200">
@@ -300,16 +301,7 @@ export default function AppShell({ children }) {
               {/* Theme Mode Toggle Button */}
               <ThemeToggle />
 
-              {/* Credits Chip */}
-              <Link
-                href="/pricing"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-[#201f1f] hover:bg-zinc-200/80 dark:hover:bg-[#262525] border border-zinc-200 dark:border-[#2e2d2d] text-xs font-semibold text-zinc-800 dark:text-white transition-colors shadow-xs"
-                title="Credits Balance & Pricing"
-              >
-                <FiDollarSign className="text-amber-500 dark:text-amber-400 text-xs" />
-                <span className="font-mono">{credits}</span>
-                <span className="text-[10px] text-amber-500 dark:text-amber-400 font-bold bg-amber-500/10 px-1.5 py-0.2 rounded">+</span>
-              </Link>
+              <WorkspaceSwitcher />
 
               {/* Write with AI Button */}
               <button
@@ -379,25 +371,6 @@ export default function AppShell({ children }) {
               </div>
             </div>
 
-            {/* Credits Card */}
-            <div className="flex items-center justify-between p-2.5 rounded-xl bg-zinc-50 dark:bg-[#212020] border border-zinc-200 dark:border-[#2d2c2c] transition-colors">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-amber-400/15 border border-amber-400/30 text-amber-500 dark:text-amber-400 flex items-center justify-center text-xs">
-                  <FiDollarSign />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[10px] text-zinc-500 dark:text-[#999999] uppercase font-bold tracking-wider leading-none">Credits</span>
-                  <span className="text-sm font-mono font-bold text-zinc-900 dark:text-white leading-tight">{credits} Available</span>
-                </div>
-              </div>
-              <Link
-                href="/pricing"
-                onClick={() => setProfileDropdownOpen(false)}
-                className="px-2.5 py-1 text-[11px] font-bold text-amber-500 dark:text-amber-400 hover:text-amber-600 dark:hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 rounded-lg transition-colors"
-              >
-                Top Up
-              </Link>
-            </div>
 
             {/* Theme Toggle Row in Modal */}
             <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-zinc-50 dark:bg-[#212020] border border-zinc-200 dark:border-[#2d2c2c] transition-colors">

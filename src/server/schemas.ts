@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { BUSINESS_TYPES, TIMEZONES } from "@/lib/onboarding";
 
 export const PLATFORM_KEYS = ["facebook", "instagram", "x_twitter", "youtube", "tiktok", "linkedin", "threads", "pinterest"] as const;
 
@@ -29,13 +30,14 @@ const optionFields = {
   madeForKids: z.boolean().optional(),
   categoryId: z.string().max(10).nullish(),
   privacy: z.string().max(40).optional(),
-  customTag: z.string().trim().max(60).nullish(),
+  customTag: z.string().trim().max(40).nullish(),
   tagColor: color.nullish(),
 };
-const accountMap = z.record(z.string().max(30), z.coerce.number().int().positive()).optional();
+const accountMap = z.record(z.string().max(30), z.string().max(60)).optional();
 
 export const createPost = z.object({
   mode: z.enum(["draft", "schedule", "now"]),
+  requestKey: z.string().regex(/^[\w-]{8,60}$/).optional(),
   platforms: z.array(z.enum(PLATFORM_KEYS)).min(1, "Choose at least one platform.").max(8).transform((p) => [...new Set(p)]),
   platformAccountMap: accountMap,
   platformOverrides: z.partialRecord(z.enum(PLATFORM_KEYS), override).optional(),
@@ -75,6 +77,13 @@ export const createMedia = z.object({
   tags: tagList.default(""),
 });
 export const updateMedia = z.object({ name: z.string().trim().min(1).max(190).optional(), folder: folder.optional(), tags: tagList.optional() });
+
+export const workspaceInput = z.object({
+  name: z.string().trim().min(2, "Enter at least 2 characters.").max(60, "Keep it under 60 characters."),
+  businessType: z.enum(BUSINESS_TYPES).nullish(),
+  timezone: z.enum(TIMEZONES),
+  emailOnFailure: z.boolean().optional(),
+});
 
 export const connect = z.object({ platform: z.enum(PLATFORM_KEYS) });
 export const rename = z.object({ accountName: z.string().trim().min(1, "Enter a name.").max(80, "Keep it under 80 characters.") });

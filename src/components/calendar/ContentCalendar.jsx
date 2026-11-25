@@ -1,5 +1,6 @@
 "use client";
 
+import { inWorkspace } from "@/lib/workspace-client";
 import { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -142,7 +143,7 @@ export default function ContentCalendar({
 
   // Fetch available custom tags
   useEffect(() => {
-    fetch("/api/tags")
+    fetch(inWorkspace("/tags"))
       .then((r) => r.json())
       .then((data) => {
         if (Array.isArray(data)) setAvailableTags(data);

@@ -1,5 +1,6 @@
 "use client";
 
+import { inWorkspace } from "@/lib/workspace-client";
 import { useState } from "react";
 import { FaMagic, FaCheck, FaSync } from "react-icons/fa";
 import { FiX, FiAlertCircle, FiCornerDownLeft } from "react-icons/fi";
@@ -35,7 +36,7 @@ export default function AiPostWriter({
     setError("");
 
     try {
-      const res = await fetch("/api/ai/generate", {
+      const res = await fetch(inWorkspace("/ai/generate"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

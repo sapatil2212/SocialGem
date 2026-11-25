@@ -1,5 +1,6 @@
 "use client";
 
+import { inWorkspace } from "@/lib/workspace-client";
 import React, { useState } from "react";
 import { 
   FiFilm, 
@@ -69,7 +70,7 @@ export default function MediaGrid({
     if (!confirm(`Delete "${asset.name}" from your media library?`)) return;
 
     try {
-      const res = await fetch(`/api/media/${asset.id}`, { method: "DELETE" });
+      const res = await fetch(inWorkspace(`/media/${asset.id}`), { method: "DELETE" });
       if (res.ok) {
         toast.success("Asset removed from library");
         if (onAssetDeleted) onAssetDeleted(asset.id);
@@ -89,7 +90,7 @@ export default function MediaGrid({
 
   const handleMoveFolder = async (assetId, newFolder) => {
     try {
-      const res = await fetch(`/api/media/${assetId}`, {
+      const res = await fetch(inWorkspace(`/media/${assetId}`), {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ folder: newFolder }),
@@ -114,7 +115,7 @@ export default function MediaGrid({
     let successCount = 0;
     for (const id of Array.from(selectedIds)) {
       try {
-        const res = await fetch(`/api/media/${id}`, { method: "DELETE" });
+        const res = await fetch(inWorkspace(`/media/${id}`), { method: "DELETE" });
         if (res.ok) successCount++;
       } catch (_) {}
     }
@@ -128,7 +129,7 @@ export default function MediaGrid({
     let successCount = 0;
     for (const id of Array.from(selectedIds)) {
       try {
-        const res = await fetch(`/api/media/${id}`, {
+        const res = await fetch(inWorkspace(`/media/${id}`), {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ folder: batchTargetFolder }),

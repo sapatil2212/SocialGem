@@ -1,5 +1,6 @@
 "use client";
 
+import { inWorkspace } from "@/lib/workspace-client";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useSession, signIn } from "next-auth/react";
 import Link from "next/link";
@@ -329,7 +330,7 @@ export default function AgentWorkspace() {
   // 1. Fetch connected accounts
   const fetchAccounts = useCallback(async () => {
     try {
-      const res = await fetch("/api/social/accounts");
+      const res = await fetch(inWorkspace("/accounts"));
       if (res.ok) {
         const data = await res.json();
         const accList = Array.isArray(data) ? data : [];
@@ -561,7 +562,7 @@ export default function AgentWorkspace() {
           content: m.content || "",
         }));
 
-      const res = await fetch("/api/agent/chat", {
+      const res = await fetch(inWorkspace("/agent/chat"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

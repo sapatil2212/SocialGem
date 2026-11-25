@@ -1,5 +1,6 @@
 "use client";
 
+import { inWorkspace } from "@/lib/workspace-client";
 import React, { useState, useRef } from "react";
 import { 
   FiUploadCloud, 
@@ -120,7 +121,7 @@ export default function MediaUploaderModal({
           prev.map((f, idx) => (idx === i ? { ...f, progress: 60 } : f))
         );
 
-        const uploadRes = await fetch("/api/upload", {
+        const uploadRes = await fetch(inWorkspace("/upload"), {
           method: "POST",
           body: formData,
         });
@@ -138,7 +139,7 @@ export default function MediaUploaderModal({
           prev.map((f, idx) => (idx === i ? { ...f, progress: 85 } : f))
         );
 
-        const mediaRes = await fetch("/api/media", {
+        const mediaRes = await fetch(inWorkspace("/media"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

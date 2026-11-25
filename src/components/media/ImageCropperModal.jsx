@@ -1,5 +1,6 @@
 "use client";
 
+import { inWorkspace } from "@/lib/workspace-client";
 import React, { useState, useRef, useEffect } from "react";
 import { 
   FiCrop, 
@@ -182,7 +183,7 @@ export default function ImageCropperModal({
       const formData = new FormData();
       formData.append("file", blob, fileName);
 
-      const uploadRes = await fetch("/api/upload", {
+      const uploadRes = await fetch(inWorkspace("/upload"), {
         method: "POST",
         body: formData,
       });
@@ -192,7 +193,7 @@ export default function ImageCropperModal({
       const uploadedUrl = uploadData.url;
 
       // Register asset
-      const mediaRes = await fetch("/api/media", {
+      const mediaRes = await fetch(inWorkspace("/media"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -231,7 +232,7 @@ export default function ImageCropperModal({
       const formData = new FormData();
       formData.append("file", blob, fileName);
 
-      const uploadRes = await fetch("/api/upload", {
+      const uploadRes = await fetch(inWorkspace("/upload"), {
         method: "POST",
         body: formData,
       });

@@ -1,5 +1,6 @@
 "use client";
 
+import { inWorkspace } from "@/lib/workspace-client";
 import { useSession, signIn } from "next-auth/react";
 import { useEffect, useState, useCallback } from "react";
 import { 
@@ -42,7 +43,7 @@ export default function WorkspaceDashboard() {
   const fetchPosts = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/posts");
+      const res = await fetch(inWorkspace("/posts"));
       if (res.ok) {
         const data = await res.json();
         setPosts(Array.isArray(data) ? data : []);
@@ -57,7 +58,7 @@ export default function WorkspaceDashboard() {
   // Fetch real connected accounts
   const fetchAccounts = useCallback(async () => {
     try {
-      const res = await fetch("/api/social/accounts");
+      const res = await fetch(inWorkspace("/accounts"));
       if (res.ok) {
         const data = await res.json();
         setConnectedAccounts(Array.isArray(data) ? data : []);
@@ -134,7 +135,7 @@ export default function WorkspaceDashboard() {
 
     try {
       setActionLoading(true);
-      const res = await fetch(`/api/posts/${postId}`, {
+      const res = await fetch(inWorkspace(`/posts/${postId}`), {
         method: "DELETE",
       });
 
@@ -155,7 +156,7 @@ export default function WorkspaceDashboard() {
   const handlePublishNow = async (postId) => {
     try {
       setActionLoading(true);
-      const res = await fetch(`/api/posts/${postId}`, {
+      const res = await fetch(inWorkspace(`/posts/${postId}`), {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "publish_now" })
@@ -191,7 +192,7 @@ export default function WorkspaceDashboard() {
     );
 
     try {
-      const res = await fetch(`/api/posts/${postId}`, {
+      const res = await fetch(inWorkspace(`/posts/${postId}`), {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ scheduledAt: newIsoDate })
@@ -225,7 +226,6 @@ export default function WorkspaceDashboard() {
   const scheduledCount = posts.filter((p) => p.status === "scheduled").length;
   const publishedCount = posts.filter((p) => p.status === "completed").length;
   const uniqueChannels = new Set(posts.map((p) => p.platform)).size;
-  const userCredits = session?.user?.credits ?? 0;
 
   // Unauthenticated Welcome View
   if (status === "unauthenticated") {
@@ -359,23 +359,6 @@ export default function WorkspaceDashboard() {
           </Link>
         </div>
 
-        {/* Card 4: Credits Balance */}
-        <div className="p-3.5 rounded-[12px] bg-white dark:bg-[#1a1919] border border-zinc-200 dark:border-[#252525] flex items-center justify-between shadow-xs dark:shadow-sm transition-colors">
-          <div className="space-y-0.5">
-            <span className="text-[10px] font-bold text-zinc-500 dark:text-[#999999] tracking-wider uppercase">
-              CREDITS BALANCE
-            </span>
-            <p className="text-2xl font-bold text-amber-500 dark:text-amber-400 font-mono">
-              {userCredits}
-            </p>
-          </div>
-          <Link
-            href="/pricing"
-            className="px-3 py-1 rounded-md text-xs font-semibold text-amber-600 dark:text-amber-300 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 transition-all shadow-xs"
-          >
-            Top Up
-          </Link>
-        </div>
       </div>
 
       {/* Content Calendar Main Component */}

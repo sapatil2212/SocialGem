@@ -1,7 +1,9 @@
 "use client";
 
+import { inWorkspace } from "@/lib/workspace-client";
 import { useEffect, useState } from "react";
 import { useSession, signIn } from "next-auth/react";
+import toast from "react-hot-toast";
 import { FaYoutube, FaInstagram, FaFacebook, FaLinkedin, FaPinterest } from "react-icons/fa";
 import { FaXTwitter, FaThreads } from "react-icons/fa6";
 import { SiTiktok } from "react-icons/si";
@@ -110,6 +112,21 @@ export default function IntegrationsPage() {
     }
   }, []);
 
+  // Result of coming back from a connect flow
+  useEffect(() => {
+    const messages = {
+      connected: "Account connected.",
+      taken: "That account is already connected in another workspace. Disconnect it there first.",
+      none: "No new account was connected.",
+      expired: "That connection link has expired. Please try again.",
+      failed: "The social service did not respond. Please try again.",
+    };
+    const result = messages[new URLSearchParams(window.location.search).get("connect")];
+    if (!result) return;
+    toast(result, { duration: 6000 });
+    window.history.replaceState(null, "", "/integrations");
+  }, []);
+
   useEffect(() => {
     if (session?.user) {
       fetchAccounts();
@@ -120,7 +137,7 @@ export default function IntegrationsPage() {
 
   const fetchAccounts = () => {
     setLoading(true);
-    fetch("/api/social/accounts")
+    fetch(inWorkspace("/accounts"))
       .then((res) => res.json())
       .then((data) => {
         const fetchedAccounts = Array.isArray(data) ? data : [];
@@ -151,7 +168,7 @@ export default function IntegrationsPage() {
     }
 
     try {
-      const res = await fetch("/api/social/connect", {
+      const res = await fetch(inWorkspace("/accounts/connect"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -174,7 +191,7 @@ export default function IntegrationsPage() {
     if (!confirm("Are you sure you want to disconnect this account?")) return;
     setDisconnectingId(id);
     try {
-      const res = await fetch(`/api/social/accounts/${id}`, {
+      const res = await fetch(inWorkspace(`/accounts/${id}`), {
         method: "DELETE"
       });
       if (res.ok) {
@@ -201,7 +218,7 @@ export default function IntegrationsPage() {
     if (!trimmed) return;
     
     try {
-      const res = await fetch(`/api/social/accounts/${id}`, {
+      const res = await fetch(inWorkspace(`/accounts/${id}`), {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ accountName: trimmed })

@@ -69,14 +69,14 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       const id = user?.id ?? (token.id as string | undefined);
       if (!id) return token;
-      const row = await prisma.user.findUnique({ where: { id }, select: { id: true, name: true, email: true, image: true, credits: true, sessionVersion: true } });
-      if (!row || (!user && token.version !== row.sessionVersion)) return {};
-      return { ...token, id: row.id, version: row.sessionVersion, name: row.name, email: row.email, picture: row.image, credits: row.credits };
+      const row = await prisma.user.findUnique({ where: { id }, select: { id: true, name: true, email: true, image: true, disabledAt: true, sessionVersion: true } });
+      if (!row || row.disabledAt || (!user && token.version !== row.sessionVersion)) return {};
+      return { ...token, id: row.id, version: row.sessionVersion, name: row.name, email: row.email, picture: row.image };
     },
     async session({ session, token }) {
       // A revoked or deleted account has no id; every guard checks session.user.
       if (!token.id) return { ...session, user: undefined };
-      return { ...session, user: { id: token.id, name: token.name, email: token.email, image: token.picture, credits: token.credits } };
+      return { ...session, user: { id: token.id, name: token.name, email: token.email, image: token.picture } };
     },
   },
   events: {

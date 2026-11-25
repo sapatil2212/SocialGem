@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Field, FormAlert, Input, NativeSelect } from "@/components/ui/field";
 import Logo from "@/components/site/Logo";
 import { BUSINESS_TYPES, EMPTY_DRAFT, TIMEZONES, draftSchema, workspaceSchema, type Draft, type Workspace } from "@/lib/onboarding";
+import { rememberWorkspace } from "@/lib/workspace-client";
 import { cn } from "@/lib/utils";
 
 const STEPS = ["Workspace", "Channels", "Alerts", "Review"];
@@ -58,11 +59,11 @@ function WorkspaceStep({ value, onNext }: { value: Workspace | null; onNext: (w:
   );
 }
 
-function Nav({ onBack, label = "Continue" }: { onBack?: () => void; label?: string }) {
+function Nav({ onBack, label = "Continue", busy = false }: { onBack?: () => void; label?: string; busy?: boolean }) {
   return (
     <div className="mt-4 flex gap-3">
       {onBack && <Button type="button" variant="ghost" onClick={onBack}><ArrowLeft /> Back</Button>}
-      <Button type="submit" className="ml-auto">{label} <ArrowRight /></Button>
+      <Button type="submit" className="ml-auto" disabled={busy} aria-busy={busy}>{label} <ArrowRight /></Button>
     </div>
   );
 }
@@ -82,6 +83,8 @@ function Panel({ title, text, children }: { title: string; text: string; childre
 function Steps({ storageKey }: { storageKey: string }) {
   const [draft, setDraft] = useState(() => readDraft(storageKey));
   const [done, setDone] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [problem, setProblem] = useState("");
   const { step, workspace, channels } = draft;
 
   const save = (change: Partial<Draft>, message?: string) => {
@@ -98,6 +101,27 @@ function Steps({ storageKey }: { storageKey: string }) {
   const submit = (change: Partial<Draft>) => (e: React.FormEvent) => {
     e.preventDefault();
     save({ ...change, step: step + 1 }, "Step saved on this device");
+  };
+  const finish = async () => {
+    if (!workspace || busy) return;
+    setBusy(true);
+    setProblem("");
+    try {
+      const response = await fetch("/api/workspaces", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: workspace.name, businessType: workspace.type, timezone: workspace.timezone, emailOnFailure: draft.emailOnFailure }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+      rememberWorkspace(data.id);
+      localStorage.removeItem(storageKey);
+      setDone(true);
+    } catch (error) {
+      setProblem((error as Error).message || "We could not create the workspace. Please try again.");
+    } finally {
+      setBusy(false);
+    }
   };
   const at = done ? STEPS.length : step;
 
@@ -133,7 +157,8 @@ function Steps({ storageKey }: { storageKey: string }) {
       </form>
     </Panel>,
     <Panel key="r" title="Check the details" text="You can change any of this later.">
-      <form onSubmit={(e) => { e.preventDefault(); setDone(true); }}>
+      <form onSubmit={(e) => { e.preventDefault(); finish(); }}>
+        {problem && <div className="mb-4"><FormAlert>{problem}</FormAlert></div>}
         <dl className="card-elevated divide-y divide-hairline">
           {[
             ["Workspace", workspace?.name, 0],
@@ -149,7 +174,7 @@ function Steps({ storageKey }: { storageKey: string }) {
             </div>
           ))}
         </dl>
-        <Nav onBack={back} label="Finish" />
+        <Nav onBack={back} label={busy ? "Creating" : "Finish"} busy={busy} />
       </form>
     </Panel>,
   ];
@@ -180,8 +205,8 @@ function Steps({ storageKey }: { storageKey: string }) {
               {done ? (
                 <div className="text-center">
                   <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 260, damping: 18 }} className="mx-auto mb-8 grid size-20 place-items-center rounded-full bg-tint-strong text-brand-ink"><Check aria-hidden className="size-9" /></motion.span>
-                  <Panel title={`${workspace?.name} is ready to preview`} text="Your choices are saved on this device. They move to your account when workspaces go live.">
-                    <Button asChild size="lg"><Link href="/app">Open the preview <ArrowRight /></Link></Button>
+                  <Panel title={`${workspace?.name} is ready`} text="Your workspace is saved. Next, connect your channels and plan your first post.">
+                    <Button asChild size="lg"><Link href="/app">Open the calendar <ArrowRight /></Link></Button>
                   </Panel>
                 </div>
               ) : panels[step]}

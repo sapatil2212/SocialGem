@@ -1,5 +1,6 @@
 "use client";
 
+import { inWorkspace } from "@/lib/workspace-client";
 import React, { useState, useEffect } from "react";
 import MediaGrid from "@/components/media/MediaGrid";
 import MediaUploaderModal from "@/components/media/MediaUploaderModal";
@@ -63,7 +64,7 @@ export default function MediaPage() {
       if (activeType && activeType !== "all") params.set("type", activeType);
       if (searchQuery.trim()) params.set("search", searchQuery.trim());
 
-      const res = await fetch(`/api/media?${params.toString()}`);
+      const res = await fetch(inWorkspace(`/media?${params.toString()}`));
       if (res.ok) {
         const data = await res.json();
         setAssets(data.assets || []);

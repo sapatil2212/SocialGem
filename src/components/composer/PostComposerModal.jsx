@@ -1,5 +1,6 @@
 "use client";
 
+import { inWorkspace } from "@/lib/workspace-client";
 import { useState, useRef, useEffect } from "react";
 import { 
   FaYoutube, 
@@ -131,6 +132,11 @@ export default function PostComposerModal({
   const [platformAccountMap, setPlatformAccountMap] = useState({});
   const [accountName, setAccountName] = useState("Creator Studio");
   const [accountId, setAccountId] = useState("");
+  // One key per open composer, so a double click makes one post.
+  const requestKey = useRef("");
+  useEffect(() => {
+    if (isOpen) requestKey.current = crypto.randomUUID();
+  }, [isOpen]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [tags, setTags] = useState("");
@@ -170,7 +176,7 @@ export default function PostComposerModal({
 
   // Fetch available tags
   useEffect(() => {
-    fetch("/api/tags")
+    fetch(inWorkspace("/tags"))
       .then((r) => r.json())
       .then((data) => {
         if (Array.isArray(data)) setAvailableTags(data);
@@ -182,7 +188,7 @@ export default function PostComposerModal({
     const cleanName = newTagName.trim().replace(/^#+/, "");
     if (!cleanName) return;
     try {
-      const res = await fetch("/api/tags", {
+      const res = await fetch(inWorkspace("/tags"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: cleanName, color: newTagColor }),
@@ -207,7 +213,7 @@ export default function PostComposerModal({
   const handleDeleteTag = async (e, tagId) => {
     e.stopPropagation();
     try {
-      await fetch(`/api/tags/${tagId}`, { method: "DELETE" });
+      await fetch(inWorkspace(`/tags/${tagId}`), { method: "DELETE" });
       setAvailableTags((prev) => prev.filter((t) => t.id !== tagId));
       const deleted = availableTags.find((t) => t.id === tagId);
       if (deleted && customTag === deleted.name) {
@@ -337,7 +343,7 @@ export default function PostComposerModal({
 
   // Fetch user's real connected accounts from backend
   const fetchAccounts = () => {
-    fetch("/api/social/accounts")
+    fetch(inWorkspace("/accounts"))
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) {
@@ -415,7 +421,7 @@ export default function PostComposerModal({
     }
 
     try {
-      const res = await fetch("/api/social/connect", {
+      const res = await fetch(inWorkspace("/accounts/connect"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -566,7 +572,7 @@ export default function PostComposerModal({
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await fetch("/api/upload", {
+      const res = await fetch(inWorkspace("/upload"), {
         method: "POST",
         body: formData,
       });
@@ -628,6 +634,7 @@ export default function PostComposerModal({
 
       const payload = {
         mode,
+        requestKey: requestKey.current,
         platforms: selectedPlatforms,
         platformAccountMap,
         platformOverrides,
@@ -646,7 +653,7 @@ export default function PostComposerModal({
         madeForKids,
       };
 
-      const url = initialPost?.id ? `/api/posts/${initialPost.id}` : "/api/posts";
+      const url = inWorkspace(initialPost?.id ? `/posts/${initialPost.id}` : "/posts");
       const method = initialPost?.id ? "PATCH" : "POST";
 
       const res = await fetch(url, {

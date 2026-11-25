@@ -994,12 +994,12 @@ Consequences of MySQL 8 for sections 4 to 7, to be designed before M1 code:
 
 ### M1 status (25 Nov 2026)
 - [x] 1.1 Demo login, secret fallback, in-memory stores, dummy account 101, download proxy and duplicate routes removed
-- [ ] 1.2 Workspace schema: **not started**. Needs the MySQL redesign in section 14 first. Current tables are still per user
+- [x] 1.2 Workspace schema built and tested on local MySQL 8.0.46. **Not yet applied to the server**
 - [x] 1.3 `guard()`, user-scoped `dataFor()`, zod, rate limits, safe errors, ESLint ban on direct database access in routes
 - [x] 1.4 All publishing removed until M4. Reading has no side effects. Drafts stay drafts; sent posts are locked
 - [x] 1.5 Guard test on every route (`npm test`); two-user attack test passed against a fake MuAPI
 
 Switched off on purpose: publishing (M4), uploads (M3), billing (M6). The old Stripe code is in git history at `2c21498`.
-Account ownership is checked live with MuAPI per request until `SocialAccount` exists (M2).
+`SocialAccount` and the connect flow (most of M2) are built and tested against a fake MuAPI.
 
 The MySQL schema is proposed in [SCHEMA.md](SCHEMA.md) and replaces section 5 once approved.

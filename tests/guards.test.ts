@@ -20,15 +20,16 @@ describe("every API route", () => {
   it("finds the routes", () => expect(routes.length).toBeGreaterThan(10));
   for (const route of routes) {
     it(`${route} is guarded`, () => {
+      if (route.startsWith("w/")) expect(readFileSync(join(API, route), "utf8")).not.toMatch(/= guard\(/);
       const code = readFileSync(join(API, route), "utf8");
       if (OWN_PROTECTION[route]) return;
       const methods = code.match(/export (?:const|async function|function) (GET|POST|PUT|PATCH|DELETE)\b/g) ?? [];
-      const guarded = code.match(/export const (GET|POST|PUT|PATCH|DELETE) = guard\(/g) ?? [];
+      const guarded = code.match(/export const (GET|POST|PUT|PATCH|DELETE) = guard(?:Workspace)?\(/g) ?? [];
       expect(methods.length).toBeGreaterThan(0);
       expect(guarded.length).toBe(methods.length);
       expect(code).not.toMatch(/@\/lib\/prisma|next-auth\/next/);
       for (const part of code.split(/export const /).slice(1)) {
-        if (/^(POST|PUT|PATCH|DELETE) = guard\(\{\}/.test(part)) expect(part).toMatch(/throw new HttpError\(503/);
+        if (/^(POST|PUT|PATCH|DELETE) = guard(?:Workspace)?\(\{\}/.test(part)) expect(part).toMatch(/throw new HttpError\(503/);
       }
     });
   }

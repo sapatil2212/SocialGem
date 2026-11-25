@@ -1,8 +1,8 @@
 # MySQL schema: proposal for review
 
-Status: **awaiting approval. Nothing has been applied.** Full schema: [schema.proposed.prisma](schema.proposed.prisma) (24 tables, 24 foreign keys). It replaces section 5 of [PLAN.md](PLAN.md) and the PostgreSQL parts of section 7.
+Status: approved 25 Nov 2026. Applied locally; **not yet on the server**. Full schema: [../prisma/schema.prisma](../prisma/schema.prisma) (24 tables, 24 foreign keys). It replaces section 5 of [PLAN.md](PLAN.md) and the PostgreSQL parts of section 7.
 
-Checked: valid in Prisma 6.19; MySQL SQL generates; widest index is about 1,540 bytes (limit 3,072). **Not checked: running it on MySQL.** There is no local MySQL, and I did not use your server for experiments.
+Checked: valid in Prisma 6.19; MySQL SQL generates; widest index is about 1,540 bytes (limit 3,072). Run on local MySQL 8.0.46: both migrations, no drift, and 18 database tests (`npm test`).
 
 ## 1. Shape
 
@@ -94,7 +94,7 @@ All times are stored in UTC. A workspace's time zone is applied when showing or 
 | `socialgem_migrate` | Table changes on `socialgem` only; used only during a release |
 | `socialgem_backup` | Read only |
 
-This needs you, as your database administrator, and replaces the shared login that can reach 13 other databases. MySQL grants cannot subtract a table from a database-wide grant, so the app login gets its rights table by table; I will supply the script.
+This needs you, as your database administrator, and replaces the shared login that can reach 13 other databases. MySQL grants cannot subtract a table from a database-wide grant, so the app login gets its rights table by table; See [db-logins.sql](db-logins.sql).
 
 ## 7. Moving from today's tables
 
@@ -127,3 +127,7 @@ Effort: about 3 days, including a local or CI MySQL for tests.
 5. **Quota** counted per target, per calendar period of the subscription? *Recommended yes (plan question 5).*
 6. **Several billing owners** for one workspace: not in v1. *Recommended.*
 7. **Keep published posts** when a workspace is archived, until the customer asks for deletion? *Recommended yes.*
+
+## 10. Found while building
+- MySQL counts an old snapshot even after taking a lock. Any check-then-write (workspace limit, ledger) must use READ COMMITTED. A test covers this.
+- Local MySQL: `G:\SAAS Projects\_tools\mysql\start-mysql.bat`, 127.0.0.1:3307. `.env.local` points the app and tests at it.
