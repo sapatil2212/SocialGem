@@ -1,6 +1,6 @@
 # MySQL schema: proposal for review
 
-Status: approved 25 Nov 2026. Applied locally; **not yet on the server**. Full schema: [../prisma/schema.prisma](../prisma/schema.prisma) (24 tables, 24 foreign keys). It replaces section 5 of [PLAN.md](PLAN.md) and the PostgreSQL parts of section 7.
+Status: approved 25 Nov 2026. Applied locally and on the server. Full schema: [../prisma/schema.prisma](../prisma/schema.prisma) (24 tables, 24 foreign keys). It replaces section 5 of [PLAN.md](PLAN.md) and the PostgreSQL parts of section 7.
 
 Checked: valid in Prisma 6.19; MySQL SQL generates; widest index is about 1,540 bytes (limit 3,072). Run on local MySQL 8.0.46: both migrations, no drift, and 18 database tests (`npm test`).
 
