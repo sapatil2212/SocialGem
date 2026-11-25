@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { MotionConfig, motion } from "motion/react";
 import { FiPause, FiPlay, FiRotateCcw } from "react-icons/fi";
-import { fx, pulse } from "./fx";
 
 const START = 7 * 60;
 const END = 21 * 60;
@@ -46,9 +45,7 @@ export default function Flight() {
 
   const jump = (next) => {
     const value = Math.max(START, Math.min(END, next));
-    for (const post of POSTS) if (timeRef.current < post.at && value >= post.at) pulse(1);
     timeRef.current = value;
-    fx.dayTurn = ((value - START) / (END - START)) * Math.PI * 1.5;
     setTime(value);
   };
   const jumpRef = useRef(jump);
@@ -87,8 +84,8 @@ export default function Flight() {
       <section id="flight" className="sg-flight">
         <div className="sg-wrap">
           <header className="sg-head">
-            <h2>Run the day. Then break it.</h2>
-            <p>A simulation of how publishing is designed to behave. Drag the time, or sabotage lunch.</p>
+            <h2>See what happens when things go wrong</h2>
+            <p>A simulation of how publishing is designed to behave. Run the day, drag the time, or break the lunch post.</p>
           </header>
 
           <div className="sg-console" data-ui>
