@@ -80,7 +80,7 @@ export default function LandingPage() {
         <div className="gradient-brand grid justify-items-center gap-7 rounded-[1.75rem] px-6 py-20 text-center">
           <h2>Your next week of posts starts with <em className="accent">one</em></h2>
           <p className="max-w-xl">SocialGem is in development. Look around the preview, or keep using the demo on this page.</p>
-          <Button asChild variant="outline" size="lg"><Link href="/login?next=/onboarding">Get started <ArrowRight /></Link></Button>
+          <Button asChild variant="outline" size="lg"><Link href="/signup">Get started <ArrowRight /></Link></Button>
         </div>
       </section>
     </>

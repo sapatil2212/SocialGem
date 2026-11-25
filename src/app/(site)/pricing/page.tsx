@@ -38,7 +38,7 @@ export default function PricingPage() {
               {plan.points.map((point) => <li key={point} className="flex gap-2.5"><Check aria-hidden className="mt-1 size-4 shrink-0 text-brand-ink" />{point}</li>)}
             </ul>
             {plan.action ? (
-              <Button asChild className="mt-auto"><Link href="/login?next=/onboarding">Set up your workspace</Link></Button>
+              <Button asChild className="mt-auto"><Link href="/signup">Set up your workspace</Link></Button>
             ) : (
               <p className="mt-auto flex min-h-11 items-center text-muted-ink">Price announced at launch</p>
             )}

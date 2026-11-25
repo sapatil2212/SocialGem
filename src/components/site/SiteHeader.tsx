@@ -40,7 +40,7 @@ export default function SiteHeader() {
           ))}
         </nav>
         <Button asChild variant="outline" className="hidden sm:inline-flex"><Link href="/login">Log in</Link></Button>
-        <Button asChild className="shimmer"><Link href="/login?next=/onboarding">Get started</Link></Button>
+        <Button asChild className="shimmer"><Link href="/signup">Get started</Link></Button>
 
         <Dialog.Root open={open} onOpenChange={setOpen}>
           <Dialog.Trigger className="grid size-11 cursor-pointer place-items-center rounded-lg lg:hidden" aria-label="Open menu">
@@ -57,7 +57,7 @@ export default function SiteHeader() {
                 <Dialog.Close className="grid size-11 cursor-pointer place-items-center rounded-lg" aria-label="Close menu"><X className="size-6" /></Dialog.Close>
               </div>
               <nav aria-label="Mobile" className="grid">
-                {[...LINKS, ["/login", "Log in"]].map(([href, label]) => (
+                {[...LINKS, ["/login", "Log in"], ["/signup", "Sign up"]].map(([href, label]) => (
                   <Link key={href} href={href} onClick={() => setOpen(false)} className="flex min-h-13 items-center border-b border-hairline text-lg font-medium">
                     {label}
                   </Link>

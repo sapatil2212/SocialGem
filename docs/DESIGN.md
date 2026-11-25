@@ -11,7 +11,7 @@ Departures from the brief, and why:
 - **The closing gradient starts at `#C94700`**, so white text stays readable.
 - **TanStack Form and Table and TypeScript + JS mix** stay from earlier work; new files are strict TypeScript.
 - **Public pages are always light.** Dark tokens exist under `.brand-themed` for product screens.
-- **Google button is an outline button** and there is no email form, since email sign-in is undecided.
+- **Sign-in offers Google and email with password**, with reset and email confirmation.
 
 ## 2. Component inventory
 - shadcn-style on Radix: `Button`, `Input`, `NativeSelect`, `Field`, `FormAlert`, `Faq` (accordion), mobile menu (dialog).

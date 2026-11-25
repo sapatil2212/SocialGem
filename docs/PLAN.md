@@ -990,3 +990,4 @@ Consequences of MySQL 8 for sections 4 to 7, to be designed before M1 code:
 - Compose uses `mysql`, backups use `mysqldump --single-transaction`, tests run on real MySQL.
 - `@prisma/adapter-pg` and `pg` are removed and Prisma pinned to 6. The local Prisma Dev database is PostgreSQL only, so **a local MySQL 8 server is needed**.
 - The schema in section 5 is validated for PostgreSQL only.
+| 25 Nov 2026 | Email and password sign-up added beside Google; remote MySQL server used | Migration written, **not yet applied** |

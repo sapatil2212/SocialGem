@@ -244,7 +244,7 @@ export default function WorkspaceDashboard() {
 
           <div className="flex items-center justify-center pt-2">
             <button
-              onClick={() => signIn("google")}
+              onClick={() => signIn()}
               className="px-5 py-2.5 rounded-lg bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-slate-900 dark:text-white border border-zinc-300 dark:border-zinc-700 text-xs font-semibold transition-all flex items-center justify-center gap-2.5 cursor-pointer shadow-sm hover:shadow active:scale-98"
             >
               <FaGoogle className="text-xs text-red-500" />

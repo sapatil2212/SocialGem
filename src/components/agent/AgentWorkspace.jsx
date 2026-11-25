@@ -626,7 +626,7 @@ export default function AgentWorkspace() {
             Authenticate to access your connected social accounts and AI assistant.
           </p>
           <button
-            onClick={() => signIn("google")}
+            onClick={() => signIn()}
             className="px-4 py-2 rounded-md bg-[#612bd3] hover:bg-[#7237e8] text-white text-xs font-semibold transition-colors cursor-pointer"
           >
             Sign In with Google

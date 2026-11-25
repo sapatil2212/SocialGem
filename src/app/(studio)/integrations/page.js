@@ -168,7 +168,7 @@ export default function IntegrationsPage() {
 
   const handleConnect = (platform) => {
     if (!session) {
-      signIn("google");
+      signIn();
       return;
     }
     setAccountNameInput("");
@@ -381,7 +381,7 @@ export default function IntegrationsPage() {
               </div>
             </div>
             <button
-              onClick={() => signIn("google")}
+              onClick={() => signIn()}
               className="px-4 py-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-[11px] rounded-lg transition-colors cursor-pointer"
             >
               Sign In
