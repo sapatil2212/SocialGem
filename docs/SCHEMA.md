@@ -130,4 +130,4 @@ Effort: about 3 days, including a local or CI MySQL for tests.
 
 ## 10. Found while building
 - MySQL counts an old snapshot even after taking a lock. Any check-then-write (workspace limit, ledger) must use READ COMMITTED. A test covers this.
-- Local MySQL: `G:\SAAS Projects\_tools\mysql\start-mysql.bat`, 127.0.0.1:3307. `.env.local` points the app and tests at it.
+- Local MySQL: `G:\SAAS Projects\_tools\mysql\start-mysql.bat`, 127.0.0.1:3307. `.env.local` points the tests at it; the app uses `.env`.

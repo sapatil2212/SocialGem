@@ -54,5 +54,19 @@ export async function createWorkspace(userId: string, details: Details) {
   }, { isolationLevel: "ReadCommitted", maxWait: 10_000, timeout: 15_000 });
 }
 
+/** A first workspace for someone who has none. Safe when two sign-ins arrive together. */
+export async function ensureWorkspace(userId: string, name?: string | null) {
+  if (await prisma.workspaceMember.findFirst({ where: { userId }, select: { userId: true } })) return;
+  const billing = await billingAccountOf(userId);
+  await prisma.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT id FROM BillingAccount WHERE id = ${billing.id} FOR UPDATE`;
+    if (await tx.workspaceMember.count({ where: { userId } })) return;
+    const first = (name ?? "").trim().split(/\s+/)[0]?.slice(0, 40);
+    await tx.workspace.create({
+      data: { name: first ? `${first}'s brand` : "My brand", timezone: "Asia/Kolkata", billingAccountId: billing.id, members: { create: { userId, role: "OWNER" } } },
+    });
+  }, { isolationLevel: "ReadCommitted", maxWait: 10_000, timeout: 15_000 });
+}
+
 export const updateWorkspace = (id: string, details: Partial<Details>) =>
   prisma.workspace.update({ where: { id }, data: details, select: { id: true, name: true, timezone: true, businessType: true, emailOnFailure: true } });

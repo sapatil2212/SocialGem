@@ -12,5 +12,5 @@ export default async function Page({ searchParams }: { searchParams: Search }) {
   const next = safePath(params.next ?? params.callbackUrl, "/app");
   const session = await getServerSession(authOptions).catch(() => null);
   if (session?.user) redirect(next);
-  return <LoginForm next={next} error={authError(params.error)} google={googleReady()} />;
+  return <LoginForm next={next} error={authError(params.error)} google={googleReady()} done={typeof params.done === "string" ? params.done : ""} />;
 }

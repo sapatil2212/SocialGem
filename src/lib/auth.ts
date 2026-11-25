@@ -3,6 +3,7 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { verificationRequired } from "@/server/account";
+import { ensureWorkspace } from "@/server/workspaces";
 import { verifyPassword } from "@/server/password";
 import { allow, clientIp } from "@/server/rate-limit";
 import { signInSchema } from "./auth-schemas";
@@ -80,6 +81,10 @@ export const authOptions: NextAuthOptions = {
     },
   },
   events: {
+    // Everyone lands on a working dashboard after signing in.
+    async signIn({ user }) {
+      await ensureWorkspace(user.id, user.name).catch((error: Error) => console.error("[workspace]", error.name));
+    },
     async linkAccount({ user }) {
       await prisma.user.updateMany({ where: { id: user.id, emailVerified: null }, data: { emailVerified: new Date() } });
     },

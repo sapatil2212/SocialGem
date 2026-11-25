@@ -1,17 +1,18 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useState, useSyncExternalStore, type ReactNode } from "react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "motion/react";
-import { ArrowRight, LoaderCircle, MailCheck } from "lucide-react";
+import { ArrowRight, CircleCheck, LoaderCircle } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import { Button } from "@/components/ui/button";
 import { Field, FormAlert, Input } from "@/components/ui/field";
 import { signInSchema, signUpSchema, type SignIn, type SignUp } from "@/lib/auth-schemas";
 import { postAccount } from "./api";
+import CodeStep from "./CodeStep";
 import { PasswordChecklist, PasswordInput } from "./PasswordField";
 
 const LOGIN_ERRORS: Record<string, string> = {
@@ -21,7 +22,29 @@ const LOGIN_ERRORS: Record<string, string> = {
 };
 const OFFLINE = "We could not reach the server. Please try again.";
 
-type Props = { next: string; error: string; google: boolean };
+// Sign-up and reset finish on the log in page. The email travels in this tab only, never in the address.
+const DONE = { verified: "Email confirmed. Log in to open your dashboard.", reset: "Password changed. Log in with the new one." };
+const KEY = "sg-login-email";
+
+export function leaveForLogin(reason: keyof typeof DONE, email: string, next?: string) {
+  try {
+    sessionStorage.setItem(KEY, email);
+  } catch {}
+  const query = new URLSearchParams({ done: reason });
+  if (next && next !== "/app") query.set("next", next);
+  window.location.assign(`/login?${query}`);
+}
+
+const never = () => () => {};
+function rememberedEmail() {
+  try {
+    return sessionStorage.getItem(KEY) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+type Props = { next: string; error: string; google: boolean; done?: string };
 
 export function Spinner() {
   return <LoaderCircle aria-hidden className="animate-spin motion-reduce:animate-none" />;
@@ -79,26 +102,68 @@ function Head({ title, text }: { title: string; text: ReactNode }) {
   );
 }
 
-export function LoginForm({ next, error, google }: Props) {
+export function LoginForm(props: Props) {
+  // Waits for the browser, so the remembered email can be filled in without a mismatch.
+  const email = useSyncExternalStore(never, rememberedEmail, () => null);
+  return <LoginFields key={email === null ? "server" : "browser"} {...props} email={email ?? ""} />;
+}
+
+function LoginFields({ next, error, google, done, email }: Props & { email: string }) {
   const [problem, setProblem] = useState(error);
-  const { register, handleSubmit, formState } = useForm<SignIn>({ resolver: zodResolver(signInSchema), defaultValues: { email: "", password: "" } });
+  const [pending, setPending] = useState("");
+  const { register, handleSubmit, formState, getValues } = useForm<SignIn>({ resolver: zodResolver(signInSchema), defaultValues: { email, password: "" } });
+  const message = done === "verified" || done === "reset" ? DONE[done] : "";
 
   const submit = async (values: SignIn) => {
     setProblem("");
     try {
       const result = await signIn("credentials", { ...values, redirect: false });
-      if (result?.ok && !result.error) window.location.assign(next);
-      else setProblem(LOGIN_ERRORS[result?.error ?? ""] ?? OFFLINE);
+      if (result?.ok && !result.error) {
+        try {
+          sessionStorage.removeItem(KEY);
+        } catch {}
+        window.location.assign(next);
+        return;
+      }
+      if (result?.error === "EmailNotVerified") {
+        const reply = await postAccount("challenge", values);
+        if (reply.ok) setPending(reply.pending!);
+        else setProblem(reply.code === "WAIT" ? "Confirm your email first. Use the code we sent, or wait a minute for a new one." : reply.message);
+        return;
+      }
+      setProblem(LOGIN_ERRORS[result?.error ?? ""] ?? OFFLINE);
     } catch {
       setProblem(OFFLINE);
     }
   };
+
+  if (pending) {
+    const address = getValues("email");
+    return (
+      <CodeStep
+        email={address}
+        pending={pending}
+        purpose="verify"
+        action="Confirm email"
+        onPending={setPending}
+        onBack={() => setPending("")}
+        onCode={async (code) => {
+          const reply = await postAccount("verify", { pending, code });
+          if (!reply.ok) return reply.message;
+          leaveForLogin("verified", address, next);
+        }}
+      />
+    );
+  }
 
   return (
     <>
       <Switch mode="login" next={next} />
       <Head title="Welcome back" text="Pick up where your calendar left off." />
       <form noValidate onSubmit={handleSubmit(submit)} className="grid gap-4">
+        {message && !problem && (
+          <p role="status" className="flex items-center gap-2.5 rounded-xl border border-success/30 bg-success/5 p-3.5 text-sm font-medium text-success"><CircleCheck aria-hidden className="size-4 shrink-0" />{message}</p>
+        )}
         {problem && <FormAlert>{problem}</FormAlert>}
         <Google next={next} enabled={google} onError={setProblem} />
         <Field label="Email" error={formState.errors.email?.message}>
@@ -116,21 +181,9 @@ export function LoginForm({ next, error, google }: Props) {
   );
 }
 
-export function CheckEmail({ email }: { email: string }) {
-  return (
-    <div role="status">
-      <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 260, damping: 18 }} className="mb-7 grid size-16 place-items-center rounded-2xl bg-tint-strong text-brand-ink">
-        <MailCheck aria-hidden className="size-7" />
-      </motion.span>
-      <Head title="Check your inbox" text={<>If <b className="font-semibold text-foreground">{email}</b> can be used, a link is on its way. Look in spam too.</>} />
-      <Button asChild variant="outline"><Link href="/login">Back to log in</Link></Button>
-    </div>
-  );
-}
-
 export function SignUpForm({ next, error, google }: Props) {
   const [problem, setProblem] = useState(error);
-  const [sentTo, setSentTo] = useState("");
+  const [sent, setSent] = useState<{ email: string; pending: string } | null>(null);
   const { register, handleSubmit, setError, control, formState } = useForm<SignUp>({
     resolver: zodResolver(signUpSchema),
     defaultValues: { name: "", email: "", password: "" },
@@ -148,16 +201,29 @@ export function SignUpForm({ next, error, google }: Props) {
       }
       return;
     }
-    if (reply.result === "check-email") return setSentTo(values.email);
-    const result = await signIn("credentials", { email: values.email, password: values.password, redirect: false }).catch(() => null);
-    window.location.assign(result?.ok ? next : "/login");
+    setSent({ email: values.email, pending: reply.pending! });
   };
 
-  if (sentTo) return <CheckEmail email={sentTo} />;
+  if (sent) {
+    return (
+      <CodeStep
+        {...sent}
+        purpose="verify"
+        action="Confirm email"
+        onPending={(pending) => setSent({ ...sent, pending })}
+        onBack={() => setSent(null)}
+        onCode={async (code) => {
+          const reply = await postAccount("verify", { pending: sent.pending, code });
+          if (!reply.ok) return reply.message;
+          leaveForLogin("verified", sent.email, next);
+        }}
+      />
+    );
+  }
   return (
     <>
       <Switch mode="signup" next={next} />
-      <Head title="Create your account" text="Set up your first brand in about two minutes." />
+      <Head title="Create your account" text="We will email you a 6-digit code to confirm it is you." />
       <form noValidate onSubmit={handleSubmit(submit)} className="grid gap-4">
         {problem && <FormAlert>{problem}</FormAlert>}
         <Google next={next} enabled={google} onError={setProblem} />

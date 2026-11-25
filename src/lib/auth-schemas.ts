@@ -34,7 +34,11 @@ export const signUpSchema = z.object({
   password: passwordSchema,
 });
 export const forgotSchema = z.object({ email: emailSchema });
-export const resetSchema = z.object({ token: z.string().regex(/^[\w-]{43}$/), password: passwordSchema });
+const pending = z.string().regex(/^[\w-]{32}$/, "Start again.");
+const code = z.string().regex(/^\d{6}$/, "Enter the 6-digit code.");
+export const verifySchema = z.object({ pending, code });
+export const resendSchema = z.object({ pending, purpose: z.enum(["verify", "reset"]) });
+export const resetSchema = z.object({ pending, code, password: passwordSchema });
 
 export type SignIn = z.infer<typeof signInSchema>;
 export type SignUp = z.infer<typeof signUpSchema>;

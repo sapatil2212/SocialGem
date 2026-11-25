@@ -9,7 +9,7 @@ export const metadata = { title: "Sign up" };
 
 export default async function Page({ searchParams }: { searchParams: Search }) {
   const params = await searchParams;
-  const next = safePath(params.next ?? params.callbackUrl, "/onboarding");
+  const next = safePath(params.next ?? params.callbackUrl, "/app");
   const session = await getServerSession(authOptions).catch(() => null);
   if (session?.user) redirect(next);
   return <SignUpForm next={next} error={authError(params.error)} google={googleReady()} />;

@@ -991,6 +991,7 @@ Consequences of MySQL 8 for sections 4 to 7, to be designed before M1 code:
 - `@prisma/adapter-pg` and `pg` are removed and Prisma pinned to 6. The local Prisma Dev database is PostgreSQL only, so **a local MySQL 8 server is needed**.
 - The schema in section 5 is validated for PostgreSQL only.
 | 25 Nov 2026 | Email and password sign-up added beside Google; remote MySQL server used | Migration applied 25 Nov 2026 over the unencrypted connection, with the owner's approval. Secure it before real customers |
+| 25 Nov 2026 | 6-digit email codes for sign-up and password reset; sign-up returns to log in, log in opens the dashboard. App uses the server database; only tests use local MySQL | Codes never use EMAIL_BCC |
 
 ### M1 status (25 Nov 2026)
 - [x] 1.1 Demo login, secret fallback, in-memory stores, dummy account 101, download proxy and duplicate routes removed
