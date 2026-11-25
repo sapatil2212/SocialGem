@@ -1,4 +1,4 @@
-# SocialGem: development plan
+﻿# SocialGem: development plan
 
 Status: **awaiting approval**. No application code has been changed. MuAPI evidence: [MUAPI_NOTES.md](MUAPI_NOTES.md).
 
@@ -42,7 +42,7 @@ Based on the upgrade, route-handler, proxy, instrumentation, self-hosting and au
 - Proxy buffers bodies to 10 MB by default, another reason for direct-to-R2 uploads.
 - `src/instrumentation.js` `register()` runs once at server start: env validation goes there, so builds need no secrets.
 - `NEXT_PUBLIC_*` values are fixed at build time. `APP_URL` is read server-side at runtime.
-- SIGTERM drain needs a 10–30 second stop grace period.
+- SIGTERM drain needs a 10â€“30 second stop grace period.
 
 ## 2. Codebase review
 
@@ -104,22 +104,22 @@ Read in full: manifests, schema, `src/lib`, and all API routes. Client code: rea
 
 | Route | Auth | Ownership | Validation | Problem |
 |---|---|---|---|---|
-| auth | – | – | – | **Demo provider signs anyone in as any email, with no password**; hard-coded secret fallback |
+| auth | â€“ | â€“ | â€“ | **Demo provider signs anyone in as any email, with no password**; hard-coded secret fallback |
 | posts GET/POST | yes | by user | weak | GET has side effects; `mediaUrl` and account ID unchecked: any MuAPI account ID can be posted to |
 | posts/[id] PATCH/DELETE | yes | **none** | none | Edit, delete or publish anyone's post |
-| social/accounts GET | yes | **none for developer accounts** | – | Every user sees all accounts under our key; demo accounts shown when empty |
+| social/accounts GET | yes | **none for developer accounts** | â€“ | Every user sees all accounts under our key; demo accounts shown when empty |
 | social/accounts/[id] | yes | **none** | none | Rename or delete anyone's account; the ID is put into the URL unencoded |
-| social/connect, youtube/connect | yes | – | **open redirect**: `redirectUrl` unchecked | Email sent to MuAPI as `external_user_id` |
+| social/connect, youtube/connect | yes | â€“ | **open redirect**: `redirectUrl` unchecked | Email sent to MuAPI as `external_user_id` |
 | media/[id] | yes | **none** | none | Edit or delete anyone's media |
 | media, tags | yes | by user | weak | Arbitrary URLs stored |
-| tags/[id] | yes | yes | – | Reports success on DB error |
-| upload | **none** | – | **none** | Anyone can upload on our MuAPI account |
-| download | **none** | – | **none** | SSRF and open redirect; header injection risk in filename |
-| ai/generate, agent/chat | yes | – | length unchecked | No charge, quota or rate limit: unlimited spend of our wallet |
-| analytics | yes | by user | – | Includes developer accounts |
-| checkout, stripe/checkout | yes | – | by plan ID | Duplicates |
-| stripe webhooks (two) | signature | – | – | No idempotency: a replay grants credits twice |
-| login page | – | – | – | `next`/`callbackUrl` pushed without a same-origin check |
+| tags/[id] | yes | yes | â€“ | Reports success on DB error |
+| upload | **none** | â€“ | **none** | Anyone can upload on our MuAPI account |
+| download | **none** | â€“ | **none** | SSRF and open redirect; header injection risk in filename |
+| ai/generate, agent/chat | yes | â€“ | length unchecked | No charge, quota or rate limit: unlimited spend of our wallet |
+| analytics | yes | by user | â€“ | Includes developer accounts |
+| checkout, stripe/checkout | yes | â€“ | by plan ID | Duplicates |
+| stripe webhooks (two) | signature | â€“ | â€“ | No idempotency: a replay grants credits twice |
+| login page | â€“ | â€“ | â€“ | `next`/`callbackUrl` pushed without a same-origin check |
 
 No route has rate limiting. Raw errors reach the client. Browser code also calls `muapi.ai` directly.
 
@@ -157,7 +157,7 @@ flowchart LR
 **Recommendation: a separate Node worker from the same image**, not a cron HTTP endpoint. Publishing can take minutes; a worker has no HTTP timeout, can drain on SIGTERM, can poll every few seconds, has a heartbeat, and exposes no public trigger. It ticks every 10 seconds for polls and claims due work at least every minute.
 
 - Shared server code lives in `src/server/`, with no Next imports so both processes can use it. The worker is bundled with esbuild, since Node does not resolve the `@/` alias.
-- Layers: route handler → zod → auth/workspace guard → service → scoped repository → Prisma.
+- Layers: route handler â†’ zod â†’ auth/workspace guard â†’ service â†’ scoped repository â†’ Prisma.
 - JavaScript stays, with JSDoc and `tsc --checkJs` on `src/server` in CI.
 - Queue is PostgreSQL; rate limiting is PostgreSQL. No Redis at this scale.
 - `next.config` uses standalone output. Google font is fetched at build; self-host it to make builds offline-safe.
@@ -664,22 +664,22 @@ Auth codes: **P** public, **U** signed in, **W** workspace member (write needs r
 | Method and path | Auth | Input | Output |
 |---|---|---|---|
 | ALL `/api/auth/[...nextauth]` | P | NextAuth | NextAuth |
-| GET `/api/health` | P | – | db, worker age; 503 if stale |
+| GET `/api/health` | P | â€“ | db, worker age; 503 if stale |
 | GET/PATCH `/api/me` | U | name | user, plan, balances |
 | GET/POST `/api/workspaces` | U | name, timezone | workspace(s) |
 | GET/PATCH `/api/w/{wid}` | W | name, timezone, archive | workspace |
-| GET `/api/w/{wid}/accounts` | W | – | accounts |
+| GET `/api/w/{wid}/accounts` | W | â€“ | accounts |
 | POST `/api/w/{wid}/accounts/connect` | W | platform | `{url}` or `PLATFORM_DISABLED` |
 | GET `/connect/callback` (redirect handler) | U | nonce | redirect to channels |
-| POST `/api/w/{wid}/accounts/refresh` | W | – | accounts with updated status |
-| PATCH/DELETE `/api/w/{wid}/accounts/{id}` | W | name / – | account / ok |
+| POST `/api/w/{wid}/accounts/refresh` | W | â€“ | accounts with updated status |
+| PATCH/DELETE `/api/w/{wid}/accounts/{id}` | W | name / â€“ | account / ok |
 | GET `/api/w/{wid}/posts` | W | from, to, platform, status, tag, cursor | posts |
 | POST `/api/w/{wid}/posts` | W | content, targets, mode draft/schedule/now, idempotency key | post |
 | GET/PATCH/DELETE `/api/w/{wid}/posts/{id}` | W | content, version | post / ok (draft or never-sent only) |
 | POST `/api/w/{wid}/posts/{id}/{schedule,reschedule,cancel,duplicate,publish-now}` | W | time where needed, version | post |
-| POST `/api/w/{wid}/targets/{id}/retry` | W | – | target (FAILED only) |
+| POST `/api/w/{wid}/targets/{id}/retry` | W | â€“ | target (FAILED only) |
 | POST `/api/w/{wid}/media/uploads` | W | name, mime, size | asset id, presigned PUT |
-| POST `/api/w/{wid}/media/{id}/complete` | W | – | inspected asset |
+| POST `/api/w/{wid}/media/{id}/complete` | W | â€“ | inspected asset |
 | GET `/api/w/{wid}/media` | W | filters, cursor | assets |
 | PATCH/DELETE `/api/w/{wid}/media/{id}` | W | name, folder, tags | asset / 409 if scheduled |
 | GET/POST `/api/w/{wid}/tags`, DELETE `/tags/{id}` | W | name, color | tag(s) |
@@ -689,7 +689,7 @@ Auth codes: **P** public, **U** signed in, **W** workspace member (write needs r
 | GET `/api/notifications`, POST `/api/notifications/read` | U | cursor / ids | list / ok |
 | GET `/api/billing`, PATCH `/api/billing/details` | U | GST fields | plan, usage, payments |
 | POST `/api/billing/checkout`, `/cancel` | U | plan, provider | provider session / ok |
-| GET `/api/billing/invoices/{id}` | U owner | – | printable receipt |
+| GET `/api/billing/invoices/{id}` | U owner | â€“ | printable receipt |
 | POST `/api/webhooks/razorpay`, `/stripe` | S | raw body | 2xx |
 | POST `/api/webhooks/muapi/{token}` | S | ignored except as a hint | 204 |
 | GET `/api/admin/{users,workspaces,posts,stats,wallet,audit}` | A | filters, cursor | list |
@@ -732,9 +732,9 @@ stateDiagram-v2
 Transitions go through one function using a conditional update on the current status. PUBLISHED and CANCELLED are final; a drag on them is rejected (duplicate instead).
 
 ### Cycle
-1. **Claim** a small batch in one transaction: `SELECT … WHERE status IN ('SCHEDULED','QUEUED') AND "nextActionAt" <= now() AND ("leaseUntil" IS NULL OR "leaseUntil" < now()) ORDER BY "nextActionAt" FOR UPDATE SKIP LOCKED LIMIT n`, then set QUEUED, a random lease token and expiry. Fair by workspace.
+1. **Claim** a small batch in one transaction: `SELECT â€¦ WHERE status IN ('SCHEDULED','QUEUED') AND "nextActionAt" <= now() AND ("leaseUntil" IS NULL OR "leaseUntil" < now()) ORDER BY "nextActionAt" FOR UPDATE SKIP LOCKED LIMIT n`, then set QUEUED, a random lease token and expiry. Fair by workspace.
 2. **Preflight:** account active and in this workspace, platform enabled, plan valid, media READY and publicly reachable, caption valid, not too late (below). Failure is definite; no charge.
-3. **Reserve and record, in one transaction:** lock the billing account row, check the balance, append RESERVE −1, create the attempt as SENDING, move to PUBLISHING. Committed *before* the HTTP call, requiring the lease token.
+3. **Reserve and record, in one transaction:** lock the billing account row, check the balance, append RESERVE âˆ’1, create the attempt as SENDING, move to PUBLISHING. Committed *before* the HTTP call, requiring the lease token.
 4. **Send once** with a timeout. The HTTP client has no automatic retry.
 5. **Record** the request ID, cost and balance; set ACCEPTED.
 6. **Track:** poll at roughly 5, 10, 20, 40, then every 60 seconds with jitter. After 60 minutes, NEEDS_CHECK, with slow polling continuing to 24 hours. A webhook only moves the next poll to now.
@@ -934,7 +934,7 @@ Own developer apps, WhatsApp, team and approvals, carousels, Stories (schema lis
 
 | Risk | Mitigation |
 |---|---|
-| X not connectable per customer | Options A–D; flag off; do not advertise X before S1 |
+| X not connectable per customer | Options Aâ€“D; flag off; do not advertise X before S1 |
 | MuAPI terms forbid this use | Written confirmation before launch |
 | Hidden sub-processor or no DPA | Confirm; name in the policy; lawyer review |
 | MuAPI or upstream outage | Queue, pause, late rule, status banner, provider interface |
@@ -982,7 +982,7 @@ Own developer apps, WhatsApp, team and approvals, carousels, Stories (schema lis
 | 25 Nov 2026 | New code in strict TypeScript | Replaces question 15 |
 
 Consequences of MySQL 8 for sections 4 to 7, to be designed before M1 code:
-- Queue claim: `FOR UPDATE SKIP LOCKED` exists in MySQL 8, but there is no `UPDATE … RETURNING`; select, update and read back in one transaction at READ COMMITTED.
+- Queue claim: `FOR UPDATE SKIP LOCKED` exists in MySQL 8, but there is no `UPDATE â€¦ RETURNING`; select, update and read back in one transaction at READ COMMITTED.
 - No partial indexes: use the `(status, nextActionAt)` index. No scalar lists: `MediaAsset.tags` becomes JSON or a table.
 - Composite foreign keys still work; a nullable column in one is not checked, which matches the PostgreSQL design.
 - Case-insensitive collation changes uniqueness (emails, tags). Tokens and provider IDs need a binary collation.
@@ -990,4 +990,4 @@ Consequences of MySQL 8 for sections 4 to 7, to be designed before M1 code:
 - Compose uses `mysql`, backups use `mysqldump --single-transaction`, tests run on real MySQL.
 - `@prisma/adapter-pg` and `pg` are removed and Prisma pinned to 6. The local Prisma Dev database is PostgreSQL only, so **a local MySQL 8 server is needed**.
 - The schema in section 5 is validated for PostgreSQL only.
-| 25 Nov 2026 | Email and password sign-up added beside Google; remote MySQL server used | Migration written, **not yet applied** |
+| 25 Nov 2026 | Email and password sign-up added beside Google; remote MySQL server used | Migration applied 25 Nov 2026 over the unencrypted connection, with the owner's approval. Secure it before real customers |
