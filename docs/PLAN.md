@@ -971,3 +971,22 @@ Own developer apps, WhatsApp, team and approvals, carousels, Stories (schema lis
 18. **Legal:** business name, address, support email and copyright line, and will a lawyer review the pages?
 19. **VPS:** OS, size and is Caddy already running? Is R2 ready with a media domain?
 20. **Milestone order:** approve engine (M4) before composer (M3)?
+
+## 14. Decisions after the plan
+
+| Date | Decision | Effect |
+|---|---|---|
+| 25 Nov 2026 | Build approved, landing page first, Next.js 16 kept | Public site pages from M8 started early |
+| 25 Nov 2026 | **MySQL with Prisma 6** replaces PostgreSQL with Prisma 7 | Must be applied in M1, see below |
+| 25 Nov 2026 | SAP DigiTech design language, SocialGem name only | [DESIGN.md](DESIGN.md) |
+| 25 Nov 2026 | New code in strict TypeScript | Replaces question 15 |
+
+Consequences of MySQL 8 for sections 4 to 7, to be designed before M1 code:
+- Queue claim: `FOR UPDATE SKIP LOCKED` exists in MySQL 8, but there is no `UPDATE … RETURNING`; select, update and read back in one transaction at READ COMMITTED.
+- No partial indexes: use the `(status, nextActionAt)` index. No scalar lists: `MediaAsset.tags` becomes JSON or a table.
+- Composite foreign keys still work; a nullable column in one is not checked, which matches the PostgreSQL design.
+- Case-insensitive collation changes uniqueness (emails, tags). Tokens and provider IDs need a binary collation.
+- Append-only triggers, checks and `Decimal` are available. Long unique strings need explicit lengths.
+- Compose uses `mysql`, backups use `mysqldump --single-transaction`, tests run on real MySQL.
+- `@prisma/adapter-pg` and `pg` are removed and Prisma pinned to 6. The local Prisma Dev database is PostgreSQL only, so **a local MySQL 8 server is needed**.
+- The schema in section 5 is validated for PostgreSQL only.

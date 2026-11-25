@@ -50,7 +50,7 @@ function Flow({ text, run, onRun }) {
       </div>
       <div className="sg-flow-map">
         <div className="sg-node sg-node-in">
-          <span className="sg-node-icon" style={{ "--n": "#2d5bff" }}><FiEdit3 /></span>
+          <span className="sg-node-icon" style={{ "--n": "#1b2240" }}><FiEdit3 /></span>
           <strong>Your post</strong>
           <p>{text}</p>
         </div>
@@ -125,7 +125,7 @@ export default function Hero() {
   return (
     <MotionConfig reducedMotion="user">
       <section
-        className="sg-hero"
+        className="sg-hero mesh-bg"
         onPointerMove={(e) => {
           if (e.pointerType !== "mouse" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
           rawX.set(e.clientX / window.innerWidth - 0.5);
@@ -136,9 +136,9 @@ export default function Hero() {
           {TILES.map((tile, i) => <Tile key={i} tile={tile} mx={mx} my={my} />)}
         </div>
         <div className="sg-wrap sg-hero-in">
-          <h1>Schedule a week of posts in one sitting</h1>
+          <h1>Schedule a week of posts in <em className="accent gradient-text">one sitting</em></h1>
           <p className="sg-lead">
-            Write once, adjust it for each platform, and let SocialGem publish on time. Made for small businesses.
+            Write once, adjust it for each platform, and let SocialGem publish on time. Made for small businesses, and still in development.
           </p>
           <form
             className="sg-ask"

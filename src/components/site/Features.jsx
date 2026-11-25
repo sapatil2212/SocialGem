@@ -85,7 +85,7 @@ function LimitMini() {
 }
 
 const BRANDS = [
-  { name: "Aarogya Dental", color: "#2d5bff", posts: 6 },
+  { name: "Aarogya Dental", color: "#1b2240", posts: 6 },
   { name: "Filter & Co.", color: "#e0762d", posts: 11 },
   { name: "Meher Boutique", color: "#b8407a", posts: 4 },
 ];
@@ -122,7 +122,7 @@ export default function Features() {
     <MotionConfig reducedMotion="user">
       <div className="sg-cards">
         {CARDS.map(({ tone, Demo, title, text }) => (
-          <article key={title} className="sg-feature">
+          <article key={title} className="sg-feature card-interactive reveal">
             <div className={`sg-stage-box is-${tone}`}><Demo /></div>
             <h3>{title}</h3>
             <p>{text}</p>
@@ -135,7 +135,7 @@ export default function Features() {
 
 const ROLES = [
   { key: "shop", label: "Shops and cafés", title: "Plan on Monday, serve all week", points: ["Line up offers before the rush", "Reuse photos you already have", "Post while you are at the counter"], quote: "Monsoon menu is here. Open till 10 tonight.", color: "#e0762d" },
-  { key: "clinic", label: "Clinics", title: "Stay visible between appointments", points: ["Share camps and timings early", "Keep a steady, calm presence", "Check every post before it goes"], quote: "Free check-ups for children this Saturday.", color: "#2d5bff" },
+  { key: "clinic", label: "Clinics", title: "Stay visible between appointments", points: ["Share camps and timings early", "Keep a steady, calm presence", "Check every post before it goes"], quote: "Free check-ups for children this Saturday.", color: "#1b2240" },
   { key: "free", label: "Freelancers", title: "Show your work without losing a day", points: ["Batch a month in one sitting", "Adjust tone for each platform", "Export your posts any time"], quote: "Three logos, one brief. Here is how we chose.", color: "#178a63" },
   { key: "agency", label: "Small agencies", title: "Every client in its own space", points: ["Accounts never mix between clients", "Set a timezone per brand", "See failures across clients"], quote: "Client calendar ready for November.", color: "#b8407a" },
 ];

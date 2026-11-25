@@ -1,0 +1,138 @@
+/* SocialGem design system: warm, flat, editorial. Scoped to .brand so the old dashboard is untouched. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-ink: var(--brand-ink);
+  --color-brand-deep: var(--brand-deep);
+  --color-tint: var(--tint);
+  --color-tint-strong: var(--tint-strong);
+  --color-cream: var(--cream);
+  --color-muted-ink: var(--muted-ink);
+  --color-hairline: var(--hairline);
+  --color-navy: #1b2240;
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-destructive: var(--destructive);
+}
+
+.brand {
+  --background: oklch(0.978 0.005 80); /* #f9f7f4 */
+  --foreground: oklch(0.268 0.058 273); /* #1b2240 */
+  --card: oklch(1 0 0);
+  --brand: oklch(0.699 0.204 44); /* #ff6b00 */
+  --brand-hover: oklch(0.755 0.175 52);
+  --brand-foreground: oklch(0.2 0.05 273);
+  --brand-ink: oklch(0.525 0.155 42); /* orange dark enough for text */
+  --brand-deep: oklch(0.545 0.215 32); /* #cc2200 */
+  --tint: oklch(0.976 0.014 56); /* #fff4ee */
+  --tint-strong: oklch(0.928 0.04 64); /* #ffe0cc */
+  --cream: oklch(0.956 0.035 86); /* #fbf0d9 */
+  --muted-ink: oklch(0.45 0.03 270);
+  --hairline: oklch(0.92 0.01 60);
+  --success: oklch(0.47 0.1 160);
+  --warning: oklch(0.47 0.1 70);
+  --destructive: oklch(0.5 0.19 25);
+  --radius: 0.875rem;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist), sans-serif;
+  letter-spacing: -0.011em;
+  color-scheme: light;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Public pages stay light. Product screens opt in with .brand-themed. */
+.dark .brand-themed {
+  --background: oklch(0.2 0.03 272);
+  --foreground: oklch(0.96 0.008 80);
+  --card: oklch(0.245 0.035 272);
+  --brand-ink: oklch(0.76 0.15 52);
+  --tint: oklch(0.28 0.035 272);
+  --tint-strong: oklch(0.34 0.05 45);
+  --cream: oklch(0.3 0.03 86);
+  --muted-ink: oklch(0.75 0.02 270);
+  --hairline: oklch(0.35 0.03 272);
+  --success: oklch(0.78 0.12 160);
+  --warning: oklch(0.82 0.12 80);
+  --destructive: oklch(0.74 0.14 25);
+  color-scheme: dark;
+}
+
+.brand, .brand *, .brand *::before, .brand *::after { box-shadow: none !important; }
+@layer base {
+.brand :is(h1, h2, h3) { font-weight: 600; letter-spacing: -0.035em; line-height: 1.05; text-wrap: balance; }
+}
+.brand :focus-visible { outline: 3px solid color-mix(in oklch, var(--brand) 50%, transparent); outline-offset: 2px; }
+.brand em.accent { font-family: var(--font-instrument), Georgia, serif; font-style: italic; font-weight: 400; letter-spacing: -0.02em; }
+html:has(.brand) { scroll-behavior: smooth; scroll-padding-top: 88px; background: #f9f7f4; }
+
+@utility container-1280 { width: 100%; max-width: 1240px; margin-inline: auto; padding-inline: 1.5rem; }
+@utility gradient-text { background: linear-gradient(125deg, #e05300, #cc2200); background-clip: text; color: transparent; }
+@utility gradient-brand { background: linear-gradient(130deg, #c94700, #cc2200); color: #fff; }
+@utility mesh-bg {
+  background:
+    radial-gradient(44rem 30rem at 84% -6%, rgb(255 107 0 / 0.17), transparent 70%),
+    radial-gradient(38rem 28rem at 4% 20%, rgb(27 34 64 / 0.08), transparent 70%),
+    linear-gradient(#fff4ee, #f9f7f4 62%);
+}
+@utility glass { background: rgb(255 255 255 / 0.86); backdrop-filter: blur(14px) saturate(1.4); border: 1px solid var(--hairline); }
+@utility glass-dark { background: rgb(27 34 64 / 0.72); backdrop-filter: blur(14px) saturate(1.4); border: 1px solid rgb(255 255 255 / 0.14); }
+@utility hairline { border: 1px solid var(--hairline); }
+@utility card-elevated { background: var(--card); border: 1px solid var(--hairline); border-radius: calc(var(--radius) + 0.5rem); }
+@utility hover-lift {
+  transition: translate 0.2s var(--ease);
+  &:hover { translate: 0 -2px; }
+}
+@utility card-interactive {
+  position: relative;
+  background: var(--card);
+  border: 1px solid var(--hairline);
+  border-radius: calc(var(--radius) + 0.5rem);
+  transition: border-color 0.2s, translate 0.2s var(--ease);
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.25s;
+    background: radial-gradient(22rem circle at var(--mx, 50%) var(--my, 50%), rgb(255 107 0 / 0.1), transparent 65%);
+  }
+  &:hover { border-color: rgb(255 107 0 / 0.35); translate: 0 -2px; }
+  &:hover::after { opacity: 1; }
+}
+
+/* Hidden only after script has run, so the page is never blank without it. */
+.js-reveal .reveal {
+  opacity: 0;
+  translate: 0 24px;
+  filter: blur(4px);
+  transition: opacity 0.75s var(--ease) var(--reveal-delay, 0ms), translate 0.75s var(--ease) var(--reveal-delay, 0ms), filter 0.75s var(--ease) var(--reveal-delay, 0ms);
+}
+.js-reveal .reveal.is-visible { opacity: 1; translate: 0 0; filter: none; }
+
+.marquee { display: flex; width: max-content; animation: marquee 38s linear infinite; }
+.marquee-wrap:hover .marquee { animation-play-state: paused; }
+@keyframes marquee { to { transform: translateX(-50%); } }
+@keyframes shimmer-sweep { from { transform: translateX(-120%) skewX(-18deg); } to { transform: translateX(420%) skewX(-18deg); } }
+.shimmer { position: relative; overflow: hidden; }
+.shimmer::after { content: ""; position: absolute; inset: 0 auto 0 0; width: 28%; background: rgb(255 255 255 / 0.35); transform: translateX(-120%) skewX(-18deg); }
+.shimmer:hover::after { animation: shimmer-sweep 0.7s var(--ease); }
+
+@media (prefers-reduced-motion: reduce) {
+  html:has(.brand) { scroll-behavior: auto; }
+  .js-reveal .reveal { opacity: 1; translate: none; filter: none; transition: none; }
+  .marquee { animation: none; flex-wrap: wrap; width: auto; }
+  .marquee > [aria-hidden="true"] { display: none; }
+  .shimmer:hover::after { animation: none; }
+  .card-interactive:hover, .hover-lift:hover { translate: none; }
+}
+@media print {
+  .js-reveal .reveal { opacity: 1; translate: none; filter: none; }
+}
