@@ -15,24 +15,24 @@ export default function AboutPage() {
   return (
     <>
       <section className="mesh-bg border-b border-hairline">
-        <div className="container-1280 py-20 lg:py-28">
+        <div className="container-1280 py-14 lg:py-18">
           <h1>Social media that fits <em className="accent gradient-text">around your work</em></h1>
-          <p className="mt-6 max-w-2xl text-xl text-muted-ink">SocialGem is built for the shop owner, clinic, freelancer or small agency who has posts to publish and a business to run.</p>
+          <p className="mt-6 max-w-2xl text-base text-muted-ink">SocialGem is built for the shop owner, clinic, freelancer or small agency who has posts to publish and a business to run.</p>
         </div>
       </section>
       <section className="container-1280 grid gap-5 py-16 md:grid-cols-3">
         {VALUES.map(({ Icon, name, text }, i) => (
-          <article key={name} className="reveal card-interactive p-7" style={{ "--reveal-delay": `${i * 70}ms` } as React.CSSProperties}>
+          <article key={name} className="reveal card-interactive p-5" style={{ "--reveal-delay": `${i * 70}ms` } as React.CSSProperties}>
             <Icon aria-hidden className="size-7 text-brand-ink" />
-            <h2 className="mt-5 !text-[1.35rem]">{name}</h2>
+            <h2 className="mt-5 !text-[1.1rem]">{name}</h2>
             <p className="mt-3 text-muted-ink">{text}</p>
           </article>
         ))}
       </section>
-      <section className="container-1280 pb-24">
+      <section className="container-1280 pb-18">
         <div className="card-elevated flex flex-wrap items-center justify-between gap-6 p-8">
           <div>
-            <h2 className="!text-[1.6rem]">A product of {COMPANY.name}</h2>
+            <h2 className="!text-[1.3rem]">A product of {COMPANY.name}</h2>
             <p className="mt-2 flex items-center gap-2 text-muted-ink"><MapPin aria-hidden className="size-4" />{COMPANY.address}</p>
           </div>
           <Button asChild><Link href="/contact">Talk to us <ArrowRight /></Link></Button>

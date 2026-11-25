@@ -25,7 +25,7 @@ export default function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-hairline bg-background/85 backdrop-blur-xl backdrop-saturate-150">
-      <div className="container-1280 flex h-[72px] items-center gap-2.5">
+      <div className="container-1280 flex h-[62px] items-center gap-2.5">
         <Link href="/" aria-label="SocialGem home" className="mr-auto lg:mr-0"><Logo className="-ml-1 max-sm:h-9" /></Link>
         <nav aria-label="Main" className="mx-auto hidden gap-0.5 lg:flex">
           {LINKS.map(([href, label]) => (

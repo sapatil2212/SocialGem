@@ -328,7 +328,7 @@ export default function WorkspaceDashboard() {
                     onClick={() => handlePublishNow(viewingPost.id)}
                     className="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-blue-600 hover:bg-blue-500 transition-colors flex items-center gap-1.5 cursor-pointer shadow-md shadow-blue-600/25 active:scale-95 disabled:opacity-50"
                   >
-                    <FaBolt className="text-[10px]" />
+                    <FaBolt className="text-[11px]" />
                     <span>{actionLoading ? "Publishing..." : "Publish Now"}</span>
                   </button>
                 )}

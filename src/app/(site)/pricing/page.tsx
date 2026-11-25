@@ -25,14 +25,14 @@ export default function PricingPage() {
       <section className="mesh-bg border-b border-hairline">
         <div className="container-1280 py-20 text-center lg:py-28">
           <h1 className="mx-auto">Pay for posts, <em className="accent gradient-text">not for seats</em></h1>
-          <p className="mx-auto mt-6 max-w-xl text-xl text-muted-ink">Start with a free trial. Monthly plans will follow at launch.</p>
+          <p className="mx-auto mt-6 max-w-xl text-base text-muted-ink">Start with a free trial. Monthly plans will follow at launch.</p>
         </div>
       </section>
       <section className="container-1280 grid gap-4 py-16 sm:grid-cols-2 xl:grid-cols-4">
         {PLANS.map((plan, i) => (
-          <article key={plan.name} className={`reveal card-interactive flex flex-col p-7 ${plan.action ? "!border-brand" : ""}`} style={{ "--reveal-delay": `${i * 60}ms` } as React.CSSProperties}>
-            <h2 className="!text-[1.35rem]">{plan.name}</h2>
-            <p className="mt-5 text-4xl font-semibold tracking-[-0.035em]">{plan.price}</p>
+          <article key={plan.name} className={`reveal card-interactive flex flex-col p-5 ${plan.action ? "!border-brand" : ""}`} style={{ "--reveal-delay": `${i * 60}ms` } as React.CSSProperties}>
+            <h2 className="!text-[1.1rem]">{plan.name}</h2>
+            <p className="mt-5 text-2xl font-semibold tracking-[-0.035em]">{plan.price}</p>
             <p className="mt-3 text-muted-ink">{plan.text}</p>
             <ul className="mt-6 mb-8 grid gap-2.5">
               {plan.points.map((point) => <li key={point} className="flex gap-2.5"><Check aria-hidden className="mt-1 size-4 shrink-0 text-brand-ink" />{point}</li>)}

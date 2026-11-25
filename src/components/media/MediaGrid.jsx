@@ -259,7 +259,7 @@ export default function MediaGrid({
 
                 {/* Aspect Ratio Badge */}
                 {asset.aspectRatio && (
-                  <div className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-black/60 backdrop-blur-xs text-white">
+                  <div className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded text-[11px] font-mono font-bold bg-black/60 backdrop-blur-xs text-white">
                     {asset.aspectRatio}
                   </div>
                 )}
@@ -289,7 +289,7 @@ export default function MediaGrid({
                       className="flex-1 py-1 px-2 rounded-lg bg-[#6d28d9] hover:bg-[#5b1fc0] text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1 cursor-pointer"
                       title="Insert into new Post Composer"
                     >
-                      <FiSend className="text-[10px]" />
+                      <FiSend className="text-[11px]" />
                       <span>Use</span>
                     </button>
 

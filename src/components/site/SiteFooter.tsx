@@ -47,11 +47,11 @@ const contactIcon = "grid size-10 shrink-0 place-items-center rounded-xl border 
 export default function SiteFooter() {
   return (
     <FooterStage>
-      <div className="container-1280 relative grid gap-12 pt-20 pb-14 md:grid-cols-2 lg:grid-cols-[1.2fr_0.65fr_0.85fr_1.35fr]">
+      <div className="container-1280 relative grid gap-12 pt-14 pb-10 md:grid-cols-2 lg:grid-cols-[1.2fr_0.65fr_0.85fr_1.35fr]">
         <div>
           <Link href="/" aria-label="SocialGem home" className="inline-block"><Logo tone="dark" className="-ml-2 h-14" /></Link>
           <p className="mt-5 max-w-xs text-white/70">Plan, create and schedule your social posts from one calm workspace. Made in India for growing businesses.</p>
-          <Link href="/signup" className="shimmer mt-7 inline-flex min-h-12 items-center gap-2 rounded-xl bg-white px-5 font-semibold text-navy">
+          <Link href="/signup" className="shimmer mt-7 inline-flex min-h-10 items-center gap-2 rounded-lg bg-white text-sm px-5 font-semibold text-navy">
             Create your workspace <ArrowUpRight aria-hidden className="size-4" />
           </Link>
         </div>

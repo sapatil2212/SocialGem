@@ -216,7 +216,7 @@ export default function GrowthChart({ series = [], loading = false }) {
                 x={padLeft - 8}
                 y={lvl.y + 4}
                 textAnchor="end"
-                className="text-[10px] fill-zinc-400 dark:fill-zinc-500 font-mono"
+                className="text-[11px] fill-zinc-400 dark:fill-zinc-500 font-mono"
               >
                 {lvl.label}
               </text>
@@ -260,7 +260,7 @@ export default function GrowthChart({ series = [], loading = false }) {
                   x={pt.x}
                   y={height - 8}
                   textAnchor="middle"
-                  className={`text-[10px] font-medium transition-colors ${
+                  className={`text-[11px] font-medium transition-colors ${
                     isHovered
                       ? "fill-[#6d28d9] dark:fill-[#a78bfa] font-bold"
                       : "fill-zinc-500 dark:fill-zinc-400"
@@ -310,7 +310,7 @@ export default function GrowthChart({ series = [], loading = false }) {
           >
             <div className="font-bold text-zinc-900 dark:text-white flex items-center justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-1">
               <span>{activePoint.item.fullDate || activePoint.item.date}</span>
-              <span className="text-[10px] font-mono text-[#6d28d9] dark:text-[#a78bfa] font-black">
+              <span className="text-[11px] font-mono text-[#6d28d9] dark:text-[#a78bfa] font-black">
                 {metricMode === "engagement"
                   ? `${activePoint.val.toFixed(2)}% Eng.`
                   : `${activePoint.val.toLocaleString()} ${metricMode === "reach" ? "Views" : "Interactions"}`}

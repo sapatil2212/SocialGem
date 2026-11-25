@@ -35,9 +35,9 @@ function CalendarView() {
   const [items, setItems] = useState(START);
   const next = useRef(9);
   return (
-    <div className="grid h-full grid-cols-5 gap-2">
+    <div className="grid h-full grid-cols-3 gap-2 sm:grid-cols-5">
       {DAYS.map((day, d) => (
-        <div key={day} className="flex min-w-0 flex-col gap-2 rounded-xl border border-hairline bg-[#fcfbff] p-1.5 sm:p-2">
+        <div key={day} className={cn("flex min-w-0 flex-col gap-2 rounded-xl border border-hairline bg-[#fcfbff] p-1.5 sm:p-2", d > 2 && "max-sm:hidden")}>
           <span className="px-1 text-xs font-semibold text-muted-ink">{day}</span>
           <AnimatePresence initial={false} mode="popLayout">
             {items.filter((i) => i.day === d).map((item) => {
@@ -55,7 +55,7 @@ function CalendarView() {
                   transition={{ duration: 0.25, ease: EASE }}
                   className={cn("cursor-pointer rounded-lg border p-1.5 text-left text-[11px] leading-tight sm:p-2", kind.tone)}
                 >
-                  <span className="flex items-center gap-1 font-semibold"><kind.Icon aria-hidden className="size-3 shrink-0" />{item.time}</span>
+                  <span className="flex items-center gap-1 font-semibold"><kind.Icon aria-hidden className="size-3 shrink-0" /><span className="truncate">{item.time}</span></span>
                   <span className="mt-1 block truncate">{item.text}</span>
                 </motion.button>
               );
@@ -143,9 +143,9 @@ function Product() {
         <div className="flex gap-1 border-b border-hairline p-3 sm:flex-col sm:border-r sm:border-b-0">
           <span className="mb-3 hidden items-center gap-2 px-2 font-semibold sm:flex"><Mark className="size-7" />Asha&apos;s brand</span>
           {VIEWS.map(({ key, label: name, Icon }, i) => (
-            <button key={key} type="button" aria-pressed={view === i} onClick={() => setView(i)} className="relative flex min-h-10 flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg px-2.5 text-sm sm:flex-none sm:justify-start">
+            <button key={key} type="button" aria-pressed={view === i} onClick={() => setView(i)} className="relative flex min-h-10 min-w-0 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-lg px-1.5 text-sm sm:flex-none sm:gap-2 sm:px-2.5 sm:justify-start">
               {view === i && <motion.span layoutId="hero-view" className="absolute inset-0 rounded-lg bg-tint-strong" transition={{ type: "spring", stiffness: 380, damping: 32 }} />}
-              <Icon aria-hidden className="relative size-4 text-brand-ink" /><span className={cn("relative", view === i && "font-semibold")}>{name}</span>
+              <Icon aria-hidden className="relative size-4 shrink-0 text-brand-ink max-sm:hidden" /><span className={cn("relative", view === i && "font-semibold")}>{name}</span>
             </button>
           ))}
           <span aria-hidden className="mt-2 hidden gap-1 opacity-45 sm:grid">
@@ -207,12 +207,12 @@ export default function HeroStage() {
           {ORBIT.map((o, i) => <Float key={i} {...o} mx={sx} my={sy} index={i} />)}
         </div>
 
-        <div className="sg-wrap relative grid justify-items-center pt-20 text-center sm:pt-28">
+        <div className="sg-wrap relative grid justify-items-center pt-14 text-center sm:pt-20">
           <motion.p initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }} className="flex items-center gap-2 rounded-full border border-white/20 bg-white/8 px-4 py-1.5 text-sm text-white/85">
             <i aria-hidden className="size-2 rounded-full bg-[#22d3ee]" /> Early access, free to try
           </motion.p>
           <h1 className="mt-7 text-white">Your social presence, <em className="accent sg-prism">planned in one sitting</em></h1>
-          <p className="mt-6 max-w-2xl text-lg text-white/75 sm:text-xl">Write once, shape it for every channel and see the whole week at a glance. SocialGem keeps small teams consistent without living inside five apps.</p>
+          <p className="mt-6 max-w-2xl text-base text-white/75 sm:text-lg">Write once, shape it for every channel and see the whole week at a glance. SocialGem keeps small teams consistent without living inside five apps.</p>
           <div className="mt-9 flex flex-wrap justify-center gap-3">
             <Button asChild size="lg" className="shimmer bg-white text-navy hover:bg-[#ece6ff]"><Link href="/signup">Start free <ArrowRight /></Link></Button>
             <Button asChild size="lg" variant="outline" className="border-white/25 bg-white/8 text-white hover:border-white/60"><a href="#make">Try the composer</a></Button>
@@ -222,8 +222,8 @@ export default function HeroStage() {
           </ul>
         </div>
 
-        <div className="sg-wrap relative mt-14 pb-24 [perspective:1600px] sm:mt-16">
-          <motion.div style={{ rotateX: tilt, scale }} className="mx-auto max-w-[1080px] origin-top"><Product /></motion.div>
+        <div className="sg-wrap relative mt-10 pb-18 [perspective:1600px] sm:mt-12">
+          <motion.div style={{ rotateX: tilt, scale }} className="mx-auto max-w-[940px] origin-top"><Product /></motion.div>
         </div>
       </section>
     </MotionConfig>
@@ -253,7 +253,7 @@ export function NetworkStrip() {
           {[0, 1].map((copy) => (
             <div key={copy} aria-hidden={copy === 1} className="flex flex-wrap justify-center sm:flex-nowrap">
               {[...NETWORKS, ...NETWORKS].map(([Icon, name], i) => (
-                <span key={i} aria-hidden={i >= NETWORKS.length} className={cn("flex items-center gap-3 px-7 text-xl font-semibold whitespace-nowrap text-[#3c4063]", i >= NETWORKS.length && "max-sm:hidden")}><Icon aria-hidden />{name}</span>
+                <span key={i} aria-hidden={i >= NETWORKS.length} className={cn("flex items-center gap-3 px-7 text-base font-semibold whitespace-nowrap text-[#3c4063]", i >= NETWORKS.length && "max-sm:hidden")}><Icon aria-hidden />{name}</span>
               ))}
             </div>
           ))}

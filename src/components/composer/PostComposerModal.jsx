@@ -697,7 +697,7 @@ export default function PostComposerModal({
                   : "bg-gradient-to-r from-violet-600/15 to-indigo-600/15 text-violet-700 dark:text-violet-300 border-violet-500/30 hover:border-violet-500/60 hover:text-[#6d28d9] dark:hover:text-white"
               }`}
             >
-              <FaMagic className="text-[10px] text-amber-500 dark:text-amber-300" />
+              <FaMagic className="text-[11px] text-amber-500 dark:text-amber-300" />
               <span>Write with AI</span>
             </button>
             <button
@@ -737,7 +737,7 @@ export default function PostComposerModal({
                   <label className="text-xs font-bold text-zinc-800 dark:text-zinc-300 tracking-wider uppercase block">
                     1. SELECT PUBLISHING CHANNELS
                   </label>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                  <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
                     {selectedPlatforms.length} {selectedPlatforms.length === 1 ? "channel" : "channels"} selected
                   </span>
                 </div>
@@ -811,14 +811,14 @@ export default function PostComposerModal({
                             <div className="text-[11px] truncate font-bold text-zinc-900 dark:text-zinc-100">
                               {plat.name}
                             </div>
-                            <div className="text-[10px] truncate text-zinc-500 dark:text-zinc-400">
+                            <div className="text-[11px] truncate text-zinc-500 dark:text-zinc-400">
                               {accountLabel}
                             </div>
                           </div>
                         </div>
                         <div className="flex items-center shrink-0">
                           {isSelected ? (
-                            <span className="w-4 h-4 rounded-full bg-white/20 text-white flex items-center justify-center text-[10px] font-bold">
+                            <span className="w-4 h-4 rounded-full bg-white/20 text-white flex items-center justify-center text-[11px] font-bold">
                               ✓
                             </span>
                           ) : (
@@ -845,7 +845,7 @@ export default function PostComposerModal({
                 </div>
               )}
 
-              <p className="text-[10px] text-zinc-500">
+              <p className="text-[11px] text-zinc-500">
                 Click any connected channel to toggle. Multiple selected channels will be published in a single click.
               </p>
             </div>
@@ -902,7 +902,7 @@ export default function PostComposerModal({
             <div className="bg-white dark:bg-zinc-900/60 p-2 rounded-lg border border-zinc-200 dark:border-zinc-800 shadow-2xs space-y-1.5">
               <div className="flex items-center justify-between gap-2 px-1">
                 <div className="flex items-center gap-1.5 min-w-0">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 shrink-0">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 shrink-0">
                     Target Content:
                   </span>
                   {activeComposerTab === "all" ? (
@@ -925,10 +925,10 @@ export default function PostComposerModal({
                   <button
                     type="button"
                     onClick={resetCurrentTabOverride}
-                    className="text-[10px] font-semibold text-zinc-500 hover:text-red-500 dark:text-zinc-400 dark:hover:text-red-400 transition-colors cursor-pointer flex items-center gap-1 shrink-0"
+                    className="text-[11px] font-semibold text-zinc-500 hover:text-red-500 dark:text-zinc-400 dark:hover:text-red-400 transition-colors cursor-pointer flex items-center gap-1 shrink-0"
                     title="Reset to All Channels content"
                   >
-                    <FiRefreshCw className="text-[9px]" />
+                    <FiRefreshCw className="text-[11px]" />
                     <span>Reset to Base</span>
                   </button>
                 )}
@@ -991,7 +991,7 @@ export default function PostComposerModal({
                   2. POST TITLE / HEADLINE
                 </label>
                 {activeComposerTab !== "all" && platformOverrides[activeComposerTab]?.title !== undefined && (
-                  <span className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">
+                  <span className="text-[11px] text-amber-600 dark:text-amber-400 font-medium">
                     (Custom title for {currentActivePlatformInfo.name})
                   </span>
                 )}
@@ -1019,7 +1019,7 @@ export default function PostComposerModal({
                       className="text-[11px] text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 font-medium flex items-center gap-1 transition-colors cursor-pointer"
                       title="Write post with AI"
                     >
-                      <FaMagic className="text-[9px] text-amber-500 dark:text-amber-300" />
+                      <FaMagic className="text-[11px] text-amber-500 dark:text-amber-300" />
                       <span>Write with AI</span>
                     </button>
                   )}
@@ -1029,12 +1029,12 @@ export default function PostComposerModal({
                     {currentChars} / {currentTabCharLimit}
                   </span>
                   {activeComposerTab === "all" && selectedPlatforms.length > 1 && limitingPlatform && (
-                    <span className="text-[10px] text-zinc-500 font-sans hidden sm:inline">
+                    <span className="text-[11px] text-zinc-500 font-sans hidden sm:inline">
                       ({limitingPlatform.name} max)
                     </span>
                   )}
                   {activeComposerTab !== "all" && (
-                    <span className="text-[10px] text-zinc-500 font-sans hidden sm:inline">
+                    <span className="text-[11px] text-zinc-500 font-sans hidden sm:inline">
                       ({currentActivePlatformInfo.name} max)
                     </span>
                   )}
@@ -1059,7 +1059,7 @@ export default function PostComposerModal({
               {/* Hashtag Quick Chips */}
               <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
                 <span className="text-[11px] text-zinc-600 dark:text-zinc-400 flex items-center gap-1 mr-1 font-medium">
-                  <FaMagic className="text-violet-500 dark:text-violet-400 text-[10px]" /> Quick Tags:
+                  <FaMagic className="text-violet-500 dark:text-violet-400 text-[11px]" /> Quick Tags:
                 </span>
                 {POPULAR_HASHTAGS.map((tag) => (
                   <button
@@ -1088,7 +1088,7 @@ export default function PostComposerModal({
                       setCustomTag("");
                       setTagColor("");
                     }}
-                    className="text-[10px] text-zinc-500 hover:text-red-500 dark:text-zinc-400 dark:hover:text-red-400 transition-colors cursor-pointer"
+                    className="text-[11px] text-zinc-500 hover:text-red-500 dark:text-zinc-400 dark:hover:text-red-400 transition-colors cursor-pointer"
                   >
                     Clear Tag
                   </button>
@@ -1160,7 +1160,7 @@ export default function PostComposerModal({
                     onClick={() => setIsCreatingCustomTag(true)}
                     className="px-2.5 py-1 rounded-full text-[11px] font-medium text-[#6d28d9] dark:text-[#b79bff] hover:text-white bg-[#6d28d9]/10 hover:bg-[#6d28d9] border border-[#6d28d9]/30 transition-all cursor-pointer flex items-center gap-1"
                   >
-                    <FaPlus className="text-[9px]" />
+                    <FaPlus className="text-[11px]" />
                     <span>New Tag</span>
                   </button>
                 )}
@@ -1215,7 +1215,7 @@ export default function PostComposerModal({
 
                   {/* Preset Color Swatches */}
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] text-zinc-500 mr-1">Palette:</span>
+                    <span className="text-[11px] text-zinc-500 mr-1">Palette:</span>
                     {TAG_COLOR_PALETTE.map((c) => (
                       <button
                         key={c}
@@ -1240,7 +1240,7 @@ export default function PostComposerModal({
                   5. MEDIA ATTACHMENT (VIDEO / IMAGE)
                 </label>
                 {activeComposerTab !== "all" && (
-                  <div className="flex items-center gap-1.5 text-[10px]">
+                  <div className="flex items-center gap-1.5 text-[11px]">
                     {currentTabHasMediaOverride ? (
                       <>
                         <span className="text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-1">
@@ -1299,7 +1299,7 @@ export default function PostComposerModal({
                           ? `Upload custom media for ${currentActivePlatformInfo.name}`
                           : "Click or drag & drop video/image"}
                       </p>
-                      <p className="text-[10px] text-zinc-500 mt-0.5">
+                      <p className="text-[11px] text-zinc-500 mt-0.5">
                         MP4, MOV, JPG, PNG up to 100MB
                       </p>
                     </div>
@@ -1340,14 +1340,14 @@ export default function PostComposerModal({
                 }`}
               >
                 <span>Settings for {currentPlatformInfo.name}</span>
-                {advancedOpen ? <FaChevronUp className="text-[10px]" /> : <FaChevronDown className="text-[10px]" />}
+                {advancedOpen ? <FaChevronUp className="text-[11px]" /> : <FaChevronDown className="text-[11px]" />}
               </button>
 
               {advancedOpen && (
                 <div className="p-3.5 pt-2 border-t border-zinc-200 dark:border-zinc-800 space-y-3">
                   {selectedPlatforms.length > 1 && (
                     <div className="flex items-center gap-1.5 pb-2 border-b border-zinc-200 dark:border-zinc-800/80 overflow-x-auto">
-                      <span className="text-[10px] text-zinc-500 uppercase font-bold mr-1 shrink-0">Configure:</span>
+                      <span className="text-[11px] text-zinc-500 uppercase font-bold mr-1 shrink-0">Configure:</span>
                       {selectedPlatforms.map((pKey) => {
                         const plat = PLATFORMS.find(p => p.key === pKey);
                         const isCurrent = activePreviewPlatform === pKey;
@@ -1357,13 +1357,13 @@ export default function PostComposerModal({
                             key={pKey}
                             type="button"
                             onClick={() => setActivePreviewPlatform(pKey)}
-                            className={`px-2 py-0.5 rounded text-[10px] font-medium flex items-center gap-1 transition-colors shrink-0 cursor-pointer ${
+                            className={`px-2 py-0.5 rounded text-[11px] font-medium flex items-center gap-1 transition-colors shrink-0 cursor-pointer ${
                               isCurrent
                                 ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white font-bold border border-zinc-300 dark:border-zinc-700"
                                 : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 bg-zinc-50 dark:bg-zinc-900/60"
                             }`}
                           >
-                            {Icon && <Icon className={`text-[9px] ${plat.color}`} />}
+                            {Icon && <Icon className={`text-[11px] ${plat.color}`} />}
                             <span>{plat?.name}</span>
                           </button>
                         );
@@ -1720,7 +1720,7 @@ export default function PostComposerModal({
               <div>
                 <h3 className="text-sm font-bold text-white tracking-wide uppercase flex items-center gap-2">
                   <span>ADD SOCIAL CHANNEL</span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/15 text-blue-400 border border-blue-500/30">
+                  <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-500/15 text-blue-400 border border-blue-500/30">
                     OAuth 2.0
                   </span>
                 </h3>
@@ -1781,7 +1781,7 @@ export default function PostComposerModal({
                       placeholder={`e.g. My ${connectingPlatform.name} Account`}
                       className="w-full bg-zinc-950 border border-zinc-800 rounded-md px-3 py-2 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-zinc-600"
                     />
-                    <p className="text-[10px] text-zinc-500">
+                    <p className="text-[11px] text-zinc-500">
                       Helps identify this account in your workspace dashboard.
                     </p>
                   </div>
@@ -1823,7 +1823,7 @@ export default function PostComposerModal({
                       <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
                         Available Channels to Connect
                       </span>
-                      <span className="text-[10px] text-zinc-500">
+                      <span className="text-[11px] text-zinc-500">
                         {unconnectedPlatforms.length} available
                       </span>
                     </div>
@@ -1849,7 +1849,7 @@ export default function PostComposerModal({
                                 <div className="text-xs font-bold text-zinc-200 group-hover:text-white">
                                   {plat.name}
                                 </div>
-                                <span className="text-[10px] text-blue-400 group-hover:text-blue-300 font-medium inline-flex items-center gap-0.5 mt-0.5">
+                                <span className="text-[11px] text-blue-400 group-hover:text-blue-300 font-medium inline-flex items-center gap-0.5 mt-0.5">
                                   + Connect
                                 </span>
                               </div>
@@ -1885,20 +1885,20 @@ export default function PostComposerModal({
                                   <span className="font-semibold text-zinc-200 block truncate">
                                     {acc.account_name || `${platInfo.name} Account`}
                                   </span>
-                                  <span className="text-[10px] text-zinc-500 block">
+                                  <span className="text-[11px] text-zinc-500 block">
                                     {platInfo.name}
                                   </span>
                                 </div>
                               </div>
 
                               <div className="flex items-center gap-2 shrink-0">
-                                <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                                   Connected
                                 </span>
                                 <button
                                   type="button"
                                   onClick={() => handleInitiateConnect(platInfo)}
-                                  className="text-[10px] text-zinc-400 hover:text-zinc-200 underline cursor-pointer"
+                                  className="text-[11px] text-zinc-400 hover:text-zinc-200 underline cursor-pointer"
                                 >
                                   + Add another
                                 </button>
@@ -1921,7 +1921,7 @@ export default function PostComposerModal({
                 className="text-blue-400 hover:text-blue-300 font-medium inline-flex items-center gap-1"
               >
                 <span>Open Integrations Manager</span>
-                <FiExternalLink className="text-[10px]" />
+                <FiExternalLink className="text-[11px]" />
               </a>
             </div>
           </div>

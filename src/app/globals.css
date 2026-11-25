@@ -5,6 +5,9 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
+  /* Sized for the 14px desktop base below; small text never drops under about 12px. */
+  --text-xs: 0.84rem;
+  --text-sm: 0.93rem;
   --font-sans: var(--font-inter), sans-serif;
   --font-outfit: var(--font-inter), sans-serif;
   
@@ -23,6 +26,11 @@
 }
 
 @layer base {
+  html { font-size: 93.75%; }
+  @media (min-width: 1024px) { html { font-size: 87.5%; } }
+  /* iOS zooms into fields smaller than 16px. */
+  @media (pointer: coarse) { input, select, textarea { font-size: 16px !important; } }
+
   :root {
     --bg-page: #f1f2f5;
     --bg-shell: #ffffff;

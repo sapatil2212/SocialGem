@@ -6,7 +6,7 @@ import { CircleAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const control =
-  "w-full min-h-11 rounded-xl border border-foreground/25 bg-card px-3.5 text-base text-foreground placeholder:text-muted-ink aria-invalid:border-destructive";
+  "w-full min-h-10 rounded-lg border border-foreground/20 bg-card px-3 text-sm text-foreground placeholder:text-muted-ink aria-invalid:border-destructive";
 
 export function Input({ className, ...props }: ComponentProps<"input">) {
   return <input className={cn(control, className)} {...props} />;
@@ -23,7 +23,7 @@ export function Field({ label, hint, error, children }: FieldProps) {
   const note = error || hint;
   return (
     <div className="grid gap-1.5">
-      <Label.Root htmlFor={id} className="text-sm font-semibold">{label}</Label.Root>
+      <Label.Root htmlFor={id} className="text-sm font-medium">{label}</Label.Root>
       {cloneElement(children, {
         id,
         "aria-invalid": error ? true : undefined,

@@ -32,11 +32,11 @@ export default function AdminLogin() {
     <main className="relative grid min-h-dvh place-items-center overflow-hidden bg-navy px-5 py-12">
       <div aria-hidden className="absolute -top-40 -left-32 size-[34rem] rounded-full bg-[#0891d1]/40 blur-[110px]" />
       <div aria-hidden className="absolute -right-32 -bottom-40 size-[36rem] rounded-full bg-[#b3157f]/40 blur-[110px]" />
-      <div className="relative w-full max-w-md">
-        <Link href="/" aria-label="SocialGem home" className="mx-auto mb-8 block w-fit"><Logo tone="dark" className="h-16" /></Link>
-        <section className="rounded-3xl border border-white/20 bg-card p-7 shadow-2xl sm:p-9">
+      <div className="relative w-full max-w-sm">
+        <Link href="/" aria-label="SocialGem home" className="mx-auto mb-8 block w-fit"><Logo tone="dark" className="h-13" /></Link>
+        <section className="rounded-2xl border border-white/20 bg-card p-7 shadow-2xl sm:p-9">
           <span className="flex w-fit items-center gap-2 rounded-full bg-tint-strong px-3 py-1 text-sm font-semibold text-brand-ink"><ShieldCheck aria-hidden className="size-4" /> Restricted area</span>
-          <h1 className="mt-5 !text-3xl">Admin log in</h1>
+          <h1 className="mt-5 !text-2xl">Admin log in</h1>
           <p className="mt-2 text-muted-ink">Use your admin email and password.</p>
           <form onSubmit={submit} className="mt-7 grid gap-5" noValidate>
             {error && <FormAlert>{error}</FormAlert>}

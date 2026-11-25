@@ -115,7 +115,7 @@ export default function CustomSelect({
             {selectedOption ? selectedOption.label : placeholder}
           </span>
           {selectedOption?.badge && (
-            <span className="px-1.5 py-0.2 rounded text-[10px] bg-zinc-100 dark:bg-zinc-800 text-zinc-500 font-mono">
+            <span className="px-1.5 py-0.2 rounded text-[11px] bg-zinc-100 dark:bg-zinc-800 text-zinc-500 font-mono">
               {selectedOption.badge}
             </span>
           )}

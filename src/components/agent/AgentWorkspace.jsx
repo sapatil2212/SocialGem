@@ -135,7 +135,7 @@ function FormattedMessage({ content }) {
             return !inline ? (
               <div className="my-2 rounded-md overflow-hidden border border-zinc-200 dark:border-[#2a2746] bg-zinc-100 dark:bg-[#0f0e22]">
                 {match && (
-                  <div className="px-2.5 py-0.5 bg-zinc-200/80 dark:bg-[#18181b] border-b border-zinc-200 dark:border-[#2a2746] text-[10px] font-mono text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
+                  <div className="px-2.5 py-0.5 bg-zinc-200/80 dark:bg-[#18181b] border-b border-zinc-200 dark:border-[#2a2746] text-[11px] font-mono text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
                     {match[1]}
                   </div>
                 )}
@@ -201,7 +201,7 @@ function PostProposalCard({ proposal, index, total, onOpenComposer }) {
       <div className="flex items-center justify-between border-b border-zinc-200 dark:border-[#2a2746] pb-1.5">
         <div className="flex items-center gap-1.5">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400" />
-          <span className="text-[10px] font-bold text-[#6d28d9] dark:text-[#b79bff] uppercase tracking-wider">
+          <span className="text-[11px] font-bold text-[#6d28d9] dark:text-[#b79bff] uppercase tracking-wider">
             {total > 1 ? `Proposal #${index + 1}` : "Proposed Post"}
           </span>
         </div>
@@ -224,7 +224,7 @@ function PostProposalCard({ proposal, index, total, onOpenComposer }) {
 
       {proposal.title && (
         <div>
-          <span className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider block">
+          <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider block">
             Title
           </span>
           <p className="text-xs font-semibold text-zinc-900 dark:text-white mt-0.5">
@@ -235,7 +235,7 @@ function PostProposalCard({ proposal, index, total, onOpenComposer }) {
 
       {proposal.description && (
         <div>
-          <span className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider block">
+          <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider block">
             Content
           </span>
           <p className="text-xs text-zinc-700 dark:text-zinc-300 mt-0.5 line-clamp-4 whitespace-pre-wrap">
@@ -246,7 +246,7 @@ function PostProposalCard({ proposal, index, total, onOpenComposer }) {
 
       {proposal.tags && (
         <div>
-          <span className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider block">
+          <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider block">
             Tags
           </span>
           <p className="text-[11px] text-sky-600 dark:text-sky-400 font-mono mt-0.5">
@@ -278,12 +278,12 @@ function PostProposalCard({ proposal, index, total, onOpenComposer }) {
       {/* Collapsible Raw JSON Display */}
       {showJson && (
         <div className="mt-2 rounded bg-zinc-100 dark:bg-[#0f0e22] border border-zinc-200 dark:border-[#2a2746] p-2 relative">
-          <div className="flex items-center justify-between mb-1 text-[10px] font-mono text-zinc-600 dark:text-zinc-400">
+          <div className="flex items-center justify-between mb-1 text-[11px] font-mono text-zinc-600 dark:text-zinc-400">
             <span>Payload:</span>
             <button
               type="button"
               onClick={handleCopyJson}
-              className="text-[#6d28d9] dark:text-[#b79bff] hover:underline text-[10px] font-semibold cursor-pointer"
+              className="text-[#6d28d9] dark:text-[#b79bff] hover:underline text-[11px] font-semibold cursor-pointer"
             >
               {copied ? "Copied" : "Copy"}
             </button>
@@ -652,7 +652,7 @@ export default function AgentWorkspace() {
               <h2 className="text-xs font-bold text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">
                 Channels
               </h2>
-              <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#6d28d9]/10 dark:bg-[#6d28d9]/15 text-[#6d28d9] dark:text-[#b79bff] border border-[#6d28d9]/20 dark:border-[#6d28d9]/30">
+              <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-[#6d28d9]/10 dark:bg-[#6d28d9]/15 text-[#6d28d9] dark:text-[#b79bff] border border-[#6d28d9]/20 dark:border-[#6d28d9]/30">
                 {selectedChannels.length} active
               </span>
             </div>
@@ -694,7 +694,7 @@ export default function AgentWorkspace() {
                           <div className="text-xs font-medium truncate">
                             {config.name}
                           </div>
-                          <div className="text-[10px] text-zinc-400 dark:text-zinc-500 truncate">
+                          <div className="text-[11px] text-zinc-400 dark:text-zinc-500 truncate">
                             {acc.account_name || "Connected"}
                           </div>
                         </div>
@@ -736,22 +736,22 @@ export default function AgentWorkspace() {
                   <h1 className="text-xs font-bold text-zinc-900 dark:text-white uppercase tracking-wider">
                     Marketing Agent
                   </h1>
-                  <span className="px-1.5 py-0.2 rounded text-[9px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                  <span className="px-1.5 py-0.2 rounded text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
                     <span className="w-1 h-1 rounded-full bg-emerald-500 dark:bg-emerald-400" />
                     Active
                   </span>
                 </div>
                 {/* Active Channel Pills */}
                 <div className="flex items-center gap-1 mt-0.5 flex-wrap">
-                  <span className="text-[10px] text-zinc-400 dark:text-zinc-500">Channels:</span>
+                  <span className="text-[11px] text-zinc-400 dark:text-zinc-500">Channels:</span>
                   {selectedChannels.length === 0 ? (
-                    <span className="text-[10px] text-amber-500 dark:text-amber-400">None selected</span>
+                    <span className="text-[11px] text-amber-500 dark:text-amber-400">None selected</span>
                   ) : (
                     selectedChannels.map((k) => {
                       const p = PLATFORM_ICONS[k] || { name: k, Icon: FaShareAlt, color: "text-zinc-400" };
                       const PIcon = p.Icon;
                       return (
-                        <span key={k} className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-zinc-100 dark:bg-[#1c1938] text-[10px] text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-transparent">
+                        <span key={k} className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-zinc-100 dark:bg-[#1c1938] text-[11px] text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-transparent">
                           <PIcon className={`text-[8px] ${p.color}`} />
                           <span>{p.name}</span>
                         </span>
@@ -785,11 +785,11 @@ export default function AgentWorkspace() {
                   {/* Avatar */}
                   <div className="shrink-0 mt-0.5">
                     {isUser ? (
-                      <div className="w-6 h-6 rounded-md bg-[#6d28d9] text-white flex items-center justify-center font-bold text-[10px]">
+                      <div className="w-6 h-6 rounded-md bg-[#6d28d9] text-white flex items-center justify-center font-bold text-[11px]">
                         U
                       </div>
                     ) : (
-                      <div className="w-6 h-6 rounded-md bg-zinc-200 dark:bg-[#2a2746] text-[#6d28d9] dark:text-[#b79bff] flex items-center justify-center text-[10px]">
+                      <div className="w-6 h-6 rounded-md bg-zinc-200 dark:bg-[#2a2746] text-[#6d28d9] dark:text-[#b79bff] flex items-center justify-center text-[11px]">
                         <FaRobot />
                       </div>
                     )}
@@ -841,7 +841,7 @@ export default function AgentWorkspace() {
             {/* Thinking Indicator */}
             {isThinking && (
               <div className="flex gap-2.5 max-w-2xl mr-auto">
-                <div className="w-6 h-6 rounded-md bg-zinc-200 dark:bg-[#2a2746] text-[#6d28d9] dark:text-[#b79bff] flex items-center justify-center text-[10px] shrink-0">
+                <div className="w-6 h-6 rounded-md bg-zinc-200 dark:bg-[#2a2746] text-[#6d28d9] dark:text-[#b79bff] flex items-center justify-center text-[11px] shrink-0">
                   <FaRobot className="animate-spin" />
                 </div>
                 <div className="p-2.5 rounded-lg bg-white dark:bg-[#15132b] border border-zinc-200 dark:border-[#2a2746] text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-2">
@@ -864,7 +864,7 @@ export default function AgentWorkspace() {
           {/* Quick Suggestions */}
           {messages.length <= 2 && (
             <div className="shrink-0 px-4 pb-2">
-              <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider block mb-1">
+              <span className="text-[11px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider block mb-1">
                 Suggestions:
               </span>
               <div className="flex flex-wrap gap-1.5">
@@ -875,7 +875,7 @@ export default function AgentWorkspace() {
                     onClick={() => handleSendMessage(suggestion)}
                     className="px-2.5 py-1 rounded-md bg-white dark:bg-[#15132b] hover:bg-zinc-100 dark:hover:bg-[#1c1938] border border-zinc-200 dark:border-[#2a2746] text-[11px] text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white transition-colors cursor-pointer text-left flex items-center gap-1.5 shadow-xs"
                   >
-                    <FaBolt className="text-[9px] text-amber-500 dark:text-amber-400 shrink-0" />
+                    <FaBolt className="text-[11px] text-amber-500 dark:text-amber-400 shrink-0" />
                     <span className="truncate max-w-xs">{suggestion}</span>
                   </button>
                 ))}
@@ -912,11 +912,11 @@ export default function AgentWorkspace() {
                   className="w-7 h-7 rounded-md bg-[#6d28d9] hover:bg-[#5b1fc0] text-white flex items-center justify-center transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                   title="Send"
                 >
-                  <FaPaperPlane className="text-[10px]" />
+                  <FaPaperPlane className="text-[11px]" />
                 </button>
               </div>
             </form>
-            <div className="flex items-center justify-between text-[10px] text-zinc-400 dark:text-zinc-500 mt-1 px-0.5">
+            <div className="flex items-center justify-between text-[11px] text-zinc-400 dark:text-zinc-500 mt-1 px-0.5">
               <span>Enter to send • Shift+Enter for newline</span>
               <span>{selectedChannels.length} active channels</span>
             </div>
@@ -933,7 +933,7 @@ export default function AgentWorkspace() {
               <h2 className="text-xs font-bold text-zinc-600 dark:text-zinc-300 uppercase tracking-wider">
                 History
               </h2>
-              <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-zinc-100 dark:bg-[#1c1938] text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-[#2a2746]">
+              <span className="px-2 py-0.5 rounded text-[11px] font-medium bg-zinc-100 dark:bg-[#1c1938] text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-[#2a2746]">
                 {threads.length} {threads.length === 1 ? "chat" : "chats"}
               </span>
             </div>

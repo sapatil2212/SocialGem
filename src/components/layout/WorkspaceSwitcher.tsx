@@ -18,7 +18,7 @@ export default function WorkspaceSwitcher() {
 
   return (
     <DropdownMenu.Root>
-      <DropdownMenu.Trigger className="flex min-h-12 w-full shrink-0 cursor-pointer items-center gap-2.5 rounded-xl border border-hairline bg-background px-3 text-sm font-semibold hover:border-brand/40" aria-label={`Workspace: ${data.current.name}. Switch`}>
+      <DropdownMenu.Trigger className="flex min-h-10 w-full shrink-0 cursor-pointer items-center gap-2.5 rounded-xl border border-hairline bg-background px-3 text-sm font-semibold hover:border-brand/40" aria-label={`Workspace: ${data.current.name}. Switch`}>
         <span aria-hidden className="grid size-7 shrink-0 place-items-center rounded-lg bg-tint-strong text-xs text-brand-ink">{data.current.name.charAt(0).toUpperCase()}</span>
         <span className="truncate">{data.current.name}</span>
         <ChevronsUpDown aria-hidden className="ml-auto size-4 shrink-0 text-muted-ink" />

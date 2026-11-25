@@ -12,20 +12,20 @@ export default function ContactPage() {
 
   return (
     <section className="mesh-bg min-h-[70vh]">
-      <div className="container-1280 py-20 lg:py-28">
+      <div className="container-1280 py-14 lg:py-18">
         <h1>Talk to <em className="accent gradient-text">a person</em></h1>
-        <p className="mt-6 max-w-xl text-xl text-muted-ink">Questions about accounts, plans or your data are all welcome.</p>
+        <p className="mt-6 max-w-xl text-base text-muted-ink">Questions about accounts, plans or your data are all welcome.</p>
         <div className="mt-12 grid gap-4 md:grid-cols-3">
           {ways.map(({ Icon, name, value, href }) => (
-            <a key={name} href={href} className="card-interactive p-7">
+            <a key={name} href={href} className="card-interactive p-5">
               <Icon aria-hidden className="size-6 text-brand-ink" />
-              <h2 className="mt-5 !text-[1.35rem]">{name}</h2>
+              <h2 className="mt-5 !text-[1.1rem]">{name}</h2>
               <p className="mt-2 text-muted-ink [overflow-wrap:anywhere]">{value}</p>
             </a>
           ))}
-          <div className="card-interactive p-7">
+          <div className="card-interactive p-5">
             <MapPin aria-hidden className="size-6 text-brand-ink" />
-            <h2 className="mt-5 !text-[1.35rem]">Address</h2>
+            <h2 className="mt-5 !text-[1.1rem]">Address</h2>
             <p className="mt-2 text-muted-ink">{contact.address}</p>
           </div>
         </div>

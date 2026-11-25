@@ -26,14 +26,14 @@ async function call(method: string, path: string, body?: object) {
 
 function Panel({ title, text, children }: { title: string; text: string; children: ReactNode }) {
   return (
-    <section className="grid gap-5 rounded-2xl border border-hairline bg-card p-6 lg:grid-cols-[260px_1fr] lg:gap-10">
-      <div><h2 className="!text-lg">{title}</h2><p className="mt-1.5 text-sm text-muted-ink">{text}</p></div>
+    <section className="grid gap-5 rounded-xl border border-hairline bg-card p-5 lg:grid-cols-[220px_1fr] lg:gap-8">
+      <div><h2 className="!text-base">{title}</h2><p className="mt-1.5 text-sm text-muted-ink">{text}</p></div>
       <div className="min-w-0">{children}</div>
     </section>
   );
 }
 
-const row = "flex flex-wrap items-center gap-4 rounded-xl border border-hairline p-4";
+const row = "flex flex-wrap items-center gap-4 rounded-lg border border-hairline p-3";
 
 export default function AccountSettings({ details, googleReady, error, linked }: Props) {
   const router = useRouter();
@@ -84,7 +84,7 @@ export default function AccountSettings({ details, googleReady, error, linked }:
   };
 
   return (
-    <div className="mx-auto grid max-w-5xl gap-4 p-4 sm:p-6">
+    <div className="mx-auto grid max-w-4xl gap-4 p-4 sm:p-6">
       {problem && <FormAlert>{problem}</FormAlert>}
       {done && <p role="status" className="flex items-center gap-2.5 rounded-xl border border-success/30 bg-success/5 p-3.5 text-sm font-medium text-success"><CircleCheck aria-hidden className="size-4 shrink-0" />{done}</p>}
 
@@ -99,7 +99,7 @@ export default function AccountSettings({ details, googleReady, error, linked }:
       <Panel title="Ways to log in" text="Keep at least one that you can always reach.">
         <div className="grid gap-3">
           <div className={row}>
-            <span className="grid size-11 place-items-center rounded-xl border border-hairline bg-white"><FcGoogle className="size-5" /></span>
+            <span className="grid size-9 place-items-center rounded-lg border border-hairline bg-white"><FcGoogle className="size-5" /></span>
             <span className="min-w-0 flex-1"><b className="block font-semibold">Google</b><span className="text-sm text-muted-ink">{details.google ? "Connected" : googleReady ? "Not connected" : "Not set up on this server yet"}</span></span>
             {details.google ? (
               details.password ? <Button variant="outline" onClick={() => setAsk("disconnect")}>Disconnect</Button> : <span className="text-sm text-muted-ink">Set a password to disconnect</span>
@@ -108,7 +108,7 @@ export default function AccountSettings({ details, googleReady, error, linked }:
             )}
           </div>
           <div className={row}>
-            <span className="grid size-11 place-items-center rounded-xl border border-hairline text-brand-ink"><KeyRound aria-hidden className="size-5" /></span>
+            <span className="grid size-9 place-items-center rounded-lg border border-hairline text-brand-ink"><KeyRound aria-hidden className="size-5" /></span>
             <span className="min-w-0 flex-1"><b className="block font-semibold">Password</b><span className="text-sm text-muted-ink">{details.password ? "Set" : "Not set. We will email you a code to create one."}</span></span>
             <Button asChild variant="outline"><Link href="/forgot-password">{details.password ? "Change" : "Set password"}</Link></Button>
           </div>

@@ -64,7 +64,7 @@ function writeCollapsed(value) {
   window.dispatchEvent(new Event(KEY));
 }
 
-const iconButton = "grid size-10 shrink-0 cursor-pointer place-items-center rounded-xl border border-hairline bg-card text-muted-ink transition-colors hover:border-brand/40 hover:text-foreground";
+const iconButton = "grid size-9 shrink-0 cursor-pointer place-items-center rounded-lg border border-hairline bg-card text-muted-ink transition-colors hover:border-brand/40 hover:text-foreground";
 
 function Avatar({ user, className }) {
   if (user?.image) return <img src={user.image} alt="" referrerPolicy="no-referrer" className={cn("size-9 rounded-xl object-cover", className)} />;
@@ -112,8 +112,8 @@ function Nav({ pathname, compact, id, onGo }) {
           {group.items.map(({ name, path, Icon }) => {
             const on = isActive(pathname, path);
             return (
-              <Link key={path} href={path} onClick={onGo} title={compact ? name : undefined} aria-label={name} aria-current={on ? "page" : undefined} className={cn("group relative flex min-h-11 items-center gap-3 rounded-xl px-3 text-[0.95rem] transition-colors", compact && "justify-center px-0", on ? "font-semibold text-white" : "text-muted-ink hover:bg-tint hover:text-foreground")}>
-                {on && <motion.span layoutId={`${id}-nav`} className="gradient-brand absolute inset-0 rounded-xl" transition={{ type: "spring", stiffness: 420, damping: 36 }} />}
+              <Link key={path} href={path} onClick={onGo} title={compact ? name : undefined} aria-label={name} aria-current={on ? "page" : undefined} className={cn("group relative flex min-h-9 items-center gap-2.5 rounded-lg px-2.5 text-sm transition-colors", compact && "justify-center px-0", on ? "font-semibold text-white" : "text-muted-ink hover:bg-tint hover:text-foreground")}>
+                {on && <motion.span layoutId={`${id}-nav`} className="gradient-brand absolute inset-0 rounded-lg" transition={{ type: "spring", stiffness: 420, damping: 36 }} />}
                 <Icon aria-hidden className="relative size-[1.15rem] shrink-0 transition-transform group-hover:scale-110 motion-reduce:transition-none" />
                 {!compact && <span className="relative">{name}</span>}
               </Link>
@@ -226,34 +226,34 @@ export default function AppShell({ children }) {
     <MotionConfig reducedMotion="user">
       <div className="brand brand-themed sg-app fixed inset-0 flex overflow-hidden">
         <a href="#workspace" className="absolute -left-[999px] z-[80] rounded-lg bg-card px-4 py-2 focus:top-3 focus:left-3">Skip to content</a>
-        <aside className={cn("hidden shrink-0 flex-col border-r border-hairline bg-card transition-[width] duration-300 motion-reduce:transition-none lg:flex", collapsed ? "w-[84px]" : "w-[264px]")}>
-          <div className={cn("flex h-[76px] shrink-0 items-center px-4", collapsed ? "justify-center" : "justify-between")}>
-            {collapsed ? <Link href="/app" aria-label="SocialGem dashboard"><Mark className="size-11" /></Link> : <Link href="/app" aria-label="SocialGem dashboard"><Logo tone="auto" className="h-12" /></Link>}
+        <aside className={cn("hidden shrink-0 flex-col border-r border-hairline bg-card transition-[width] duration-300 motion-reduce:transition-none lg:flex", collapsed ? "w-[72px]" : "w-[232px]")}>
+          <div className={cn("flex h-[62px] shrink-0 items-center px-3.5", collapsed ? "justify-center" : "justify-between")}>
+            {collapsed ? <Link href="/app" aria-label="SocialGem dashboard"><Mark className="size-11" /></Link> : <Link href="/app" aria-label="SocialGem dashboard"><Logo tone="auto" className="h-10" /></Link>}
             {!collapsed && <button type="button" onClick={() => writeCollapsed(true)} aria-label="Collapse sidebar" className="grid size-9 cursor-pointer place-items-center rounded-lg text-muted-ink hover:bg-tint"><PanelLeftClose className="size-[1.1rem]" /></button>}
           </div>
-          <div className={cn("flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-4 pb-4", collapsed && "px-3")}>
+          <div className={cn("flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-3.5 pb-4", collapsed && "px-3")}>
             {!collapsed && <WorkspaceSwitcher />}
-            <button type="button" onClick={() => compose(false)} aria-label="Create post" className="shimmer flex min-h-12 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-xl bg-brand font-semibold text-white hover:bg-brand-hover"><Plus aria-hidden className="size-5" />{!collapsed && "Create post"}</button>
+            <button type="button" onClick={() => compose(false)} aria-label="Create post" className="shimmer flex min-h-10 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-lg bg-brand text-sm font-medium text-white hover:bg-brand-hover"><Plus aria-hidden className="size-5" />{!collapsed && "Create post"}</button>
             <Nav pathname={pathname} compact={collapsed} id="side" />
           </div>
-          <div className={cn("grid shrink-0 gap-3 border-t border-hairline p-4", collapsed && "justify-items-center px-3")}>
+          <div className={cn("grid shrink-0 gap-3 border-t border-hairline p-3", collapsed && "justify-items-center px-3")}>
             {collapsed && <button type="button" onClick={() => writeCollapsed(false)} aria-label="Expand sidebar" className="grid size-10 cursor-pointer place-items-center rounded-lg text-muted-ink hover:bg-tint"><PanelLeftOpen className="size-[1.1rem]" /></button>}
             <UserMenu user={session?.user} compact={collapsed} />
           </div>
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="flex h-[68px] shrink-0 items-center gap-2.5 border-b border-hairline bg-card/80 px-4 backdrop-blur-xl sm:px-6 lg:h-[76px]">
+          <header className="flex h-[58px] shrink-0 items-center gap-2.5 border-b border-hairline bg-card/80 px-4 backdrop-blur-xl sm:px-6 lg:h-[62px]">
             <button type="button" onClick={() => setDrawer(true)} aria-label="Open navigation" className={cn(iconButton, "lg:hidden")}><Menu className="size-5" /></button>
             <div className="mr-auto min-w-0">
-              <h1 className="truncate text-xl !leading-tight">{page.name}</h1>
-              <p className="hidden truncate text-sm text-muted-ink sm:block">{page.hint}</p>
+              <h1 className="truncate !text-base !leading-tight !tracking-tight">{page.name}</h1>
+              <p className="hidden truncate text-xs text-muted-ink sm:block">{page.hint}</p>
             </div>
-            <button type="button" onClick={() => setPalette(true)} aria-label="Search" aria-keyshortcuts="Control+K Meta+K" className="flex min-h-10 cursor-pointer items-center gap-2.5 rounded-xl border border-hairline bg-background px-3 text-sm text-muted-ink hover:border-brand/40 xl:w-64">
+            <button type="button" onClick={() => setPalette(true)} aria-label="Search" aria-keyshortcuts="Control+K Meta+K" className="flex min-h-9 cursor-pointer items-center gap-2.5 rounded-lg border border-hairline bg-background px-3 text-sm text-muted-ink hover:border-brand/40 xl:w-56">
               <Search aria-hidden className="size-4" /><span className="hidden xl:inline">Search</span><kbd className="ml-auto hidden rounded-md border border-hairline px-1.5 font-sans text-xs xl:inline">Ctrl K</kbd>
             </button>
-            <ThemeToggle className="!size-10 !rounded-xl !border-hairline !bg-card" />
-            <button type="button" onClick={() => compose(true)} className="flex min-h-10 cursor-pointer items-center gap-2 rounded-xl border border-brand/30 bg-tint px-3.5 text-sm font-semibold text-brand-ink hover:border-brand"><Sparkles aria-hidden className="size-4" /><span className="max-sm:sr-only">Write with AI</span></button>
+            <ThemeToggle className="!size-9 !rounded-lg !border-hairline !bg-card" />
+            <button type="button" onClick={() => compose(true)} className="flex min-h-9 cursor-pointer items-center gap-2 rounded-lg border border-brand/30 bg-tint px-3 text-sm font-medium text-brand-ink hover:border-brand"><Sparkles aria-hidden className="size-4" /><span className="max-sm:sr-only">Write with AI</span></button>
           </header>
           <main id="workspace" tabIndex={-1} className="sg-app-main min-h-0 flex-1 overflow-x-hidden overflow-y-auto pb-20 outline-none lg:pb-0">{children}</main>
         </div>

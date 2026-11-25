@@ -8,9 +8,9 @@ export default function HelpPage() {
   return (
     <>
       <section className="mesh-bg border-b border-hairline">
-        <div className="container-1280 py-20 lg:py-24">
+        <div className="container-1280 py-20 lg:py-16">
           <h1>What works, and <em className="accent gradient-text">what does not</em></h1>
-          <p className="mt-6 max-w-xl text-xl text-muted-ink">Platform rules explained plainly, so nothing surprises you later.</p>
+          <p className="mt-6 max-w-xl text-base text-muted-ink">Platform rules explained plainly, so nothing surprises you later.</p>
         </div>
       </section>
       <section className="container-1280 max-w-4xl py-16">

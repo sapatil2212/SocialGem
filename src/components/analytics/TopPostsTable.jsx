@@ -107,7 +107,7 @@ export default function TopPostsTable({ posts = [], onRepurpose = null, loading 
                 <div className="flex items-center gap-1">
                   <span>Impressions</span>
                   {sortField === "impressions" && (
-                    sortAsc ? <FiArrowUp className="text-[10px]" /> : <FiArrowDown className="text-[10px]" />
+                    sortAsc ? <FiArrowUp className="text-[11px]" /> : <FiArrowDown className="text-[11px]" />
                   )}
                 </div>
               </th>
@@ -118,7 +118,7 @@ export default function TopPostsTable({ posts = [], onRepurpose = null, loading 
                 <div className="flex items-center gap-1">
                   <span>Engagement</span>
                   {sortField === "engagementRate" && (
-                    sortAsc ? <FiArrowUp className="text-[10px]" /> : <FiArrowDown className="text-[10px]" />
+                    sortAsc ? <FiArrowUp className="text-[11px]" /> : <FiArrowDown className="text-[11px]" />
                   )}
                 </div>
               </th>
@@ -129,7 +129,7 @@ export default function TopPostsTable({ posts = [], onRepurpose = null, loading 
                 <div className="flex items-center gap-1">
                   <span>Interactions</span>
                   {sortField === "likes" && (
-                    sortAsc ? <FiArrowUp className="text-[10px]" /> : <FiArrowDown className="text-[10px]" />
+                    sortAsc ? <FiArrowUp className="text-[11px]" /> : <FiArrowDown className="text-[11px]" />
                   )}
                 </div>
               </th>
@@ -226,7 +226,7 @@ export default function TopPostsTable({ posts = [], onRepurpose = null, loading 
                     {/* Engagement Rate */}
                     <td className="py-3 px-3 whitespace-nowrap">
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded font-mono font-bold text-xs bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                        <FiZap className="text-[10px]" />
+                        <FiZap className="text-[11px]" />
                         <span>{post.engagementRate || 0}%</span>
                       </span>
                     </td>

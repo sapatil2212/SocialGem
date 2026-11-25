@@ -18,7 +18,7 @@ const POSTS = [
 function Queue() {
   const [done, setDone] = useState<number[]>([1]);
   return (
-    <div className="mt-12 grid max-w-md gap-3">
+    <div className="mt-12 grid max-w-sm gap-2.5">
       {POSTS.map(({ id, day, time, text, Icon }, i) => {
         const on = done.includes(id);
         return (
@@ -32,7 +32,7 @@ function Queue() {
             transition={{ delay: 0.15 + i * 0.08, duration: 0.45, ease: EASE }}
             whileHover={{ scale: 1.015 }}
             whileTap={{ scale: 0.98 }}
-            className="glass-dark flex cursor-pointer items-center gap-4 rounded-2xl p-4 text-left"
+            className="glass-dark flex cursor-pointer items-center gap-4 rounded-xl p-3 text-left text-sm"
           >
             <Icon aria-hidden className="size-6 shrink-0 text-[#5cd6ff]" />
             <span className="min-w-0 flex-1">
@@ -71,7 +71,7 @@ export default function AuthShell({ children }: { children: ReactNode }) {
     <MotionConfig reducedMotion="user">
       <div className="grid min-h-dvh lg:grid-cols-2">
         <aside
-          className="relative hidden overflow-hidden bg-navy p-14 text-white lg:flex lg:flex-col"
+          className="relative hidden overflow-hidden bg-navy p-10 text-white lg:flex lg:flex-col"
           onPointerMove={(e) => {
             if (e.pointerType !== "mouse" || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
             const box = e.currentTarget.getBoundingClientRect();
@@ -81,9 +81,9 @@ export default function AuthShell({ children }: { children: ReactNode }) {
         >
           <motion.div aria-hidden style={{ x: sx, y: sy }} className="absolute -top-32 -right-24 size-[30rem] rounded-full bg-[#7c22e8]/45 blur-[110px]" />
           <motion.div aria-hidden style={{ x: nx, y: ny }} className="absolute -bottom-40 -left-24 size-[26rem] rounded-full bg-[#0aa5ff]/30 blur-[110px]" />
-          <Link href="/" className="relative w-fit" aria-label="SocialGem home"><Logo tone="dark" className="h-14" /></Link>
+          <Link href="/" className="relative w-fit" aria-label="SocialGem home"><Logo tone="dark" className="h-12" /></Link>
           <div className="relative my-auto py-10">
-            <h2 className="max-w-md text-5xl">Post like you have <em className="accent text-[#c9a8ff]">a whole team</em></h2>
+            <h2 className="max-w-md text-4xl">Post like you have <em className="accent text-[#c9a8ff]">a whole team</em></h2>
             <Queue />
             <p className="mt-5 text-white/70">A sample week. Press a post to publish it.</p>
           </div>
@@ -91,7 +91,7 @@ export default function AuthShell({ children }: { children: ReactNode }) {
         <main className="flex flex-col px-6 py-8 sm:px-14">
           <Link href="/" className="w-fit lg:invisible" aria-label="SocialGem home"><Logo /></Link>
           <motion.div
-            className="m-auto w-full max-w-sm py-10"
+            className="m-auto w-full max-w-[350px] py-8"
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, ease: EASE }}

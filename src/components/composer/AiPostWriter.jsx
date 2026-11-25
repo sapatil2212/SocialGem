@@ -76,7 +76,7 @@ export default function AiPostWriter({
           <span className="font-semibold text-zinc-100">
             Write with AI
           </span>
-          <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-semibold ${
+          <span className={`px-2 py-0.5 rounded text-[11px] uppercase font-semibold ${
             platform === "youtube" ? "bg-red-500/20 text-red-400 border border-red-500/30" :
             platform === "instagram" ? "bg-pink-500/20 text-pink-400 border border-pink-500/30" :
             platform === "tiktok" ? "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30" :
@@ -151,8 +151,8 @@ export default function AiPostWriter({
 
       {/* Generate Action Button */}
       <div className="flex items-center justify-between pt-1">
-        <span className="text-[10px] text-zinc-500">
-          Press <kbd className="px-1 py-0.5 rounded bg-zinc-800 border border-zinc-700 font-mono text-[9px] text-zinc-400">Ctrl+Enter</kbd> to generate
+        <span className="text-[11px] text-zinc-500">
+          Press <kbd className="px-1 py-0.5 rounded bg-zinc-800 border border-zinc-700 font-mono text-[11px] text-zinc-400">Ctrl+Enter</kbd> to generate
         </span>
 
         <button
@@ -168,7 +168,7 @@ export default function AiPostWriter({
             </>
           ) : (
             <>
-              <FaMagic className="text-[10px] text-amber-300" />
+              <FaMagic className="text-[11px] text-amber-300" />
               <span>Generate Post</span>
             </>
           )}
@@ -180,7 +180,7 @@ export default function AiPostWriter({
         <div className="mt-3 p-3.5 rounded-md bg-zinc-950/90 border border-violet-500/30 space-y-2.5 animate-fade-in shadow-inner">
           <div className="flex items-center justify-between border-b border-zinc-800/80 pb-2">
             <span className="text-[11px] font-semibold text-violet-300 flex items-center gap-1">
-              <FaMagic className="text-[10px]" /> Generated Suggestion
+              <FaMagic className="text-[11px]" /> Generated Suggestion
             </span>
             <div className="flex items-center gap-1.5">
               <button
@@ -190,7 +190,7 @@ export default function AiPostWriter({
                 className="text-[11px] text-zinc-400 hover:text-white flex items-center gap-1 transition-colors cursor-pointer"
                 title="Regenerate"
               >
-                <FaSync className={`text-[9px] ${loading ? "animate-spin text-violet-400" : ""}`} />
+                <FaSync className={`text-[11px] ${loading ? "animate-spin text-violet-400" : ""}`} />
                 <span>Retry</span>
               </button>
             </div>
@@ -199,7 +199,7 @@ export default function AiPostWriter({
           <div className="space-y-2 text-zinc-300">
             {generatedResult.title && (
               <div>
-                <span className="text-[10px] font-medium text-zinc-500 block uppercase tracking-wide">
+                <span className="text-[11px] font-medium text-zinc-500 block uppercase tracking-wide">
                   Title
                 </span>
                 <p className="font-semibold text-zinc-100 text-xs">
@@ -209,7 +209,7 @@ export default function AiPostWriter({
             )}
 
             <div>
-              <span className="text-[10px] font-medium text-zinc-500 block uppercase tracking-wide">
+              <span className="text-[11px] font-medium text-zinc-500 block uppercase tracking-wide">
                 Caption
               </span>
               <p className="text-zinc-200 text-xs whitespace-pre-line leading-relaxed max-h-36 overflow-y-auto pr-1">
@@ -219,7 +219,7 @@ export default function AiPostWriter({
 
             {generatedResult.tags && (
               <div>
-                <span className="text-[10px] font-medium text-zinc-500 block uppercase tracking-wide">
+                <span className="text-[11px] font-medium text-zinc-500 block uppercase tracking-wide">
                   Tags
                 </span>
                 <p className="text-indigo-400 text-[11px] font-mono">
@@ -236,7 +236,7 @@ export default function AiPostWriter({
               onClick={handlePrefill}
               className="px-4 py-1.5 rounded-md text-xs font-semibold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 transition-all flex items-center gap-1.5 cursor-pointer shadow-md shadow-emerald-500/25 active:scale-95"
             >
-              <FaCheck className="text-[10px]" />
+              <FaCheck className="text-[11px]" />
               <span>Prefill into Composer</span>
             </button>
           </div>

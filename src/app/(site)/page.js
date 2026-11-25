@@ -44,8 +44,8 @@ export default function LandingPage() {
           <ol className="mb-10 grid gap-5 md:grid-cols-3">
             {STEPS.map(({ Icon, title, text }, i) => (
               <li key={title} className="reveal flex gap-4" style={{ "--reveal-delay": `${i * 80}ms` }}>
-                <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-brand text-white"><Icon aria-hidden className="size-5" /></span>
-                <div><h3 className="!text-[1.15rem]">{title}</h3><p className="mt-1 text-muted-ink">{text}</p></div>
+                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand text-white"><Icon aria-hidden className="size-5" /></span>
+                <div><h3 className="!text-[1.05rem]">{title}</h3><p className="mt-1 text-muted-ink">{text}</p></div>
               </li>
             ))}
           </ol>
@@ -82,7 +82,7 @@ export default function LandingPage() {
         <div className="sg-price reveal">
           <div>
             <h2>Start free. <em className="accent gradient-text">Decide later.</em></h2>
-            <p className="mt-4 max-w-lg text-lg text-muted-ink">Plans are announced at launch, with the limits shown before you pay.</p>
+            <p className="mt-4 max-w-lg text-base text-muted-ink">Plans are announced at launch, with the limits shown before you pay.</p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild size="lg" className="shimmer"><Link href="/signup">Create your workspace <ArrowRight /></Link></Button>
               <Button asChild size="lg" variant="outline"><Link href="/pricing">See pricing</Link></Button>
@@ -101,12 +101,12 @@ export default function LandingPage() {
         <Faq items={FAQ} />
       </section>
 
-      <section className="sg-wrap pb-24">
+      <section className="sg-wrap pb-18">
         <div className="sg-final">
           <div aria-hidden className="sg-aurora"><i /><i /><i /></div>
-          <div className="relative grid justify-items-center gap-7 px-6 py-20 text-center sm:py-24">
+          <div className="relative grid justify-items-center gap-7 px-6 py-14 text-center sm:py-16">
             <h2 className="max-w-3xl">Your next week of posts starts with <em className="accent sg-prism">one</em></h2>
-            <p className="max-w-xl text-lg text-white/75">SocialGem is in early access. Set up your workspace and help shape what comes next.</p>
+            <p className="max-w-xl text-base text-white/75">SocialGem is in early access. Set up your workspace and help shape what comes next.</p>
             <Button asChild size="lg" className="shimmer bg-white text-navy hover:bg-[#ece6ff]"><Link href="/signup">Get started free <ArrowRight /></Link></Button>
           </div>
         </div>

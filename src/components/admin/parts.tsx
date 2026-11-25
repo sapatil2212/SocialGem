@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/field";
 export const when = (date: Date) => date.toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" });
 
 export function Heading({ title, text }: { title: string; text: string }) {
-  return <header className="mb-7"><h1 className="!text-3xl">{title}</h1><p className="mt-2 text-muted-ink">{text}</p></header>;
+  return <header className="mb-5"><h1 className="!text-2xl">{title}</h1><p className="mt-2 text-muted-ink">{text}</p></header>;
 }
 
 export function Badge({ tone, children }: { tone: "good" | "bad" | "warn" | "plain"; children: ReactNode }) {
@@ -26,10 +26,10 @@ export function SearchBar({ q, label }: { q: string; label: string }) {
 
 export function Table({ head, children, empty }: { head: string[]; children: ReactNode[]; empty: string }) {
   return (
-    <div className="overflow-x-auto rounded-2xl border border-hairline bg-card">
+    <div className="overflow-x-auto rounded-xl border border-hairline bg-card">
       <table className="w-full min-w-[760px] text-left text-sm">
-        <thead><tr className="border-b border-hairline bg-tint">{head.map((h) => <th key={h} className="px-5 py-3.5 font-semibold">{h}</th>)}</tr></thead>
-        <tbody className="[&_td]:px-5 [&_td]:py-3.5 [&_tr+tr]:border-t [&_tr]:border-hairline">{children.length ? children : <tr><td colSpan={head.length} className="!py-10 text-center text-muted-ink">{empty}</td></tr>}</tbody>
+        <thead><tr className="border-b border-hairline bg-tint">{head.map((h) => <th key={h} className="px-4 py-2.5 font-medium">{h}</th>)}</tr></thead>
+        <tbody className="[&_td]:px-4 [&_td]:py-2.5 [&_tr+tr]:border-t [&_tr]:border-hairline">{children.length ? children : <tr><td colSpan={head.length} className="!py-10 text-center text-muted-ink">{empty}</td></tr>}</tbody>
       </table>
     </div>
   );

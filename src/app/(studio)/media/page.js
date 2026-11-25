@@ -212,7 +212,7 @@ export default function MediaPage() {
                   <FiFolder className={`text-xs ${isActive ? "text-white" : "text-zinc-400"}`} />
                   <span>{folder.name}</span>
                   <span
-                    className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+                    className={`px-1.5 py-0.2 rounded-full text-[11px] font-mono ${
                       isActive ? "bg-white/20 text-white" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500"
                     }`}
                   >
@@ -237,7 +237,7 @@ export default function MediaPage() {
                 <button
                   type="button"
                   onClick={handleCreateFolder}
-                  className="p-1 rounded bg-[#6d28d9] text-white text-[10px] font-bold"
+                  className="p-1 rounded bg-[#6d28d9] text-white text-[11px] font-bold"
                 >
                   <FiCheck />
                 </button>

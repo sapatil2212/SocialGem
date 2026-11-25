@@ -474,7 +474,7 @@ export default function ContentCalendar({
       {/* ============================================================== */}
       <div
         className={`bg-zinc-50 dark:bg-[#131128] border-b lg:border-b-0 lg:border-r border-zinc-200 dark:border-[#2a2746] p-3.5 sm:p-4 flex flex-col gap-3.5 transition-all select-none shrink-0 ${
-          isSidebarCollapsed ? "lg:w-[76px]" : "lg:w-[260px]"
+          isSidebarCollapsed ? "max-lg:hidden lg:w-[76px]" : "lg:w-[260px]"
         }`}
       >
         {/* Sidebar Header & Collapse Toggle */}
@@ -491,9 +491,9 @@ export default function ContentCalendar({
             title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             {isSidebarCollapsed ? (
-              <FaChevronRight className="text-[10px]" />
+              <FaChevronRight className="text-[11px]" />
             ) : (
-              <FaChevronLeft className="text-[10px]" />
+              <FaChevronLeft className="text-[11px]" />
             )}
           </button>
         </div>
@@ -508,7 +508,7 @@ export default function ContentCalendar({
             }`}
             title="Add Connected Channel"
           >
-            <FaPlus className="text-[10px] text-[#6d28d9] dark:text-[#b79bff]" />
+            <FaPlus className="text-[11px] text-[#6d28d9] dark:text-[#b79bff]" />
             {!isSidebarCollapsed && <span>Add Channel</span>}
           </Link>
 
@@ -557,7 +557,7 @@ export default function ContentCalendar({
             {!isSidebarCollapsed && (
               <div className="flex-1 min-w-0 flex items-center justify-between">
                 <span className="truncate">All Channels</span>
-                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-200/80 dark:bg-[#2a2746] text-zinc-500 dark:text-zinc-400">
+                <span className="text-[11px] font-mono px-1.5 py-0.2 rounded bg-zinc-200/80 dark:bg-[#2a2746] text-zinc-500 dark:text-zinc-400">
                   {posts.length}
                 </span>
               </div>
@@ -597,14 +597,14 @@ export default function ContentCalendar({
                       <p className="text-[11px] font-medium truncate leading-tight">
                         {acc.account_name || plat.name}
                       </p>
-                      <span className="text-[9px] text-zinc-400 dark:text-[#8c88ac] capitalize block truncate">
+                      <span className="text-[11px] text-zinc-400 dark:text-[#8c88ac] capitalize block truncate">
                         {plat.name}
                       </span>
                     </div>
                   )}
 
                   {!isSidebarCollapsed && (
-                    <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-200/80 dark:bg-[#2a2746] text-zinc-500 dark:text-zinc-400">
+                    <span className="text-[11px] font-mono px-1.5 py-0.2 rounded bg-zinc-200/80 dark:bg-[#2a2746] text-zinc-500 dark:text-zinc-400">
                       {accPostsCount}
                     </span>
                   )}
@@ -621,7 +621,7 @@ export default function ContentCalendar({
                 <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 mb-0.5">
                   No channels yet
                 </p>
-                <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mb-2.5">
+                <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mb-2.5">
                   Connect your accounts to schedule
                 </p>
                 <Link
@@ -639,7 +639,7 @@ export default function ContentCalendar({
         {/* Sidebar Footer Indicator */}
         {!isSidebarCollapsed && (
           <div className="pt-2 border-t border-zinc-200 dark:border-[#2a2746] text-center">
-            <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-mono tracking-wider uppercase">
+            <span className="text-[11px] text-zinc-400 dark:text-zinc-500 font-mono tracking-wider uppercase">
               Workspace Scheduler
             </span>
           </div>
@@ -662,7 +662,7 @@ export default function ContentCalendar({
                 className="px-2.5 h-full text-zinc-600 dark:text-[#a6a3c2] hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-[#2a2746] transition-colors cursor-pointer flex items-center justify-center"
                 title="Previous period"
               >
-                <FaChevronLeft className="text-[10px]" />
+                <FaChevronLeft className="text-[11px]" />
               </button>
 
               <div className="px-3.5 h-full flex items-center justify-center text-xs sm:text-sm font-semibold text-zinc-800 dark:text-zinc-200 min-w-[150px] sm:min-w-[180px] text-center border-x border-zinc-200 dark:border-[#2a2746] select-none">
@@ -675,7 +675,7 @@ export default function ContentCalendar({
                 className="px-2.5 h-full text-zinc-600 dark:text-[#a6a3c2] hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-[#2a2746] transition-colors cursor-pointer flex items-center justify-center"
                 title="Next period"
               >
-                <FaChevronRight className="text-[10px]" />
+                <FaChevronRight className="text-[11px]" />
               </button>
             </div>
 
@@ -711,7 +711,7 @@ export default function ContentCalendar({
                         : "text-zinc-600 dark:text-[#a6a3c2] hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-[#1c1938]"
                     }`}
                   >
-                    {Icon && <Icon className={`text-[10px] ${isActive ? "text-current" : plat.color}`} />}
+                    {Icon && <Icon className={`text-[11px] ${isActive ? "text-current" : plat.color}`} />}
                     <span className="capitalize">{platKey === "x_twitter" ? "X" : plat?.name || platKey}</span>
                   </button>
                 );
@@ -885,7 +885,7 @@ export default function ContentCalendar({
 
                       {/* Drop hint indicator when dragging over */}
                       {isDragOver ? (
-                        <span className="text-[9px] font-bold text-[#6d28d9] dark:text-[#b79bff] uppercase tracking-wider animate-pulse">
+                        <span className="text-[11px] font-bold text-[#6d28d9] dark:text-[#b79bff] uppercase tracking-wider animate-pulse">
                           Drop here
                         </span>
                       ) : (
@@ -899,7 +899,7 @@ export default function ContentCalendar({
                           className="opacity-0 group-hover:opacity-100 w-5 h-5 rounded-[6px] bg-[#6d28d9]/20 hover:bg-[#6d28d9] text-[#b79bff] hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-2xs"
                           title="Add post on this day"
                         >
-                          <FaPlus className="text-[9px]" />
+                          <FaPlus className="text-[11px]" />
                         </button>
                       )}
                     </div>
@@ -988,7 +988,7 @@ export default function ContentCalendar({
                       {/* NowTime Badge in Timeline Column */}
                       {isCurrentHour && (
                         <div
-                          className="absolute right-1 -translate-y-1/2 z-30 px-1.5 py-0.5 rounded-[4px] bg-[#8b5cf6] text-black text-[10px] font-bold whitespace-nowrap shadow-xs"
+                          className="absolute right-1 -translate-y-1/2 z-30 px-1.5 py-0.5 rounded-[4px] bg-[#8b5cf6] text-black text-[11px] font-bold whitespace-nowrap shadow-xs"
                           style={{ top: `${minuteProgress}%` }}
                         >
                           {formatTime(now)}
@@ -1057,7 +1057,7 @@ export default function ContentCalendar({
                           {hourPosts.length === 0 && (
                             <div className="h-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                               <span className="w-5 h-5 rounded-[6px] bg-[#6d28d9]/20 hover:bg-[#6d28d9] text-[#b79bff] hover:text-white flex items-center justify-center shadow-2xs">
-                                <FaPlus className="text-[9px]" />
+                                <FaPlus className="text-[11px]" />
                               </span>
                             </div>
                           )}
@@ -1170,12 +1170,12 @@ export default function ContentCalendar({
                           {formatHourLabel(hour)}
                         </span>
                         {isCurrentHour && (
-                          <span className="px-1.5 py-0.5 rounded bg-[#8b5cf6] text-black text-[10px] font-bold">
+                          <span className="px-1.5 py-0.5 rounded bg-[#8b5cf6] text-black text-[11px] font-bold">
                             Now ({formatTime(now)})
                           </span>
                         )}
                         {isDragOver && (
-                          <span className="px-1.5 py-0.5 rounded bg-[#6d28d9] text-white text-[10px] font-bold animate-pulse">
+                          <span className="px-1.5 py-0.5 rounded bg-[#6d28d9] text-white text-[11px] font-bold animate-pulse">
                             Drop to schedule at {formatHourLabel(hour)}
                           </span>
                         )}
@@ -1189,7 +1189,7 @@ export default function ContentCalendar({
                           target.setHours(hour, 0, 0, 0);
                           onDateClick?.(target);
                         }}
-                        className="opacity-0 group-hover:opacity-100 px-2 py-0.5 rounded text-[10px] font-semibold text-[#b79bff] hover:text-white bg-[#6d28d9]/15 hover:bg-[#6d28d9] transition-all flex items-center gap-1"
+                        className="opacity-0 group-hover:opacity-100 px-2 py-0.5 rounded text-[11px] font-semibold text-[#b79bff] hover:text-white bg-[#6d28d9]/15 hover:bg-[#6d28d9] transition-all flex items-center gap-1"
                       >
                         <FaPlus className="text-[8px]" />
                         <span>Schedule</span>
@@ -1296,7 +1296,7 @@ export default function ContentCalendar({
                                   </p>
                                   <div className="flex items-center gap-2 mt-0.5 text-[11px] text-zinc-500 dark:text-zinc-400">
                                     <span className="flex items-center gap-1 font-mono">
-                                      <FaClock className="text-[10px]" />
+                                      <FaClock className="text-[11px]" />
                                       {formatTime(post.scheduledAt)}
                                     </span>
                                     <span>•</span>
@@ -1309,7 +1309,7 @@ export default function ContentCalendar({
                               <div className="flex items-center gap-2 shrink-0">
                                 {post.customTag && (
                                   <span
-                                    className="px-2 py-0.5 rounded text-[10px] font-bold text-white shadow-2xs"
+                                    className="px-2 py-0.5 rounded text-[11px] font-bold text-white shadow-2xs"
                                     style={{ backgroundColor: post.tagColor || "#6d28d9" }}
                                   >
                                     #{post.customTag}
@@ -1317,7 +1317,7 @@ export default function ContentCalendar({
                                 )}
 
                                 <span
-                                  className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider ${
+                                  className={`px-2 py-0.5 rounded text-[11px] font-semibold uppercase tracking-wider ${
                                     post.status === "completed"
                                       ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
                                       : post.status === "scheduled"
@@ -1439,7 +1439,7 @@ function CalendarItemCard({
 
       {/* Top Banner with Platform or Custom Tag Color & Hover Quick Actions */}
       <div
-        className="h-5 px-1.5 flex items-center justify-between text-white text-[10px] font-semibold transition-colors select-none"
+        className="h-5 px-1.5 flex items-center justify-between text-white text-[11px] font-semibold transition-colors select-none"
         style={{ backgroundColor: post.tagColor || plat.bannerBg }}
       >
         <div className="flex items-center min-w-0">
@@ -1459,7 +1459,7 @@ function CalendarItemCard({
             <circle cx="1.5" cy="8.5" r="1" />
             <circle cx="4.5" cy="8.5" r="1" />
           </svg>
-          <span className="truncate group-hover/card:hidden tracking-wider uppercase text-[9px]">
+          <span className="truncate group-hover/card:hidden tracking-wider uppercase text-[11px]">
             {post.customTag ? `#${post.customTag}` : plat.name}
           </span>
         </div>
@@ -1476,7 +1476,7 @@ function CalendarItemCard({
               title="Open public link"
               className="hover:scale-110 transition-transform cursor-pointer"
             >
-              <FiExternalLink className="text-[10px]" />
+              <FiExternalLink className="text-[11px]" />
             </button>
           )}
 
@@ -1489,7 +1489,7 @@ function CalendarItemCard({
             title="Edit post"
             className="hover:scale-110 transition-transform cursor-pointer"
           >
-            <FiEdit2 className="text-[10px]" />
+            <FiEdit2 className="text-[11px]" />
           </button>
 
           <button
@@ -1501,7 +1501,7 @@ function CalendarItemCard({
             title="Duplicate post"
             className="hover:scale-110 transition-transform cursor-pointer"
           >
-            <FiCopy className="text-[10px]" />
+            <FiCopy className="text-[11px]" />
           </button>
 
           <button
@@ -1513,7 +1513,7 @@ function CalendarItemCard({
             title="Delete post"
             className="hover:text-red-200 hover:scale-110 transition-transform cursor-pointer"
           >
-            <FiTrash2 className="text-[10px]" />
+            <FiTrash2 className="text-[11px]" />
           </button>
         </div>
       </div>
@@ -1522,7 +1522,7 @@ function CalendarItemCard({
       <div className="p-1.5 bg-zinc-50 dark:bg-[#1c1938] flex items-center gap-1.5 cursor-pointer hover:bg-zinc-100 dark:hover:bg-[#1f1c3d] transition-colors">
         {/* Platform icon avatar */}
         <div className="w-4 h-4 rounded-[4px] bg-white dark:bg-black/60 border border-zinc-200 dark:border-zinc-800 flex items-center justify-center shrink-0">
-          <Icon className={`text-[10px] ${plat.color}`} />
+          <Icon className={`text-[11px] ${plat.color}`} />
         </div>
 
         {/* Snippet text */}
@@ -1534,7 +1534,7 @@ function CalendarItemCard({
         </div>
 
         {/* Time */}
-        <span className="text-[9px] text-zinc-400 dark:text-zinc-500 font-mono shrink-0">
+        <span className="text-[11px] text-zinc-400 dark:text-zinc-500 font-mono shrink-0">
           {formatTime(post.scheduledAt)}
         </span>
       </div>

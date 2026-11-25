@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 // The supplied logos, trimmed to their artwork. Originals are in public/images/logo.
 export default function Logo({ tone = "light", className }: { tone?: "light" | "dark" | "auto"; className?: string }) {
-  const size = cn("h-11 w-auto max-w-none", className);
+  const size = cn("h-10 w-auto max-w-none", className);
   if (tone !== "auto") return <img src={`/brand/logo-${tone}.webp`} alt="SocialGem" width={734} height={200} className={size} />;
   return (
     <>
