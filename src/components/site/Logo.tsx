@@ -1,13 +1,18 @@
-export default function Logo() {
+/* eslint-disable @next/next/no-img-element */
+import { cn } from "@/lib/utils";
+
+// The supplied logos, trimmed to their artwork. Originals are in public/images/logo.
+export default function Logo({ tone = "light", className }: { tone?: "light" | "dark" | "auto"; className?: string }) {
+  const size = cn("h-11 w-auto max-w-none", className);
+  if (tone !== "auto") return <img src={`/brand/logo-${tone}.webp`} alt="SocialGem" width={734} height={200} className={size} />;
   return (
-    <span className="inline-flex items-center gap-2.5 text-[1.22rem] font-bold tracking-[-0.03em]">
-      <svg viewBox="0 0 32 28" width="28" height="25" aria-hidden="true">
-        <path d="M8 1h16l7 9H1z" fill="#ff9a4d" />
-        <path d="M1 10h10l5 17z" fill="#ff6b00" />
-        <path d="M11 10h10l-5 17z" fill="#cc2200" />
-        <path d="M21 10h10L16 27z" fill="#ff6b00" />
-      </svg>
-      SocialGem
-    </span>
+    <>
+      <img src="/brand/logo-light.webp" alt="SocialGem" width={734} height={200} className={cn(size, "dark:hidden")} />
+      <img src="/brand/logo-dark.webp" alt="SocialGem" width={733} height={200} className={cn(size, "hidden dark:block")} />
+    </>
   );
+}
+
+export function Mark({ className }: { className?: string }) {
+  return <img src="/brand/mark.webp" alt="" width={192} height={192} className={cn("size-9", className)} />;
 }

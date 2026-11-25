@@ -255,11 +255,11 @@ export default function ImageCropperModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-4xl bg-white dark:bg-[#141414] border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      <div className="relative w-full max-w-4xl bg-white dark:bg-[#0f0e22] border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">
           <div className="flex items-center gap-2.5">
-            <span className="p-2 rounded-xl bg-[#612bd3]/10 text-[#612bd3] dark:text-[#a78bfa]">
+            <span className="p-2 rounded-xl bg-[#6d28d9]/10 text-[#6d28d9] dark:text-[#a78bfa]">
               <FiCrop className="text-lg font-bold" />
             </span>
             <div>
@@ -292,7 +292,7 @@ export default function ImageCropperModal({
                 onClick={() => setSelectedPreset(preset.id)}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                   isSelected
-                    ? "bg-[#612bd3] text-white shadow-xs shadow-[#612bd3]/40"
+                    ? "bg-[#6d28d9] text-white shadow-xs shadow-[#6d28d9]/40"
                     : "bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700/80 hover:bg-zinc-100 dark:hover:bg-zinc-700"
                 }`}
                 title={preset.desc}
@@ -313,7 +313,7 @@ export default function ImageCropperModal({
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
-            className="relative overflow-hidden border-2 border-[#612bd3] shadow-2xl rounded-lg cursor-grab active:cursor-grabbing bg-black/60 flex items-center justify-center"
+            className="relative overflow-hidden border-2 border-[#6d28d9] shadow-2xl rounded-lg cursor-grab active:cursor-grabbing bg-black/60 flex items-center justify-center"
             style={{
               width: currentPreset.ratio
                 ? currentPreset.ratio >= 1
@@ -362,7 +362,7 @@ export default function ImageCropperModal({
         </div>
 
         {/* Adjustments Bar (Zoom, Rotate, Reset) */}
-        <div className="px-6 py-3 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#141414] flex flex-wrap items-center justify-between gap-4">
+        <div className="px-6 py-3 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#0f0e22] flex flex-wrap items-center justify-between gap-4">
           {/* Zoom Slider */}
           <div className="flex items-center gap-2.5 text-xs text-zinc-600 dark:text-zinc-400">
             <FiZoomOut className="text-sm" />
@@ -373,7 +373,7 @@ export default function ImageCropperModal({
               step="0.05"
               value={zoom}
               onChange={(e) => setZoom(parseFloat(e.target.value))}
-              className="w-32 sm:w-44 accent-[#612bd3] cursor-pointer"
+              className="w-32 sm:w-44 accent-[#6d28d9] cursor-pointer"
             />
             <FiZoomIn className="text-sm" />
             <span className="font-mono text-zinc-800 dark:text-zinc-200 font-bold ml-1">
@@ -431,7 +431,7 @@ export default function ImageCropperModal({
               type="button"
               onClick={handleInsertIntoPost}
               disabled={saving}
-              className="px-5 py-2 rounded-xl text-xs font-bold bg-[#612bd3] hover:bg-[#7237e8] disabled:opacity-50 text-white transition-all shadow-md shadow-[#612bd3]/30 cursor-pointer flex items-center gap-1.5"
+              className="px-5 py-2 rounded-xl text-xs font-bold bg-[#6d28d9] hover:bg-[#5b1fc0] disabled:opacity-50 text-white transition-all shadow-md shadow-[#6d28d9]/30 cursor-pointer flex items-center gap-1.5"
             >
               <FiSend className="text-xs font-bold" />
               <span>Use in Post</span>

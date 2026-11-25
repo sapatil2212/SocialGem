@@ -76,7 +76,7 @@ function AccountRow({ account, busy, onReconnect, onRenamed, onRemoved }) {
             if (e.key === "Enter") save();
             if (e.key === "Escape") setEditing(false);
           }}
-          className="min-h-9 min-w-0 flex-1 rounded border border-[#612bd3] bg-white px-2 text-sm dark:bg-zinc-950"
+          className="min-h-9 min-w-0 flex-1 rounded border border-[#6d28d9] bg-white px-2 text-sm dark:bg-zinc-950"
         />
       ) : (
         <span className="min-w-0 flex-1 truncate text-sm font-semibold">
@@ -192,7 +192,7 @@ export default function ChannelsPage() {
           const state = states[key];
           const waiting = connecting === key;
           return (
-            <li key={key} className="rounded-xl border border-zinc-200 bg-white p-5 dark:border-[#252525] dark:bg-[#1a1919]">
+            <li key={key} className="rounded-xl border border-zinc-200 bg-white p-5 dark:border-[#2a2746] dark:bg-[#15132b]">
               <div className="flex flex-wrap items-center gap-4">
                 <span className="grid size-11 shrink-0 place-items-center rounded-lg border border-zinc-200 bg-zinc-100 text-xl dark:border-zinc-800 dark:bg-zinc-900" style={{ color }}><Icon aria-hidden /></span>
                 <div className="min-w-40 flex-1">
@@ -205,7 +205,7 @@ export default function ChannelsPage() {
                     <button type="button" className={quiet} onClick={() => { abort.current?.abort(); setConnecting(""); toast("Stopped waiting. You can close the other window."); }}>Cancel</button>
                   </span>
                 ) : state === "ready" ? (
-                  <button type="button" className={`${small} bg-[#612bd3] text-white hover:bg-[#7237e8]`} disabled={Boolean(connecting)} onClick={() => connect(key)}>
+                  <button type="button" className={`${small} bg-[#6d28d9] text-white hover:bg-[#5b1fc0]`} disabled={Boolean(connecting)} onClick={() => connect(key)}>
                     <FiPlus /> {mine.length ? "Add another" : "Connect"}
                   </button>
                 ) : (

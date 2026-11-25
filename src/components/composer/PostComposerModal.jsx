@@ -37,7 +37,7 @@ import AiPostWriter from "./AiPostWriter";
 import CustomSelect from "@/components/ui/CustomSelect";
 
 const TAG_COLOR_PALETTE = [
-  "#612bd3", // Studio Purple
+  "#6d28d9", // Studio Purple
   "#10b981", // Emerald
   "#f59e0b", // Amber
   "#06b6d4", // Cyan
@@ -146,7 +146,7 @@ export default function PostComposerModal({
   const [availableTags, setAvailableTags] = useState([]);
   const [isCreatingCustomTag, setIsCreatingCustomTag] = useState(false);
   const [newTagName, setNewTagName] = useState("");
-  const [newTagColor, setNewTagColor] = useState("#612bd3");
+  const [newTagColor, setNewTagColor] = useState("#6d28d9");
   const [mediaUrl, setMediaUrl] = useState("");
   const [privacy, setPrivacy] = useState("public");
 
@@ -675,7 +675,7 @@ export default function PostComposerModal({
         {/* Modal Top Bar */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-md bg-[#612bd3] text-white font-black text-sm flex items-center justify-center shadow-md shadow-[#612bd3]/30">
+            <div className="w-8 h-8 rounded-md bg-[#6d28d9] text-white font-black text-sm flex items-center justify-center shadow-md shadow-[#6d28d9]/30">
               P
             </div>
             <div>
@@ -694,7 +694,7 @@ export default function PostComposerModal({
               className={`px-3 py-1 rounded-md text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer border ${
                 aiWriterOpen
                   ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white border-violet-400/40 shadow-md shadow-violet-500/30"
-                  : "bg-gradient-to-r from-violet-600/15 to-indigo-600/15 text-violet-700 dark:text-violet-300 border-violet-500/30 hover:border-violet-500/60 hover:text-[#612bd3] dark:hover:text-white"
+                  : "bg-gradient-to-r from-violet-600/15 to-indigo-600/15 text-violet-700 dark:text-violet-300 border-violet-500/30 hover:border-violet-500/60 hover:text-[#6d28d9] dark:hover:text-white"
               }`}
             >
               <FaMagic className="text-[10px] text-amber-500 dark:text-amber-300" />
@@ -796,7 +796,7 @@ export default function PostComposerModal({
                         onClick={() => togglePlatform(plat.key)}
                         className={`relative p-2.5 rounded-md border flex items-center justify-between gap-2 transition-all cursor-pointer select-none ${
                           isSelected
-                            ? `${plat.activeStyle} ${isCurrent ? "ring-2 ring-[#612bd3] dark:ring-white/30" : ""}`
+                            ? `${plat.activeStyle} ${isCurrent ? "ring-2 ring-[#6d28d9] dark:ring-white/30" : ""}`
                             : "border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/40 text-zinc-600 dark:text-zinc-500 hover:border-zinc-300 dark:hover:border-zinc-700 hover:text-zinc-900 dark:hover:text-zinc-300 shadow-2xs"
                         }`}
                       >
@@ -941,7 +941,7 @@ export default function PostComposerModal({
                   onClick={() => setActiveComposerTab("all")}
                   className={`px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 select-none ${
                     activeComposerTab === "all"
-                      ? "bg-[#612bd3] text-white shadow-xs font-bold"
+                      ? "bg-[#6d28d9] text-white shadow-xs font-bold"
                       : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800"
                   }`}
                 >
@@ -1001,7 +1001,7 @@ export default function PostComposerModal({
                 value={currentTabTitle}
                 onChange={(e) => handleTitleChange(e.target.value)}
                 placeholder={`Give your ${activeComposerTab !== "all" ? currentActivePlatformInfo.name : ""} post a strong, clickable title...`}
-                className="w-full bg-white dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800 rounded-md px-3.5 py-2 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:border-[#612bd3] dark:focus:border-zinc-600 transition-colors shadow-2xs"
+                className="w-full bg-white dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800 rounded-md px-3.5 py-2 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:border-[#6d28d9] dark:focus:border-zinc-600 transition-colors shadow-2xs"
               />
             </div>
 
@@ -1052,7 +1052,7 @@ export default function PostComposerModal({
                 className={`w-full bg-white dark:bg-zinc-900/60 border rounded-md p-3 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none transition-colors resize-none leading-relaxed shadow-2xs ${
                   currentChars > currentTabCharLimit
                     ? "border-red-400 focus:border-red-500 ring-1 ring-red-400/30"
-                    : "border-zinc-200 dark:border-zinc-800 focus:border-[#612bd3] dark:focus:border-zinc-600"
+                    : "border-zinc-200 dark:border-zinc-800 focus:border-[#6d28d9] dark:focus:border-zinc-600"
                 }`}
               />
 
@@ -1078,7 +1078,7 @@ export default function PostComposerModal({
             <div className="space-y-2.5 p-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/30 shadow-xs">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold text-zinc-800 dark:text-zinc-300 tracking-wider uppercase flex items-center gap-1.5">
-                  <FiTag className="text-[#612bd3] dark:text-[#fc69ff]" />
+                  <FiTag className="text-[#6d28d9] dark:text-[#8b5cf6]" />
                   <span>4. CUSTOM TAG & COLOR BANNER</span>
                 </label>
                 {customTag && (
@@ -1106,7 +1106,7 @@ export default function PostComposerModal({
                   }}
                   className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all cursor-pointer border ${
                     !customTag
-                      ? "bg-[#612bd3] text-white border-[#612bd3] shadow-xs font-bold"
+                      ? "bg-[#6d28d9] text-white border-[#6d28d9] shadow-xs font-bold"
                       : "bg-zinc-100 dark:bg-zinc-900/60 text-zinc-700 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700"
                   }`}
                 >
@@ -1158,7 +1158,7 @@ export default function PostComposerModal({
                   <button
                     type="button"
                     onClick={() => setIsCreatingCustomTag(true)}
-                    className="px-2.5 py-1 rounded-full text-[11px] font-medium text-[#612bd3] dark:text-[#8c66ff] hover:text-white bg-[#612bd3]/10 hover:bg-[#612bd3] border border-[#612bd3]/30 transition-all cursor-pointer flex items-center gap-1"
+                    className="px-2.5 py-1 rounded-full text-[11px] font-medium text-[#6d28d9] dark:text-[#b79bff] hover:text-white bg-[#6d28d9]/10 hover:bg-[#6d28d9] border border-[#6d28d9]/30 transition-all cursor-pointer flex items-center gap-1"
                   >
                     <FaPlus className="text-[9px]" />
                     <span>New Tag</span>
@@ -1186,7 +1186,7 @@ export default function PostComposerModal({
                       value={newTagName}
                       onChange={(e) => setNewTagName(e.target.value)}
                       placeholder="Tag name (e.g. Launch, Promo, Meme)..."
-                      className="flex-1 bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded-md px-3 py-1.5 text-xs text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:border-[#612bd3]"
+                      className="flex-1 bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded-md px-3 py-1.5 text-xs text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:border-[#6d28d9]"
                       onKeyDown={(e) => {
                         if (e.key === "Enter") {
                           e.preventDefault();
@@ -1206,7 +1206,7 @@ export default function PostComposerModal({
                         type="button"
                         onClick={handleCreateTag}
                         disabled={!newTagName.trim()}
-                        className="px-3 py-1.5 rounded-md bg-[#612bd3] hover:bg-[#7237e8] disabled:opacity-40 text-white text-xs font-semibold cursor-pointer transition-colors shadow-2xs"
+                        className="px-3 py-1.5 rounded-md bg-[#6d28d9] hover:bg-[#5b1fc0] disabled:opacity-40 text-white text-xs font-semibold cursor-pointer transition-colors shadow-2xs"
                       >
                         Save
                       </button>
@@ -1323,7 +1323,7 @@ export default function PostComposerModal({
                           ? `Or paste custom media URL for ${currentActivePlatformInfo.name} (https://...)`
                           : "Or paste media URL directly (https://...)"
                       }
-                      className="w-full bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 rounded-md pl-8 pr-3 py-1.5 text-xs text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:border-[#612bd3] dark:focus:border-zinc-600 transition-colors shadow-2xs"
+                      className="w-full bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 rounded-md pl-8 pr-3 py-1.5 text-xs text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:border-[#6d28d9] dark:focus:border-zinc-600 transition-colors shadow-2xs"
                     />
                   </div>
                 </div>
@@ -1401,7 +1401,7 @@ export default function PostComposerModal({
                           id="kids"
                           checked={madeForKids}
                           onChange={(e) => setMadeForKids(e.target.checked)}
-                          className="rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-[#612bd3] focus:ring-0"
+                          className="rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-[#6d28d9] focus:ring-0"
                         />
                         <label htmlFor="kids" className="text-xs text-zinc-600 dark:text-zinc-400 cursor-pointer">
                           Made for Kids (COPPA compliant)
@@ -1418,7 +1418,7 @@ export default function PostComposerModal({
                           type="checkbox"
                           checked={disableComment}
                           onChange={(e) => setDisableComment(e.target.checked)}
-                          className="rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-[#612bd3]"
+                          className="rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-[#6d28d9]"
                         />
                       </div>
                       <div className="flex items-center justify-between text-xs text-zinc-700 dark:text-zinc-300">
@@ -1427,7 +1427,7 @@ export default function PostComposerModal({
                           type="checkbox"
                           checked={disableDuet}
                           onChange={(e) => setDisableDuet(e.target.checked)}
-                          className="rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-[#612bd3]"
+                          className="rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-[#6d28d9]"
                         />
                       </div>
                       <div className="flex items-center justify-between text-xs text-zinc-700 dark:text-zinc-300">
@@ -1436,7 +1436,7 @@ export default function PostComposerModal({
                           type="checkbox"
                           checked={disableStitch}
                           onChange={(e) => setDisableStitch(e.target.checked)}
-                          className="rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-[#612bd3]"
+                          className="rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-[#6d28d9]"
                         />
                       </div>
                     </div>
@@ -1510,7 +1510,7 @@ export default function PostComposerModal({
                           value={destinationLink}
                           onChange={(e) => setDestinationLink(e.target.value)}
                           placeholder="https://yourwebsite.com/pin-link"
-                          className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md px-2.5 py-1.5 text-xs text-zinc-800 dark:text-zinc-200 focus:outline-none focus:border-[#612bd3] dark:focus:border-zinc-700 shadow-2xs"
+                          className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md px-2.5 py-1.5 text-xs text-zinc-800 dark:text-zinc-200 focus:outline-none focus:border-[#6d28d9] dark:focus:border-zinc-700 shadow-2xs"
                         />
                       </div>
                       <div>
@@ -1522,7 +1522,7 @@ export default function PostComposerModal({
                           value={boardId}
                           onChange={(e) => setBoardId(e.target.value)}
                           placeholder="Default Board or ID"
-                          className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md px-2.5 py-1.5 text-xs text-zinc-800 dark:text-zinc-200 focus:outline-none focus:border-[#612bd3] dark:focus:border-zinc-700 shadow-2xs"
+                          className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md px-2.5 py-1.5 text-xs text-zinc-800 dark:text-zinc-200 focus:outline-none focus:border-[#6d28d9] dark:focus:border-zinc-700 shadow-2xs"
                         />
                       </div>
                     </div>
@@ -1576,7 +1576,7 @@ export default function PostComposerModal({
                       type="date"
                       value={scheduledDate}
                       onChange={(e) => setScheduledDate(e.target.value)}
-                      className="w-full bg-white dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800 rounded-md pl-8 pr-2.5 py-1.5 text-xs text-zinc-900 dark:text-zinc-200 focus:outline-none focus:border-[#612bd3] dark:focus:border-zinc-600 shadow-2xs"
+                      className="w-full bg-white dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800 rounded-md pl-8 pr-2.5 py-1.5 text-xs text-zinc-900 dark:text-zinc-200 focus:outline-none focus:border-[#6d28d9] dark:focus:border-zinc-600 shadow-2xs"
                     />
                   </div>
                   <div className="relative">
@@ -1585,7 +1585,7 @@ export default function PostComposerModal({
                       type="time"
                       value={scheduledTime}
                       onChange={(e) => setScheduledTime(e.target.value)}
-                      className="w-full bg-white dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800 rounded-md pl-8 pr-2.5 py-1.5 text-xs text-zinc-900 dark:text-zinc-200 focus:outline-none focus:border-[#612bd3] dark:focus:border-zinc-600 shadow-2xs"
+                      className="w-full bg-white dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800 rounded-md pl-8 pr-2.5 py-1.5 text-xs text-zinc-900 dark:text-zinc-200 focus:outline-none focus:border-[#6d28d9] dark:focus:border-zinc-600 shadow-2xs"
                     />
                   </div>
                 </div>

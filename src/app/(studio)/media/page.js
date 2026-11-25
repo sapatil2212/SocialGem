@@ -135,7 +135,7 @@ export default function MediaPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-zinc-200 dark:border-zinc-800">
           <div>
             <div className="flex items-center gap-2">
-              <span className="p-1.5 rounded-lg bg-[#612bd3]/10 dark:bg-[#612bd3]/20 text-[#612bd3] dark:text-[#a78bfa] border border-[#612bd3]/20">
+              <span className="p-1.5 rounded-lg bg-[#6d28d9]/10 dark:bg-[#6d28d9]/20 text-[#6d28d9] dark:text-[#a78bfa] border border-[#6d28d9]/20">
                 <FiImage className="text-base font-bold" />
               </span>
               <h1 className="text-lg sm:text-xl font-black text-zinc-900 dark:text-white tracking-tight">
@@ -154,17 +154,17 @@ export default function MediaPage() {
               type="button"
               onClick={fetchMedia}
               disabled={loading}
-              className="p-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#141414] hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors cursor-pointer shadow-2xs shrink-0"
+              className="p-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#0f0e22] hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors cursor-pointer shadow-2xs shrink-0"
               title="Refresh Media Library"
             >
-              <FiRefreshCw className={`text-xs ${loading ? "animate-spin text-[#612bd3]" : ""}`} />
+              <FiRefreshCw className={`text-xs ${loading ? "animate-spin text-[#6d28d9]" : ""}`} />
             </button>
 
             {/* Upload Media Button */}
             <button
               type="button"
               onClick={() => setUploaderOpen(true)}
-              className="px-4 py-2 rounded-xl bg-[#612bd3] hover:bg-[#7237e8] text-white text-xs font-bold transition-all cursor-pointer flex items-center gap-2 shadow-sm shadow-[#612bd3]/30 shrink-0"
+              className="px-4 py-2 rounded-xl bg-[#6d28d9] hover:bg-[#5b1fc0] text-white text-xs font-bold transition-all cursor-pointer flex items-center gap-2 shadow-sm shadow-[#6d28d9]/30 shrink-0"
             >
               <FiUploadCloud className="text-sm font-bold" />
               <span>Upload Media</span>
@@ -174,19 +174,19 @@ export default function MediaPage() {
 
         {/* Quick Stats Overview Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-[#141414] shadow-2xs">
+          <div className="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-[#0f0e22] shadow-2xs">
             <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Total Assets</span>
             <p className="text-xl font-black text-zinc-900 dark:text-white mt-1">{totalAssetsCount}</p>
           </div>
-          <div className="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-[#141414] shadow-2xs">
+          <div className="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-[#0f0e22] shadow-2xs">
             <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Images</span>
             <p className="text-xl font-black text-violet-600 dark:text-violet-400 mt-1">{imageCount}</p>
           </div>
-          <div className="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-[#141414] shadow-2xs">
+          <div className="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-[#0f0e22] shadow-2xs">
             <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Video Clips</span>
             <p className="text-xl font-black text-pink-600 dark:text-pink-400 mt-1">{videoCount}</p>
           </div>
-          <div className="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-[#141414] shadow-2xs">
+          <div className="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-[#0f0e22] shadow-2xs">
             <span className="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">Folders</span>
             <p className="text-xl font-black text-sky-600 dark:text-sky-400 mt-1">{folders.length}</p>
           </div>
@@ -205,8 +205,8 @@ export default function MediaPage() {
                   onClick={() => setActiveFolder(folder.name)}
                   className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                     isActive
-                      ? "bg-[#612bd3] text-white shadow-xs shadow-[#612bd3]/35 font-bold"
-                      : "bg-white dark:bg-[#141414] text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700"
+                      ? "bg-[#6d28d9] text-white shadow-xs shadow-[#6d28d9]/35 font-bold"
+                      : "bg-white dark:bg-[#0f0e22] text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700"
                   }`}
                 >
                   <FiFolder className={`text-xs ${isActive ? "text-white" : "text-zinc-400"}`} />
@@ -237,7 +237,7 @@ export default function MediaPage() {
                 <button
                   type="button"
                   onClick={handleCreateFolder}
-                  className="p-1 rounded bg-[#612bd3] text-white text-[10px] font-bold"
+                  className="p-1 rounded bg-[#6d28d9] text-white text-[10px] font-bold"
                 >
                   <FiCheck />
                 </button>
@@ -246,7 +246,7 @@ export default function MediaPage() {
               <button
                 type="button"
                 onClick={() => setCreatingFolder(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-zinc-500 dark:text-zinc-400 hover:text-[#612bd3] dark:hover:text-[#a78bfa] border border-dashed border-zinc-300 dark:border-zinc-800 hover:border-[#612bd3] transition-all cursor-pointer shrink-0"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-zinc-500 dark:text-zinc-400 hover:text-[#6d28d9] dark:hover:text-[#a78bfa] border border-dashed border-zinc-300 dark:border-zinc-800 hover:border-[#6d28d9] transition-all cursor-pointer shrink-0"
               >
                 <FiPlus className="text-xs" />
                 <span>New Folder</span>
@@ -264,7 +264,7 @@ export default function MediaPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search assets by name or tag..."
-                className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#141414] text-xs text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 focus:outline-none focus:border-[#612bd3] shadow-2xs"
+                className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#0f0e22] text-xs text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 focus:outline-none focus:border-[#6d28d9] shadow-2xs"
               />
             </div>
 
@@ -324,8 +324,8 @@ export default function MediaPage() {
 
         {/* Media Grid or Empty State */}
         {sortedAssets.length === 0 && !loading ? (
-          <div className="py-16 text-center border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl bg-white/40 dark:bg-[#141414]/40 flex flex-col items-center justify-center space-y-3">
-            <div className="w-14 h-14 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-[#612bd3]">
+          <div className="py-16 text-center border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl bg-white/40 dark:bg-[#0f0e22]/40 flex flex-col items-center justify-center space-y-3">
+            <div className="w-14 h-14 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-[#6d28d9]">
               <FiImage className="text-2xl" />
             </div>
             <h3 className="text-sm font-bold text-zinc-800 dark:text-zinc-200">
@@ -337,7 +337,7 @@ export default function MediaPage() {
             <button
               type="button"
               onClick={() => setUploaderOpen(true)}
-              className="px-4 py-2 rounded-xl bg-[#612bd3] hover:bg-[#7237e8] text-white text-xs font-bold transition-all shadow-md shadow-[#612bd3]/30 cursor-pointer flex items-center gap-2"
+              className="px-4 py-2 rounded-xl bg-[#6d28d9] hover:bg-[#5b1fc0] text-white text-xs font-bold transition-all shadow-md shadow-[#6d28d9]/30 cursor-pointer flex items-center gap-2"
             >
               <FiUploadCloud className="text-sm" />
               <span>Upload First Asset</span>

@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import type { MemberRole } from "@prisma/client";
 import type { z } from "zod";
 import { authOptions } from "@/lib/auth";
+import { currentAdmin } from "./admin";
 import { allow } from "./rate-limit";
 import { membership, type CurrentWorkspace } from "./workspaces";
 import { HttpError, notFound } from "./errors";
@@ -50,18 +51,18 @@ async function run<B extends z.ZodType>(
   request: Request,
   context: Context,
   options: Options<B>,
-  scoped: boolean,
+  scope: "user" | "workspace" | "admin",
   handler: (input: Input<B> & { workspace?: CurrentWorkspace }) => Promise<unknown>
 ) {
   try {
-    const user = await currentUser();
+    const user: User | null = scope === "admin" ? await currentAdmin() : await currentUser();
     if (!user) return fail(401, "SIGN_IN", "Please sign in.");
     const reading = request.method === "GET";
     if (!reading && !sameOrigin(request)) return fail(403, "ORIGIN", "This request was blocked.");
 
     const params = await context.params;
     let workspace: CurrentWorkspace | undefined;
-    if (scoped) {
+    if (scope === "workspace") {
       workspace = (await membership(user.id, params.wid)) ?? undefined;
       // Not a member and not existing look the same.
       if (!workspace) return fail(404, "NOT_FOUND", "Not found.");
@@ -95,7 +96,12 @@ async function run<B extends z.ZodType>(
 
 /** For routes that belong to the signed-in person. */
 export function guard<B extends z.ZodType>(options: Options<B>, handler: (input: Input<B>) => Promise<unknown>) {
-  return (request: Request, context: Context) => run(request, context, options, false, handler);
+  return (request: Request, context: Context) => run(request, context, options, "user", handler);
+}
+
+/** For routes under /api/admin. Uses the admin session, never the customer one. */
+export function guardAdmin<B extends z.ZodType>(options: Options<B>, handler: (input: Input<B>) => Promise<unknown>) {
+  return (request: Request, context: Context) => run(request, context, options, "admin", handler);
 }
 
 /** For every route under /api/w/[wid]: also checks membership and role. */
@@ -104,5 +110,5 @@ export function guardWorkspace<B extends z.ZodType>(
   handler: (input: Input<B> & { workspace: CurrentWorkspace }) => Promise<unknown>
 ) {
   return (request: Request, context: Context) =>
-    run(request, context, options, true, (input) => handler(input as Input<B> & { workspace: CurrentWorkspace }));
+    run(request, context, options, "workspace", (input) => handler(input as Input<B> & { workspace: CurrentWorkspace }));
 }

@@ -72,7 +72,7 @@ export default function LiveDevicePreview({
             {customTag && (
               <span
                 className="px-2 py-0.5 rounded-full text-[9px] font-bold text-white shadow-xs ml-1"
-                style={{ backgroundColor: tagColor || "#612bd3" }}
+                style={{ backgroundColor: tagColor || "#6d28d9" }}
               >
                 #{customTag}
               </span>

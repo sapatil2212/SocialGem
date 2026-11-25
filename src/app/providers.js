@@ -7,12 +7,12 @@ import { Toaster } from "react-hot-toast";
 export function Providers({ children }) {
   return (
     <SessionProvider>
-      <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
         {children}
         <Toaster
           position="bottom-right"
           toastOptions={{
-            className: "bg-white dark:bg-[#201f1f] text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-[#2e2d2d] shadow-lg rounded-xl text-xs font-medium",
+            className: "bg-white dark:bg-[#1c1938] text-zinc-900 dark:text-zinc-100 border border-zinc-200 dark:border-[#302c52] shadow-lg rounded-xl text-xs font-medium",
             duration: 3500,
           }}
         />

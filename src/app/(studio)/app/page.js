@@ -1,30 +1,16 @@
 "use client";
 
 import { inWorkspace } from "@/lib/workspace-client";
-import { useSession, signIn } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useEffect, useState, useCallback } from "react";
-import { 
-  FaYoutube, 
-  FaInstagram, 
-  FaLinkedin, 
-  FaCheckCircle, 
-  FaClock, 
-  FaExclamationTriangle,
-  FaCalendarAlt,
-  FaShareAlt,
-  FaRocket,
-  FaGoogle,
-  FaBolt
-} from "react-icons/fa";
-import { FaXTwitter, FaThreads } from "react-icons/fa6";
-import { SiTiktok } from "react-icons/si";
-import { FiPlus, FiTrash2, FiEdit2, FiExternalLink, FiRefreshCw, FiX } from "react-icons/fi";
-import Link from "next/link";
+import { FaBolt, FaClock, FaExclamationTriangle } from "react-icons/fa";
+import { FiEdit2, FiExternalLink, FiTrash2, FiX } from "react-icons/fi";
+import Overview from "@/components/dashboard/Overview";
 import ContentCalendar from "@/components/calendar/ContentCalendar";
 import PostComposerModal from "@/components/composer/PostComposerModal";
 
 export default function WorkspaceDashboard() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [connectedAccounts, setConnectedAccounts] = useState([]);
@@ -222,144 +208,9 @@ export default function WorkspaceDashboard() {
     });
   };
 
-  // Stats calculation
-  const scheduledCount = posts.filter((p) => p.status === "scheduled").length;
-  const publishedCount = posts.filter((p) => p.status === "completed").length;
-  const uniqueChannels = new Set(posts.map((p) => p.platform)).size;
-
-  // Unauthenticated Welcome View
-  if (status === "unauthenticated") {
-    return (
-      <div className="min-h-[85vh] flex flex-col items-center justify-center px-4 py-16 bg-[#f8f9fa] dark:bg-zinc-950 text-slate-900 dark:text-zinc-100 transition-colors duration-200">
-        <div className="max-w-2xl text-center space-y-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 text-xs font-medium shadow-xs">
-            <FaRocket className="text-[11px] text-[#612bd3] dark:text-zinc-300" />
-            <span>Social Media Scheduling Studio</span>
-          </div>
-
-          <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-slate-900 dark:text-zinc-100 leading-tight">
-            Schedule, preview & publish across all your channels
-          </h1>
-
-          <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 max-w-lg mx-auto leading-relaxed">
-            Manage YouTube, TikTok, Instagram, X (Twitter), and LinkedIn from a clean interactive content calendar with real-time feed previews.
-          </p>
-
-          <div className="flex items-center justify-center pt-2">
-            <button
-              onClick={() => signIn()}
-              className="px-5 py-2.5 rounded-lg bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-slate-900 dark:text-white border border-zinc-300 dark:border-zinc-700 text-xs font-semibold transition-all flex items-center justify-center gap-2.5 cursor-pointer shadow-sm hover:shadow active:scale-98"
-            >
-              <FaGoogle className="text-xs text-red-500" />
-              <span>Continue with Google</span>
-            </button>
-          </div>
-
-          {/* Feature Highlights Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-10 text-left">
-            <div className="p-4 rounded-lg bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800/80 space-y-1.5 shadow-xs dark:shadow-none transition-colors">
-              <div className="w-8 h-8 rounded-md bg-[#612bd3]/10 dark:bg-zinc-800/60 text-[#612bd3] dark:text-zinc-300 flex items-center justify-center text-xs">
-                <FaCalendarAlt />
-              </div>
-              <h4 className="text-xs font-semibold text-slate-900 dark:text-zinc-200">
-                Content Calendar
-              </h4>
-              <p className="text-[11px] text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                Month & week views with slot clicking and multi-channel post tracking.
-              </p>
-            </div>
-
-            <div className="p-4 rounded-lg bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800/80 space-y-1.5 shadow-xs dark:shadow-none transition-colors">
-              <div className="w-8 h-8 rounded-md bg-purple-500/10 dark:bg-zinc-800/60 text-purple-600 dark:text-zinc-300 flex items-center justify-center text-xs">
-                <FaShareAlt />
-              </div>
-              <h4 className="text-xs font-semibold text-slate-900 dark:text-zinc-200">
-                Live Feed Mockups
-              </h4>
-              <p className="text-[11px] text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                Real-time previews for YouTube, TikTok, Instagram, X, and LinkedIn.
-              </p>
-            </div>
-
-            <div className="p-4 rounded-lg bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800/80 space-y-1.5 shadow-xs dark:shadow-none transition-colors">
-              <div className="w-8 h-8 rounded-md bg-pink-500/10 dark:bg-zinc-800/60 text-pink-600 dark:text-zinc-300 flex items-center justify-center text-xs">
-                <FaRocket />
-              </div>
-              <h4 className="text-xs font-semibold text-slate-900 dark:text-zinc-200">
-                Automated Publishing
-              </h4>
-              <p className="text-[11px] text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                Scheduled background queues publish automatically to connected accounts.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="p-4 sm:p-6 space-y-5 max-w-7xl mx-auto">
-      {/* 4 Stat Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        {/* Card 1: Scheduled */}
-        <div className="p-3.5 rounded-[12px] bg-white dark:bg-[#1a1919] border border-zinc-200 dark:border-[#252525] flex items-center justify-between shadow-xs dark:shadow-sm transition-colors">
-          <div className="space-y-0.5">
-            <span className="text-[10px] font-bold text-zinc-500 dark:text-[#999999] tracking-wider uppercase">
-              SCHEDULED
-            </span>
-            <p className="text-2xl font-bold text-[#612bd3] dark:text-[#8c66ff] font-mono">
-              {scheduledCount}
-            </p>
-          </div>
-          <div className="w-8 h-8 rounded-lg bg-[#612bd3]/15 border border-[#612bd3]/30 text-[#612bd3] dark:text-[#8c66ff] flex items-center justify-center text-xs shadow-xs">
-            <FaClock />
-          </div>
-        </div>
-
-        {/* Card 2: Published */}
-        <div className="p-3.5 rounded-[12px] bg-white dark:bg-[#1a1919] border border-zinc-200 dark:border-[#252525] flex items-center justify-between shadow-xs dark:shadow-sm transition-colors">
-          <div className="space-y-0.5">
-            <span className="text-[10px] font-bold text-zinc-500 dark:text-[#999999] tracking-wider uppercase">
-              PUBLISHED
-            </span>
-            <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 font-mono">
-              {publishedCount}
-            </p>
-          </div>
-          <div className="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-xs shadow-xs">
-            <FaCheckCircle />
-          </div>
-        </div>
-
-        {/* Card 3: Connected Channels */}
-        <div className="p-3.5 rounded-[12px] bg-white dark:bg-[#1a1919] border border-zinc-200 dark:border-[#252525] flex items-center justify-between shadow-xs dark:shadow-sm transition-colors">
-          <div className="space-y-0.5">
-            <span className="text-[10px] font-bold text-zinc-500 dark:text-[#999999] tracking-wider uppercase">
-              CONNECTED CHANNELS
-            </span>
-            <div className="flex items-baseline gap-2">
-              <p className="text-2xl font-bold text-purple-600 dark:text-purple-400 font-mono">
-                {connectedAccounts.length > 0 ? connectedAccounts.length : uniqueChannels}
-              </p>
-              <Link
-                href="/integrations"
-                className="text-[11px] font-medium text-purple-600 dark:text-purple-400 hover:underline"
-              >
-                + Add
-              </Link>
-            </div>
-          </div>
-          <Link
-            href="/integrations"
-            className="w-8 h-8 rounded-lg bg-purple-500/15 hover:bg-purple-500/25 border border-purple-500/30 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xs shadow-xs transition-colors"
-            title="Manage Connected Channels"
-          >
-            <FaShareAlt />
-          </Link>
-        </div>
-
-      </div>
+    <div className="mx-auto grid max-w-[1500px] gap-4 p-4 sm:p-6">
+      <Overview posts={posts} accounts={connectedAccounts} loading={loading} onNew={handleNewPost} onOpen={handlePostClick} />
 
       {/* Content Calendar Main Component */}
       <ContentCalendar
@@ -382,11 +233,11 @@ export default function WorkspaceDashboard() {
           onClick={() => setViewingPost(null)}
         >
           <div 
-            className="w-full max-w-md bg-white dark:bg-[#1a1919] border border-zinc-200 dark:border-[#252525] rounded-[14px] p-5 shadow-2xl space-y-4 text-slate-900 dark:text-white transition-colors"
+            className="w-full max-w-md bg-white dark:bg-[#15132b] border border-zinc-200 dark:border-[#2a2746] rounded-[14px] p-5 shadow-2xl space-y-4 text-slate-900 dark:text-white transition-colors"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-zinc-200 dark:border-[#252525]">
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-200 dark:border-[#2a2746]">
               <div className="flex items-center gap-2">
                 <span className={`px-2.5 py-0.5 rounded text-[11px] font-semibold uppercase tracking-wider ${
                   viewingPost.platform === "youtube" ? "bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/30" :

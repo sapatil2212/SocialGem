@@ -11,7 +11,7 @@ export default function GalleryPage() {
   }, [router]);
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-[#f1f2f5] dark:bg-[#0e0e0e] text-zinc-500 text-xs">
+    <div className="flex items-center justify-center min-h-screen bg-[#f1f2f5] dark:bg-[#0c0b1d] text-zinc-500 text-xs">
       Redirecting to Media Asset Library...
     </div>
   );

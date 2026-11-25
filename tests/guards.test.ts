@@ -13,6 +13,7 @@ const routes = readdirSync(API, { recursive: true, encoding: "utf8" })
 const OWN_PROTECTION: Record<string, string> = {
   "auth/[...nextauth]/route.js": "NextAuth",
   "account/[action]/route.ts": "public by design: origin check, zod and rate limits",
+  "admin/auth/[action]/route.ts": "admin sign-in: origin check, zod, rate limits, emailed code",
   "stripe/webhook/route.ts": "switched off until M6",
 };
 
@@ -22,9 +23,10 @@ describe("every API route", () => {
     it(`${route} is guarded`, () => {
       if (route.startsWith("w/")) expect(readFileSync(join(API, route), "utf8")).not.toMatch(/= guard\(/);
       const code = readFileSync(join(API, route), "utf8");
+      if (route.startsWith("admin/") && !OWN_PROTECTION[route]) expect(code).not.toMatch(/= guard(?:Workspace)?\(/);
       if (OWN_PROTECTION[route]) return;
       const methods = code.match(/export (?:const|async function|function) (GET|POST|PUT|PATCH|DELETE)\b/g) ?? [];
-      const guarded = code.match(/export const (GET|POST|PUT|PATCH|DELETE) = guard(?:Workspace)?\(/g) ?? [];
+      const guarded = code.match(/export const (GET|POST|PUT|PATCH|DELETE) = guard(?:Workspace|Admin)?\(/g) ?? [];
       expect(methods.length).toBeGreaterThan(0);
       expect(guarded.length).toBe(methods.length);
       expect(code).not.toMatch(/@\/lib\/prisma|next-auth\/next/);
@@ -33,6 +35,14 @@ describe("every API route", () => {
       }
     });
   }
+});
+
+describe("admin pages", () => {
+  const base = "src/app/admin/(panel)";
+  const pages = readdirSync(base, { recursive: true, encoding: "utf8" }).filter((f) => f.endsWith("page.tsx"));
+  it("finds the pages", () => expect(pages.length).toBe(4));
+  // Layouts are not re-run on navigation, so each page checks for itself.
+  it.each(pages)("%s checks the admin session", (f) => expect(readFileSync(join(base, f), "utf8")).toMatch(/await requireAdmin\(\)/));
 });
 
 describe("no publishing or fake data before M4", () => {

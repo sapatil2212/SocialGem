@@ -191,11 +191,11 @@ export default function MediaUploaderModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-2xl bg-white dark:bg-[#141414] border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="relative w-full max-w-2xl bg-white dark:bg-[#0f0e22] border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">
           <div className="flex items-center gap-2.5">
-            <span className="p-2 rounded-xl bg-[#612bd3]/10 text-[#612bd3] dark:text-[#a78bfa]">
+            <span className="p-2 rounded-xl bg-[#6d28d9]/10 text-[#6d28d9] dark:text-[#a78bfa]">
               <FiUploadCloud className="text-lg font-bold" />
             </span>
             <div>
@@ -227,8 +227,8 @@ export default function MediaUploaderModal({
             onClick={() => fileInputRef.current?.click()}
             className={`relative flex flex-col items-center justify-center p-8 rounded-xl border-2 border-dashed transition-all cursor-pointer ${
               dragActive
-                ? "border-[#612bd3] bg-[#612bd3]/5 dark:bg-[#612bd3]/10 scale-[0.99]"
-                : "border-zinc-300 dark:border-zinc-700/80 bg-zinc-50/50 dark:bg-zinc-900/40 hover:border-[#612bd3]/60 hover:bg-[#612bd3]/5"
+                ? "border-[#6d28d9] bg-[#6d28d9]/5 dark:bg-[#6d28d9]/10 scale-[0.99]"
+                : "border-zinc-300 dark:border-zinc-700/80 bg-zinc-50/50 dark:bg-zinc-900/40 hover:border-[#6d28d9]/60 hover:bg-[#6d28d9]/5"
             }`}
           >
             <input
@@ -240,7 +240,7 @@ export default function MediaUploaderModal({
               className="hidden"
             />
             <div className="w-12 h-12 rounded-2xl bg-zinc-200/60 dark:bg-zinc-800 flex items-center justify-center text-zinc-500 dark:text-zinc-400 mb-3 shadow-inner">
-              <FiUploadCloud className="text-2xl text-[#612bd3]" />
+              <FiUploadCloud className="text-2xl text-[#6d28d9]" />
             </div>
             <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 text-center">
               Click to browse or drag and drop files here
@@ -255,7 +255,7 @@ export default function MediaUploaderModal({
             {/* Folder selection */}
             <div>
               <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5 flex items-center gap-1.5">
-                <FiFolder className="text-[#612bd3]" />
+                <FiFolder className="text-[#6d28d9]" />
                 <span>Destination Folder</span>
               </label>
 
@@ -266,7 +266,7 @@ export default function MediaUploaderModal({
                     value={newFolderName}
                     onChange={(e) => setNewFolderName(e.target.value)}
                     placeholder="New folder name..."
-                    className="flex-1 px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs text-zinc-800 dark:text-zinc-200 focus:outline-none focus:border-[#612bd3]"
+                    className="flex-1 px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs text-zinc-800 dark:text-zinc-200 focus:outline-none focus:border-[#6d28d9]"
                     autoFocus
                   />
                   <button
@@ -303,7 +303,7 @@ export default function MediaUploaderModal({
             {/* Tags Input */}
             <div>
               <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5 flex items-center gap-1.5">
-                <FiTag className="text-[#612bd3]" />
+                <FiTag className="text-[#6d28d9]" />
                 <span>Asset Tags (comma separated)</span>
               </label>
               <input
@@ -311,7 +311,7 @@ export default function MediaUploaderModal({
                 value={tagsInput}
                 onChange={(e) => setTagsInput(e.target.value)}
                 placeholder="e.g. launch, summer, promo, podcast"
-                className="w-full px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-zinc-800 dark:text-zinc-200 focus:outline-none focus:border-[#612bd3] placeholder-zinc-400"
+                className="w-full px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs text-zinc-800 dark:text-zinc-200 focus:outline-none focus:border-[#6d28d9] placeholder-zinc-400"
               />
             </div>
           </div>
@@ -370,7 +370,7 @@ export default function MediaUploaderModal({
                                 ? "bg-emerald-500"
                                 : item.status === "error"
                                 ? "bg-red-500"
-                                : "bg-[#612bd3]"
+                                : "bg-[#6d28d9]"
                             }`}
                             style={{ width: `${item.progress}%` }}
                           />
@@ -386,7 +386,7 @@ export default function MediaUploaderModal({
                         </span>
                       )}
                       {item.status === "uploading" && (
-                        <FiLoader className="text-[#612bd3] animate-spin text-xs" />
+                        <FiLoader className="text-[#6d28d9] animate-spin text-xs" />
                       )}
                       {item.status === "error" && (
                         <span
@@ -431,7 +431,7 @@ export default function MediaUploaderModal({
               type="button"
               onClick={handleUploadAll}
               disabled={selectedFiles.length === 0 || uploading}
-              className="px-5 py-2 rounded-xl text-xs font-bold bg-[#612bd3] hover:bg-[#7237e8] disabled:opacity-50 text-white transition-all shadow-md shadow-[#612bd3]/30 cursor-pointer flex items-center gap-2"
+              className="px-5 py-2 rounded-xl text-xs font-bold bg-[#6d28d9] hover:bg-[#5b1fc0] disabled:opacity-50 text-white transition-all shadow-md shadow-[#6d28d9]/30 cursor-pointer flex items-center gap-2"
             >
               {uploading ? (
                 <>

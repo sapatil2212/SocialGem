@@ -14,7 +14,7 @@ export default function ThemeToggle({ className = "" }) {
 
   if (!mounted) {
     return (
-      <div className={`w-8 h-8 rounded-lg bg-zinc-200/50 dark:bg-[#252525] animate-pulse ${className}`} />
+      <div className={`w-8 h-8 rounded-lg bg-zinc-200/50 dark:bg-[#2a2746] animate-pulse ${className}`} />
     );
   }
 
@@ -26,7 +26,7 @@ export default function ThemeToggle({ className = "" }) {
       onClick={() => setTheme(isDark ? "light" : "dark")}
       className={`relative w-8 h-8 rounded-lg flex items-center justify-center transition-colors cursor-pointer border ${
         isDark
-          ? "bg-[#201f1f] hover:bg-[#262525] border-[#2e2d2d] text-amber-300"
+          ? "bg-[#1c1938] hover:bg-[#262525] border-[#302c52] text-amber-300"
           : "bg-white hover:bg-zinc-100 border-zinc-200 text-amber-500 shadow-xs"
       } ${className}`}
       title={isDark ? "Switch to light mode" : "Switch to dark mode"}

@@ -34,7 +34,7 @@ function Queue() {
             whileTap={{ scale: 0.98 }}
             className="glass-dark flex cursor-pointer items-center gap-4 rounded-2xl p-4 text-left"
           >
-            <Icon aria-hidden className="size-6 shrink-0 text-[#ff9a4d]" />
+            <Icon aria-hidden className="size-6 shrink-0 text-[#5cd6ff]" />
             <span className="min-w-0 flex-1">
               <b className="block truncate font-semibold">{text}</b>
               <span className="text-sm text-white/70">{day}, {time}</span>
@@ -46,7 +46,7 @@ function Queue() {
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.6, opacity: 0 }}
                 transition={{ type: "spring", stiffness: 260, damping: 18 }}
-                className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-sm font-semibold ${on ? "bg-[#ff6b00] text-navy" : "bg-white/10"}`}
+                className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-sm font-semibold ${on ? "bg-brand text-white" : "bg-white/10"}`}
               >
                 {on ? <Check aria-hidden className="size-4" /> : <Clock aria-hidden className="size-4" />}
                 {on ? "Published" : "Scheduled"}
@@ -79,11 +79,11 @@ export default function AuthShell({ children }: { children: ReactNode }) {
             y.set(((e.clientY - box.top) / box.height - 0.5) * 70);
           }}
         >
-          <motion.div aria-hidden style={{ x: sx, y: sy }} className="absolute -top-32 -right-24 size-[30rem] rounded-full bg-[#ff6b00]/35 blur-[110px]" />
-          <motion.div aria-hidden style={{ x: nx, y: ny }} className="absolute -bottom-40 -left-24 size-[26rem] rounded-full bg-[#cc2200]/30 blur-[110px]" />
-          <Link href="/" className="relative w-fit" aria-label="SocialGem home"><Logo /></Link>
+          <motion.div aria-hidden style={{ x: sx, y: sy }} className="absolute -top-32 -right-24 size-[30rem] rounded-full bg-[#7c22e8]/45 blur-[110px]" />
+          <motion.div aria-hidden style={{ x: nx, y: ny }} className="absolute -bottom-40 -left-24 size-[26rem] rounded-full bg-[#0aa5ff]/30 blur-[110px]" />
+          <Link href="/" className="relative w-fit" aria-label="SocialGem home"><Logo tone="dark" className="h-14" /></Link>
           <div className="relative my-auto py-10">
-            <h2 className="max-w-md text-5xl">Post like you have <em className="accent text-[#ffb27a]">a whole team</em></h2>
+            <h2 className="max-w-md text-5xl">Post like you have <em className="accent text-[#c9a8ff]">a whole team</em></h2>
             <Queue />
             <p className="mt-5 text-white/70">A sample week. Press a post to publish it.</p>
           </div>

@@ -167,7 +167,7 @@ export default function MediaGrid({
     <div className="space-y-4">
       {/* Batch Action Toolbar when items selected */}
       {selectedIds.size > 0 && (
-        <div className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl bg-[#612bd3] text-white shadow-lg animate-in slide-in-from-top-2 duration-150">
+        <div className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl bg-[#6d28d9] text-white shadow-lg animate-in slide-in-from-top-2 duration-150">
           <div className="flex items-center gap-3 text-xs font-bold">
             <span>{selectedIds.size} asset(s) selected</span>
             <button
@@ -196,7 +196,7 @@ export default function MediaGrid({
               <button
                 type="button"
                 onClick={handleBatchMove}
-                className="px-2.5 py-1.5 rounded-lg bg-white text-[#612bd3] text-xs font-bold hover:bg-zinc-100 transition-colors cursor-pointer shrink-0"
+                className="px-2.5 py-1.5 rounded-lg bg-white text-[#6d28d9] text-xs font-bold hover:bg-zinc-100 transition-colors cursor-pointer shrink-0"
               >
                 Move
               </button>
@@ -224,9 +224,9 @@ export default function MediaGrid({
           return (
             <div
               key={asset.id}
-              className={`group relative rounded-xl overflow-hidden border transition-all duration-200 bg-white dark:bg-[#141414] shadow-2xs hover:shadow-md ${
+              className={`group relative rounded-xl overflow-hidden border transition-all duration-200 bg-white dark:bg-[#0f0e22] shadow-2xs hover:shadow-md ${
                 isSelected
-                  ? "border-[#612bd3] ring-2 ring-[#612bd3]/30"
+                  ? "border-[#6d28d9] ring-2 ring-[#6d28d9]/30"
                   : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700"
               }`}
             >
@@ -269,7 +269,7 @@ export default function MediaGrid({
                   onClick={(e) => toggleSelect(asset.id, e)}
                   className={`absolute top-2 right-2 w-6 h-6 rounded-lg flex items-center justify-center transition-all cursor-pointer z-10 ${
                     isSelected
-                      ? "bg-[#612bd3] text-white shadow-xs"
+                      ? "bg-[#6d28d9] text-white shadow-xs"
                       : "bg-black/40 text-white hover:bg-black/70 opacity-0 group-hover:opacity-100"
                   }`}
                 >
@@ -286,7 +286,7 @@ export default function MediaGrid({
                         e.stopPropagation();
                         if (onInsertIntoPost) onInsertIntoPost(asset);
                       }}
-                      className="flex-1 py-1 px-2 rounded-lg bg-[#612bd3] hover:bg-[#7237e8] text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1 cursor-pointer"
+                      className="flex-1 py-1 px-2 rounded-lg bg-[#6d28d9] hover:bg-[#5b1fc0] text-white text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1 cursor-pointer"
                       title="Insert into new Post Composer"
                     >
                       <FiSend className="text-[10px]" />
@@ -335,7 +335,7 @@ export default function MediaGrid({
               <div className="p-2.5 flex flex-col gap-1">
                 <div className="flex items-center justify-between gap-2">
                   <p
-                    className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 truncate cursor-pointer hover:text-[#612bd3]"
+                    className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 truncate cursor-pointer hover:text-[#6d28d9]"
                     title={asset.name}
                     onClick={() => setLightboxAsset(asset)}
                   >
@@ -364,7 +364,7 @@ export default function MediaGrid({
                           }}
                           className="w-full text-left px-2.5 py-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 flex items-center gap-2 cursor-pointer font-medium"
                         >
-                          <FiSend className="text-xs text-[#612bd3]" />
+                          <FiSend className="text-xs text-[#6d28d9]" />
                           <span>Insert into Post</span>
                         </button>
                         {!isVideo && (
@@ -432,9 +432,9 @@ export default function MediaGrid({
       {/* Move Folder Dialog */}
       {movingFolderAsset && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-[#141414] border border-zinc-200 dark:border-zinc-800 p-5 shadow-2xl space-y-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-[#0f0e22] border border-zinc-200 dark:border-zinc-800 p-5 shadow-2xl space-y-4">
             <h3 className="text-sm font-bold text-zinc-900 dark:text-white flex items-center gap-2">
-              <FiFolder className="text-[#612bd3]" />
+              <FiFolder className="text-[#6d28d9]" />
               <span>Move &quot;{movingFolderAsset.name}&quot; to:</span>
             </h3>
 
@@ -448,7 +448,7 @@ export default function MediaGrid({
                     onClick={() => handleMoveFolder(movingFolderAsset.id, f.name)}
                     className={`w-full text-left px-3 py-2 rounded-lg text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer ${
                       movingFolderAsset.folder === f.name
-                        ? "bg-[#612bd3]/10 text-[#612bd3]"
+                        ? "bg-[#6d28d9]/10 text-[#6d28d9]"
                         : "hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300"
                     }`}
                   >
@@ -493,7 +493,7 @@ export default function MediaGrid({
                     if (onInsertIntoPost) onInsertIntoPost(lightboxAsset);
                     setLightboxAsset(null);
                   }}
-                  className="px-3 py-1 rounded-lg bg-[#612bd3] hover:bg-[#7237e8] text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                  className="px-3 py-1 rounded-lg bg-[#6d28d9] hover:bg-[#5b1fc0] text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
                 >
                   <FiSend className="text-xs" />
                   <span>Insert into Post</span>

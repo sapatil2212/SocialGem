@@ -1,428 +1,289 @@
 "use client";
 
-import { inWorkspace } from "@/lib/workspace-client";
-import React, { useState, useEffect } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useSession, signIn, signOut } from "next-auth/react";
-import { 
-  FaYoutube, 
-  FaInstagram, 
-  FaFacebook, 
-  FaLinkedin, 
-  FaPinterest,
-  FaBolt,
-  FaGoogle
-} from "react-icons/fa";
-import { FaXTwitter, FaThreads } from "react-icons/fa6";
-import { SiTiktok } from "react-icons/si";
-import { 
-  FiCalendar, 
-  FiCpu, 
-  FiShare2, 
-  FiImage, 
-  FiCreditCard, 
-  FiPlus, 
-  FiLogOut, 
-  FiMenu, 
-  FiDollarSign,
-  FiBarChart2
-} from "react-icons/fi";
+import { signOut, useSession } from "next-auth/react";
+import { Dialog, DropdownMenu } from "radix-ui";
+import { MotionConfig, motion } from "motion/react";
+import { Bot, CalendarDays, ChartNoAxesColumn, ChevronsUpDown, CircleHelp, CreditCard, Image as ImageIcon, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Plus, Search, Share2, Sparkles, X } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 import WorkspaceSwitcher from "@/components/layout/WorkspaceSwitcher";
+import Logo, { Mark } from "@/components/site/Logo";
+import { cn } from "@/lib/utils";
 
-// Custom Brand Logo
-export const StudioBrandLogo = ({ className = "w-10 h-10" }) => (
-  <div
-    className={`relative flex items-center justify-center rounded-xl bg-gradient-to-br from-[#612bd3] via-[#7c3aed] to-[#d82d7e] p-2 text-white shadow-md shadow-[#612bd3]/35 ${className}`}
-  >
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="w-full h-full text-white"
-    >
-      <rect x="3" y="4" width="18" height="18" rx="3" ry="3" />
-      <line x1="16" y1="2" x2="16" y2="6" />
-      <line x1="8" y1="2" x2="8" y2="6" />
-      <line x1="3" y1="10" x2="21" y2="10" />
-      <path d="m9 16 2 2 4-4" />
-    </svg>
-  </div>
-);
+const GROUPS = [
+  {
+    name: "Workspace",
+    items: [
+      { name: "Calendar", path: "/app", Icon: CalendarDays, hint: "Plan and schedule your posts" },
+      { name: "Analytics", path: "/analytics", Icon: ChartNoAxesColumn, hint: "See how posts are doing" },
+      { name: "AI agent", path: "/agents", Icon: Bot, hint: "Draft ideas and captions" },
+    ],
+  },
+  {
+    name: "Library",
+    items: [
+      { name: "Channels", path: "/integrations", Icon: Share2, hint: "Connect your social accounts" },
+      { name: "Media", path: "/media", Icon: ImageIcon, hint: "Photos and videos you reuse" },
+    ],
+  },
+  {
+    name: "Account",
+    items: [
+      { name: "Pricing", path: "/pricing", Icon: CreditCard, hint: "Plans and limits" },
+      { name: "Help", path: "/help", Icon: CircleHelp, hint: "Answers to common questions" },
+    ],
+  },
+];
+const ALL = GROUPS.flatMap((g) => g.items);
+const isActive = (pathname, path) => pathname === path || pathname.startsWith(`${path}/`) || (path === "/media" && pathname.startsWith("/gallery"));
 
-// Active Tab Left Indicator
-export const RailActiveIndicator = () => (
-  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-7 rounded-r-full bg-gradient-to-b from-[#8c66ff] to-[#612bd3] shadow-sm shadow-[#612bd3]/50" />
-);
+// The sidebar choice lives in this browser only.
+const KEY = "sg-sidebar";
+const subscribe = (notify) => {
+  window.addEventListener("storage", notify);
+  window.addEventListener(KEY, notify);
+  return () => {
+    window.removeEventListener("storage", notify);
+    window.removeEventListener(KEY, notify);
+  };
+};
+function readCollapsed() {
+  try {
+    return localStorage.getItem(KEY) === "closed";
+  } catch {
+    return false;
+  }
+}
+function writeCollapsed(value) {
+  try {
+    localStorage.setItem(KEY, value ? "closed" : "open");
+  } catch {}
+  window.dispatchEvent(new Event(KEY));
+}
+
+const iconButton = "grid size-10 shrink-0 cursor-pointer place-items-center rounded-xl border border-hairline bg-card text-muted-ink transition-colors hover:border-brand/40 hover:text-foreground";
+
+function Avatar({ user, className }) {
+  if (user?.image) return <img src={user.image} alt="" referrerPolicy="no-referrer" className={cn("size-9 rounded-xl object-cover", className)} />;
+  return <span aria-hidden className={cn("gradient-brand grid size-9 shrink-0 place-items-center rounded-xl text-sm font-semibold", className)}>{(user?.name || user?.email || "U").charAt(0).toUpperCase()}</span>;
+}
+
+function UserMenu({ user, compact }) {
+  const item = "flex min-h-10 cursor-pointer items-center gap-2.5 rounded-lg px-3 text-sm outline-none data-[highlighted]:bg-tint";
+  return (
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger aria-label="Your account" className={cn("flex w-full cursor-pointer items-center gap-3 rounded-2xl border border-hairline bg-background p-2 text-left transition-colors hover:border-brand/40", compact && "justify-center border-transparent bg-transparent p-0")}>
+        <Avatar user={user} />
+        {!compact && (
+          <>
+            <span className="min-w-0 flex-1">
+              <b className="block truncate text-sm font-semibold">{user?.name || "Your account"}</b>
+              <span className="block truncate text-xs text-muted-ink">{user?.email}</span>
+            </span>
+            <ChevronsUpDown aria-hidden className="size-4 shrink-0 text-muted-ink" />
+          </>
+        )}
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Portal>
+        <DropdownMenu.Content side="top" align="start" sideOffset={8} className="brand brand-themed z-[60] w-60 rounded-2xl border border-hairline !bg-card p-1.5 shadow-xl">
+          <div className="border-b border-hairline px-3 pt-1.5 pb-2.5">
+            <b className="block truncate text-sm font-semibold">{user?.name || "Your account"}</b>
+            <span className="block truncate text-xs text-muted-ink">{user?.email}</span>
+          </div>
+          <DropdownMenu.Item asChild className={cn(item, "mt-1.5")}><Link href="/integrations"><Share2 className="size-4" /> Connected channels</Link></DropdownMenu.Item>
+          <DropdownMenu.Item asChild className={item}><Link href="/help"><CircleHelp className="size-4" /> Help centre</Link></DropdownMenu.Item>
+          <DropdownMenu.Item className={cn(item, "text-destructive")} onSelect={() => signOut({ callbackUrl: "/login" })}><LogOut className="size-4" /> Log out</DropdownMenu.Item>
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
+  );
+}
+
+function Nav({ pathname, compact, id, onGo }) {
+  return (
+    <nav aria-label="Dashboard" className="grid gap-5">
+      {GROUPS.map((group) => (
+        <div key={group.name} className="grid gap-0.5">
+          <span className={cn("px-3 pb-1 text-xs font-medium text-muted-ink", compact && "sr-only")}>{group.name}</span>
+          {group.items.map(({ name, path, Icon }) => {
+            const on = isActive(pathname, path);
+            return (
+              <Link key={path} href={path} onClick={onGo} title={compact ? name : undefined} aria-label={name} aria-current={on ? "page" : undefined} className={cn("group relative flex min-h-11 items-center gap-3 rounded-xl px-3 text-[0.95rem] transition-colors", compact && "justify-center px-0", on ? "font-semibold text-white" : "text-muted-ink hover:bg-tint hover:text-foreground")}>
+                {on && <motion.span layoutId={`${id}-nav`} className="gradient-brand absolute inset-0 rounded-xl" transition={{ type: "spring", stiffness: 420, damping: 36 }} />}
+                <Icon aria-hidden className="relative size-[1.15rem] shrink-0 transition-transform group-hover:scale-110 motion-reduce:transition-none" />
+                {!compact && <span className="relative">{name}</span>}
+              </Link>
+            );
+          })}
+        </div>
+      ))}
+    </nav>
+  );
+}
+
+function Palette({ open, onOpenChange, onCreate, onAi }) {
+  const router = useRouter();
+  const [query, setQuery] = useState("");
+  const [at, setAt] = useState(0);
+  const list = useRef(null);
+  const actions = [
+    { name: "Create post", hint: "Open the composer", Icon: Plus, run: onCreate },
+    { name: "Write with AI", hint: "Start from an idea", Icon: Sparkles, run: onAi },
+    ...ALL.map((i) => ({ ...i, run: () => router.push(i.path) })),
+  ];
+  const found = actions.filter((a) => `${a.name} ${a.hint}`.toLowerCase().includes(query.trim().toLowerCase()));
+  const change = (next) => {
+    setQuery("");
+    setAt(0);
+    onOpenChange(next);
+  };
+  const run = (action) => {
+    change(false);
+    action?.run();
+  };
+  const move = (to) => {
+    setAt(to);
+    list.current?.children[to]?.scrollIntoView({ block: "nearest" });
+  };
+  return (
+    <Dialog.Root open={open} onOpenChange={change}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-[70] bg-[#080718]/55 backdrop-blur-sm" />
+        <Dialog.Content aria-describedby={undefined} className="brand brand-themed fixed top-[14vh] left-1/2 z-[71] w-[min(560px,92vw)] -translate-x-1/2 overflow-hidden rounded-2xl border border-hairline !bg-card shadow-2xl">
+          <Dialog.Title className="sr-only">Search and commands</Dialog.Title>
+          <div className="flex items-center gap-3 border-b border-hairline px-4">
+            <Search aria-hidden className="size-5 text-muted-ink" />
+            <input
+              role="combobox"
+              aria-expanded="true"
+              aria-controls="sg-palette"
+              aria-activedescendant={found[at] ? `sg-cmd-${at}` : undefined}
+              aria-label="Search pages and actions"
+              value={query}
+              placeholder="Search pages and actions"
+              className="min-h-14 flex-1 bg-transparent outline-none placeholder:text-muted-ink"
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setAt(0);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+                  e.preventDefault();
+                  if (found.length) move((at + (e.key === "ArrowDown" ? 1 : -1) + found.length) % found.length);
+                } else if (e.key === "Enter" && found[at]) {
+                  e.preventDefault();
+                  run(found[at]);
+                }
+              }}
+            />
+          </div>
+          <div id="sg-palette" role="listbox" aria-label="Results" ref={list} className="max-h-80 overflow-y-auto p-2">
+            {found.map((action, i) => (
+              <div key={action.name} id={`sg-cmd-${i}`} role="option" aria-selected={i === at} onPointerMove={() => setAt(i)} onClick={() => run(action)} className={cn("flex min-h-12 cursor-pointer items-center gap-3 rounded-xl px-3", i === at && "bg-tint-strong")}>
+                <action.Icon aria-hidden className="size-4 text-brand-ink" />
+                <span className="text-sm font-medium">{action.name}</span>
+                <span className="ml-auto text-xs text-muted-ink">{action.hint}</span>
+              </div>
+            ))}
+            {!found.length && <p className="px-3 py-8 text-center text-sm text-muted-ink">Nothing matches that search.</p>}
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  );
+}
 
 export default function AppShell({ children }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { data: session, status } = useSession();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [connectedAccounts, setConnectedAccounts] = useState([]);
-  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const { data: session } = useSession();
+  const collapsed = useSyncExternalStore(subscribe, readCollapsed, () => false);
+  const [drawer, setDrawer] = useState(false);
+  const [palette, setPalette] = useState(false);
+  const page = ALL.find((i) => isActive(pathname, i.path)) ?? ALL[0];
 
   useEffect(() => {
-    setMobileMenuOpen(false);
-  }, [pathname]);
+    const onKey = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setPalette(true);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
-  // Fetch connected channels for top bar indicator
-  useEffect(() => {
-    if (status === "authenticated") {
-      fetch(inWorkspace("/accounts"))
-        .then((res) => (res.ok ? res.json() : []))
-        .then((data) => setConnectedAccounts(Array.isArray(data) ? data : []))
-        .catch(() => {});
-    }
-  }, [status]);
-
-  const navItems = [
-    {
-      name: "Calendar",
-      path: "/app",
-      icon: <FiCalendar className="w-5 h-5" />,
-      exact: true,
-    },
-    {
-      name: "Analytics",
-      path: "/analytics",
-      icon: <FiBarChart2 className="w-5 h-5" />,
-    },
-    {
-      name: "Agent",
-      path: "/agents",
-      icon: <FiCpu className="w-5 h-5" />,
-    },
-    {
-      name: "Channels",
-      path: "/integrations",
-      icon: <FiShare2 className="w-5 h-5" />,
-    },
-    {
-      name: "Media",
-      path: "/media",
-      icon: <FiImage className="w-5 h-5" />,
-    },
-    {
-      name: "Pricing",
-      path: "/pricing",
-      icon: <FiCreditCard className="w-5 h-5" />,
-    },
-  ];
-
-  const getPageTitle = () => {
-    if (pathname === "/app") return "Calendar";
-    if (pathname.startsWith("/analytics")) return "Analytics & Performance";
-    if (pathname.startsWith("/agents")) return "AI Social Agent";
-    if (pathname.startsWith("/integrations")) return "Channels & Integrations";
-    if (pathname.startsWith("/media") || pathname.startsWith("/gallery")) return "Media Asset Library";
-    if (pathname.startsWith("/pricing")) return "Pricing & Credits";
-    if (pathname.startsWith("/login")) return "Sign In";
-    return "Creator Studio";
+  const compose = (withAi) => {
+    if (pathname === "/app") window.dispatchEvent(new CustomEvent("open-composer", { detail: { withAi } }));
+    else router.push(withAi ? "/app?ai=true" : "/app?compose=true");
   };
-
-  const handleCreatePost = () => {
-    if (pathname === "/app") {
-      window.dispatchEvent(new CustomEvent("open-composer", { detail: { withAi: false } }));
-    } else {
-      router.push("/app?compose=true");
-    }
-  };
-
-  const handleWriteWithAi = () => {
-    if (pathname === "/app") {
-      window.dispatchEvent(new CustomEvent("open-composer", { detail: { withAi: true } }));
-    } else {
-      router.push("/agents");
-    }
-  };
-
 
   return (
-    <div className="fixed inset-0 flex bg-[#f1f2f5] dark:bg-[#0e0e0e] text-slate-900 dark:text-white p-2 sm:p-2.5 font-sans overflow-hidden select-none transition-colors duration-200">
-      {/* Mobile Backdrop */}
-      {mobileMenuOpen && (
-        <div
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 md:hidden"
-          onClick={() => setMobileMenuOpen(false)}
-        />
-      )}
-
-      <div className="flex gap-2 sm:gap-2.5 w-full h-full min-h-0 overflow-hidden">
-        {/* Left Navigation Rail */}
-        <aside
-          className={`fixed md:static inset-y-0 left-0 z-40 md:z-auto flex flex-col justify-between items-center w-[74px] h-full shrink-0 bg-white dark:bg-[#1a1919] border border-zinc-200 dark:border-[#252525] rounded-[14px] py-3.5 transition-transform duration-200 shadow-xs dark:shadow-none ${
-            mobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-          }`}
-        >
-          {/* Top Logo & Menu Items */}
-          <div className="flex flex-col items-center gap-4 w-full min-h-0 overflow-y-auto scrollbar-none">
-            <Link
-              href="/app"
-              className="flex items-center justify-center transition-transform hover:scale-105 active:scale-95 shrink-0"
-              title="Social Media Studio"
-            >
-              <StudioBrandLogo className="w-9 h-9 drop-shadow-[0_4px_12px_rgba(97,43,211,0.35)]" />
-            </Link>
-
-            {/* Menu Items */}
-            <nav className="flex flex-col gap-1 w-full px-1.5">
-              {navItems.map((item) => {
-                const isActive = item.exact
-                  ? pathname === item.path
-                  : pathname.startsWith(item.path);
-
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.path}
-                    title={item.name}
-                    className={`relative group w-full py-2 px-1 flex flex-col items-center justify-center rounded-[10px] transition-all ${
-                      isActive
-                        ? "bg-[#612bd3]/10 dark:bg-[#612bd3]/15 text-[#612bd3] dark:text-[#8c66ff] border border-[#612bd3]/25 dark:border-[#612bd3]/30 font-bold shadow-xs dark:shadow-sm"
-                        : "text-zinc-500 dark:text-[#999999] hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-[#242323]"
-                    }`}
-                  >
-                    {isActive && <RailActiveIndicator />}
-                    <div className="transition-transform group-hover:scale-110">
-                      {item.icon}
-                    </div>
-                    <span className="text-[10px] tracking-tight mt-1 font-medium leading-none">
-                      {item.name}
-                    </span>
-                  </Link>
-                );
-              })}
-            </nav>
+    <MotionConfig reducedMotion="user">
+      <div className="brand brand-themed sg-app fixed inset-0 flex overflow-hidden">
+        <a href="#workspace" className="absolute -left-[999px] z-[80] rounded-lg bg-card px-4 py-2 focus:top-3 focus:left-3">Skip to content</a>
+        <aside className={cn("hidden shrink-0 flex-col border-r border-hairline bg-card transition-[width] duration-300 motion-reduce:transition-none lg:flex", collapsed ? "w-[84px]" : "w-[264px]")}>
+          <div className={cn("flex h-[76px] shrink-0 items-center px-4", collapsed ? "justify-center" : "justify-between")}>
+            {collapsed ? <Link href="/app" aria-label="SocialGem dashboard"><Mark className="size-11" /></Link> : <Link href="/app" aria-label="SocialGem dashboard"><Logo tone="auto" className="h-12" /></Link>}
+            {!collapsed && <button type="button" onClick={() => writeCollapsed(true)} aria-label="Collapse sidebar" className="grid size-9 cursor-pointer place-items-center rounded-lg text-muted-ink hover:bg-tint"><PanelLeftClose className="size-[1.1rem]" /></button>}
           </div>
-
-          {/* Bottom Profile / Auth */}
-          <div className="flex flex-col items-center gap-3 w-full px-2 pt-3 border-t border-zinc-200 dark:border-[#252525]/60 shrink-0">
-            {status === "authenticated" ? (
-              <div className="relative flex flex-col items-center">
-                <button
-                  type="button"
-                  onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                  className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#612bd3] to-[#d82d7e] p-0.5 transition-transform hover:scale-105 cursor-pointer shadow-md shadow-[#612bd3]/30"
-                  title={session?.user?.name || session?.user?.email}
-                >
-                  {session?.user?.image ? (
-                    <img
-                      src={session.user.image}
-                      alt="User avatar"
-                      className="w-full h-full rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full rounded-full bg-zinc-100 dark:bg-[#1a1919] flex items-center justify-center text-xs font-bold text-zinc-800 dark:text-white">
-                      {session?.user?.name?.charAt(0) || "U"}
-                    </div>
-                  )}
-                </button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => signIn()}
-                className="w-9 h-9 rounded-full bg-zinc-100 dark:bg-[#252525] hover:bg-[#612bd3] text-zinc-700 dark:text-white hover:text-white border border-zinc-200 dark:border-transparent flex items-center justify-center transition-colors cursor-pointer"
-                title="Sign in with Google"
-              >
-                <FaGoogle className="text-xs" />
-              </button>
-            )}
+          <div className={cn("flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-4 pb-4", collapsed && "px-3")}>
+            {!collapsed && <WorkspaceSwitcher />}
+            <button type="button" onClick={() => compose(false)} aria-label="Create post" className="shimmer flex min-h-12 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-xl bg-brand font-semibold text-white hover:bg-brand-hover"><Plus aria-hidden className="size-5" />{!collapsed && "Create post"}</button>
+            <Nav pathname={pathname} compact={collapsed} id="side" />
+          </div>
+          <div className={cn("grid shrink-0 gap-3 border-t border-hairline p-4", collapsed && "justify-items-center px-3")}>
+            {collapsed && <button type="button" onClick={() => writeCollapsed(false)} aria-label="Expand sidebar" className="grid size-10 cursor-pointer place-items-center rounded-lg text-muted-ink hover:bg-tint"><PanelLeftOpen className="size-[1.1rem]" /></button>}
+            <UserMenu user={session?.user} compact={collapsed} />
           </div>
         </aside>
 
-        {/* Right Frame Container */}
-        <div className="flex-1 min-w-0 h-full min-h-0 bg-zinc-200 dark:bg-[#212121] rounded-[14px] overflow-hidden flex flex-col transition-colors duration-200">
-          {/* Top Header Bar */}
-          <header className="shrink-0 flex bg-white dark:bg-[#1a1919] h-[64px] sm:h-[68px] px-4 sm:px-6 items-center justify-between gap-4 border-b border-zinc-200 dark:border-[#252525] transition-colors duration-200">
-            {/* Left: Mobile Toggle & Page Title */}
-            <div className="flex items-center gap-3 min-w-0">
-              <button
-                onClick={() => setMobileMenuOpen(true)}
-                className="md:hidden p-2 rounded-lg bg-zinc-100 dark:bg-[#252525] text-zinc-600 dark:text-[#999999] hover:text-zinc-900 dark:hover:text-white transition-colors"
-                aria-label="Open navigation"
-              >
-                <FiMenu className="w-5 h-5" />
-              </button>
-
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  <h1 className="text-lg sm:text-[20px] font-bold tracking-tight text-zinc-900 dark:text-white capitalize truncate">
-                    {getPageTitle()}
-                  </h1>
-                  <span className="hidden sm:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#612bd3]/10 dark:bg-[#612bd3]/15 border border-[#612bd3]/25 dark:border-[#612bd3]/30 text-[#612bd3] dark:text-[#8c66ff] text-[10px] font-semibold">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    Studio Active
-                  </span>
-                </div>
-              </div>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <header className="flex h-[68px] shrink-0 items-center gap-2.5 border-b border-hairline bg-card/80 px-4 backdrop-blur-xl sm:px-6 lg:h-[76px]">
+            <button type="button" onClick={() => setDrawer(true)} aria-label="Open navigation" className={cn(iconButton, "lg:hidden")}><Menu className="size-5" /></button>
+            <div className="mr-auto min-w-0">
+              <h1 className="truncate text-xl !leading-tight">{page.name}</h1>
+              <p className="hidden truncate text-sm text-muted-ink sm:block">{page.hint}</p>
             </div>
-
-            {/* Center: Connected Platform Status Icons (Desktop) */}
-            <div className="hidden lg:flex items-center gap-2 bg-zinc-100 dark:bg-[#141414] px-3 py-1.5 rounded-full border border-zinc-200 dark:border-[#252525] transition-colors">
-              <span className="text-[11px] font-semibold text-zinc-500 dark:text-[#999999] pr-1">Channels:</span>
-              <div className="flex items-center gap-1.5">
-                {[
-                  { key: "youtube", Icon: FaYoutube, color: "text-red-500" },
-                  { key: "tiktok", Icon: SiTiktok, color: "text-zinc-800 dark:text-zinc-100" },
-                  { key: "instagram", Icon: FaInstagram, color: "text-pink-500" },
-                  { key: "x_twitter", Icon: FaXTwitter, color: "text-sky-500 dark:text-sky-400" },
-                  { key: "linkedin", Icon: FaLinkedin, color: "text-blue-500" },
-                  { key: "facebook", Icon: FaFacebook, color: "text-blue-600" },
-                  { key: "threads", Icon: FaThreads, color: "text-purple-500 dark:text-purple-400" },
-                  { key: "pinterest", Icon: FaPinterest, color: "text-rose-500" },
-                ].map((item) => {
-                  const isConnected = connectedAccounts.some((acc) => acc.platform === item.key);
-                  return (
-                    <Link
-                      key={item.key}
-                      href="/integrations"
-                      className="relative p-1 rounded hover:bg-zinc-200 dark:hover:bg-[#252525] transition-colors"
-                      title={`${item.key} ${isConnected ? "(Connected)" : "(Click to connect)"}`}
-                    >
-                      <item.Icon className={`text-xs ${isConnected ? item.color : "text-zinc-400 dark:text-zinc-600"}`} />
-                      {isConnected && (
-                        <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                      )}
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Right: Actions Section */}
-            <div className="flex items-center gap-2 sm:gap-2.5">
-              {/* Theme Mode Toggle Button */}
-              <ThemeToggle />
-
-              <WorkspaceSwitcher />
-
-              {/* Write with AI Button */}
-              <button
-                type="button"
-                onClick={handleWriteWithAi}
-                className="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-gradient-to-r from-[#d82d7e] to-[#612bd3] hover:from-[#e3378b] hover:to-[#7237e8] transition-all cursor-pointer flex items-center gap-1.5 shadow-md shadow-[#612bd3]/30 active:scale-95"
-                title="Write with AI Copilot"
-              >
-                <FaBolt className="text-[10px] text-amber-300" />
-                <span className="hidden sm:inline">Write with AI</span>
-              </button>
-
-              {/* Create Post Button */}
-              <button
-                type="button"
-                onClick={handleCreatePost}
-                className="px-4 py-1.5 rounded-lg text-xs font-bold text-white bg-[#612bd3] hover:bg-[#7237e8] transition-all cursor-pointer flex items-center gap-1.5 shadow-md shadow-[#612bd3]/40 active:scale-95"
-              >
-                <FiPlus className="text-xs font-bold" />
-                <span>Create Post</span>
-              </button>
-            </div>
+            <button type="button" onClick={() => setPalette(true)} aria-label="Search" aria-keyshortcuts="Control+K Meta+K" className="flex min-h-10 cursor-pointer items-center gap-2.5 rounded-xl border border-hairline bg-background px-3 text-sm text-muted-ink hover:border-brand/40 xl:w-64">
+              <Search aria-hidden className="size-4" /><span className="hidden xl:inline">Search</span><kbd className="ml-auto hidden rounded-md border border-hairline px-1.5 font-sans text-xs xl:inline">Ctrl K</kbd>
+            </button>
+            <ThemeToggle className="!size-10 !rounded-xl !border-hairline !bg-card" />
+            <button type="button" onClick={() => compose(true)} className="flex min-h-10 cursor-pointer items-center gap-2 rounded-xl border border-brand/30 bg-tint px-3.5 text-sm font-semibold text-brand-ink hover:border-brand"><Sparkles aria-hidden className="size-4" /><span className="max-sm:sr-only">Write with AI</span></button>
           </header>
-
-          {/* Main Workspace Body */}
-          <main className="flex-1 min-h-0 bg-[#f8f9fa] dark:bg-[#141414] overflow-y-auto overflow-x-hidden scrollbar-subtle transition-colors duration-200">
-            {children}
-          </main>
+          <main id="workspace" tabIndex={-1} className="sg-app-main min-h-0 flex-1 overflow-x-hidden overflow-y-auto pb-20 outline-none lg:pb-0">{children}</main>
         </div>
+
+        <nav aria-label="Quick" className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-hairline bg-card pb-[env(safe-area-inset-bottom)] lg:hidden">
+          {[ALL[0], ALL[1]].map((i) => <Tab key={i.path} item={i} on={isActive(pathname, i.path)} />)}
+          <button type="button" onClick={() => compose(false)} aria-label="Create post" className="grid min-h-16 cursor-pointer place-items-center"><span className="gradient-brand grid size-12 place-items-center rounded-2xl"><Plus className="size-6" /></span></button>
+          {[ALL[3], ALL[4]].map((i) => <Tab key={i.path} item={i} on={isActive(pathname, i.path)} />)}
+        </nav>
+
+        <Dialog.Root open={drawer} onOpenChange={setDrawer}>
+          <Dialog.Portal>
+            <Dialog.Overlay className="fixed inset-0 z-50 bg-[#080718]/55 backdrop-blur-sm lg:hidden" />
+            <Dialog.Content aria-describedby={undefined} className="brand brand-themed fixed inset-y-0 left-0 z-50 flex w-[min(304px,86vw)] flex-col gap-5 overflow-y-auto border-r border-hairline !bg-card p-4 data-[state=open]:animate-in data-[state=open]:slide-in-from-left motion-reduce:animate-none lg:hidden">
+              <Dialog.Title className="sr-only">Navigation</Dialog.Title>
+              <div className="flex items-center justify-between"><Logo tone="auto" className="h-12" /><Dialog.Close aria-label="Close navigation" className="grid size-11 cursor-pointer place-items-center rounded-lg"><X className="size-5" /></Dialog.Close></div>
+              <WorkspaceSwitcher />
+              <Nav pathname={pathname} id="drawer" onGo={() => setDrawer(false)} />
+              <div className="mt-auto"><UserMenu user={session?.user} /></div>
+            </Dialog.Content>
+          </Dialog.Portal>
+        </Dialog.Root>
+        <Palette open={palette} onOpenChange={setPalette} onCreate={() => compose(false)} onAi={() => compose(true)} />
       </div>
+    </MotionConfig>
+  );
+}
 
-      {/* Floating Profile Modal / Popover */}
-      {status === "authenticated" && profileDropdownOpen && (
-        <div className="fixed inset-0 z-50 pointer-events-none">
-          {/* Click-outside Backdrop */}
-          <div
-            className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-[1px] pointer-events-auto"
-            onClick={() => setProfileDropdownOpen(false)}
-          />
-
-          {/* Profile Modal Card */}
-          <div
-            className="fixed left-[84px] sm:left-[88px] bottom-3.5 z-50 pointer-events-auto w-72 bg-white dark:bg-[#1a1919] border border-zinc-200 dark:border-[#2e2d2d] rounded-2xl shadow-2xl p-4 flex flex-col gap-3.5 text-zinc-900 dark:text-white animate-in fade-in zoom-in-95 duration-150 transition-colors"
-          >
-            {/* User Header */}
-            <div className="flex items-center gap-3 pb-3 border-b border-zinc-200 dark:border-[#282727]">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#612bd3] to-[#d82d7e] p-0.5 shrink-0 shadow-md shadow-[#612bd3]/30">
-                {session?.user?.image ? (
-                  <img
-                    src={session.user.image}
-                    alt="User avatar"
-                    className="w-full h-full rounded-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full rounded-full bg-zinc-100 dark:bg-[#1a1919] flex items-center justify-center text-xs font-bold text-zinc-800 dark:text-white">
-                    {session?.user?.name?.charAt(0) || "U"}
-                  </div>
-                )}
-              </div>
-              <div className="flex flex-col min-w-0">
-                <p className="font-bold text-sm text-zinc-900 dark:text-white truncate">
-                  {session?.user?.name || "Creator"}
-                </p>
-                <p className="text-[11px] text-zinc-500 dark:text-[#999999] truncate">
-                  {session?.user?.email}
-                </p>
-              </div>
-            </div>
-
-
-            {/* Theme Toggle Row in Modal */}
-            <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-zinc-50 dark:bg-[#212020] border border-zinc-200 dark:border-[#2d2c2c] transition-colors">
-              <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300">Theme</span>
-              <ThemeToggle />
-            </div>
-
-            {/* Quick Navigation Links */}
-            <div className="flex flex-col gap-1">
-              <Link
-                href="/integrations"
-                onClick={() => setProfileDropdownOpen(false)}
-                className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-zinc-600 dark:text-[#cccccc] hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-[#252424] transition-colors"
-              >
-                <FiShare2 className="text-[#612bd3] dark:text-[#8c66ff]" />
-                <span>Connected Channels</span>
-              </Link>
-              <Link
-                href="/media"
-                onClick={() => setProfileDropdownOpen(false)}
-                className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-zinc-600 dark:text-[#cccccc] hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-[#252424] transition-colors"
-              >
-                <FiImage className="text-pink-500 dark:text-pink-400" />
-                <span>Media Asset Library</span>
-              </Link>
-              <Link
-                href="/pricing"
-                onClick={() => setProfileDropdownOpen(false)}
-                className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium text-zinc-600 dark:text-[#cccccc] hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-[#252424] transition-colors"
-              >
-                <FiCreditCard className="text-amber-500 dark:text-amber-400" />
-                <span>Pricing Plans</span>
-              </Link>
-            </div>
-
-            {/* Sign Out Button */}
-            <div className="pt-2 border-t border-zinc-200 dark:border-[#282727]">
-              <button
-                type="button"
-                onClick={() => {
-                  setProfileDropdownOpen(false);
-                  signOut({ callbackUrl: "/login" });
-                }}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-bold text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors cursor-pointer text-left"
-              >
-                <FiLogOut className="text-sm" />
-                <span>Sign Out</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+function Tab({ item: { name, path, Icon }, on }) {
+  return (
+    <Link href={path} aria-current={on ? "page" : undefined} className={cn("grid min-h-16 place-content-center justify-items-center gap-1 text-xs", on ? "font-semibold text-brand-ink" : "text-muted-ink")}>
+      <Icon aria-hidden className="size-5" />{name}
+    </Link>
   );
 }

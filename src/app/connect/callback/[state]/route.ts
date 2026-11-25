@@ -22,7 +22,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ sta
   // `result` and `next` come only from fixed values above.
   return new Response(
     `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="robots" content="noindex"><meta name="viewport" content="width=device-width"><title>${heading}</title>
-<body style="font:16px/1.6 system-ui,sans-serif;background:#f9f7f4;color:#1b2240;display:grid;place-content:center;min-height:90vh;text-align:center">
+<body style="font:16px/1.6 system-ui,sans-serif;background:#fbfaff;color:#0f1239;display:grid;place-content:center;min-height:90vh;text-align:center">
 <h1 style="font-size:28px;margin:0">${heading}</h1><p>You can close this window.</p><p><a style="color:#b04a12" href="${next}">Back to Channels</a></p>
 <script>try{var c=new BroadcastChannel("sg-accounts");c.postMessage("changed");c.close()}catch(e){}window.close();setTimeout(function(){location.replace(${JSON.stringify(next)})},600)</script>`,
     { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store", "Referrer-Policy": "no-referrer" } }

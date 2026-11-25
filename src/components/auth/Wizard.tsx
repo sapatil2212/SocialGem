@@ -137,7 +137,7 @@ function Steps({ storageKey }: { storageKey: string }) {
             <span className="flex-1"><b className="block font-semibold">{NAMES[key]}</b><span className="text-sm text-muted-ink">{text}</span></span>
             <input
               type="checkbox"
-              className="size-5 accent-[#ff6b00]"
+              className="size-5 accent-[#6d28d9]"
               checked={channels.includes(key)}
               onChange={(e) => save({ channels: e.target.checked ? [...channels, key] : channels.filter((c) => c !== key) })}
             />
@@ -151,7 +151,7 @@ function Steps({ storageKey }: { storageKey: string }) {
       <form onSubmit={submit({})} className="grid gap-3">
         <label className="flex cursor-pointer items-center gap-4 rounded-2xl border border-hairline bg-card p-4 has-checked:border-brand has-checked:bg-tint">
           <span className="flex-1"><b className="block font-semibold">Email me too</b><span className="text-sm text-muted-ink">One message per failed post.</span></span>
-          <input type="checkbox" className="size-5 accent-[#ff6b00]" checked={draft.emailOnFailure} onChange={(e) => save({ emailOnFailure: e.target.checked })} />
+          <input type="checkbox" className="size-5 accent-[#6d28d9]" checked={draft.emailOnFailure} onChange={(e) => save({ emailOnFailure: e.target.checked })} />
         </label>
         <Nav onBack={back} />
       </form>
@@ -182,14 +182,14 @@ function Steps({ storageKey }: { storageKey: string }) {
   return (
     <div className="grid min-h-dvh lg:grid-cols-[320px_1fr]">
       <aside className="bg-navy p-6 text-white lg:p-10">
-        <Link href="/" aria-label="SocialGem home"><Logo /></Link>
+        <Link href="/" aria-label="SocialGem home"><Logo tone="dark" className="-ml-2 h-13" /></Link>
         <div role="progressbar" aria-label="Setup progress" aria-valuemin={0} aria-valuemax={4} aria-valuenow={at} className="mt-6 h-1.5 overflow-hidden rounded-full bg-white/15 lg:mt-14">
-          <motion.div className="h-full origin-left bg-[#ff6b00]" initial={false} animate={{ scaleX: at / STEPS.length }} transition={{ duration: 0.45, ease: EASE }} />
+          <motion.div className="h-full origin-left bg-[#a78bfa]" initial={false} animate={{ scaleX: at / STEPS.length }} transition={{ duration: 0.45, ease: EASE }} />
         </div>
         <ol className="mt-8 hidden gap-1 lg:grid">
           {STEPS.map((name, i) => (
-            <li key={name} aria-current={i === at ? "step" : undefined} className={cn("flex items-center gap-3.5 rounded-xl px-3 py-2.5", i === at ? "bg-[#ff6b00]/15 font-semibold" : "text-white/70")}>
-              <span className={cn("grid size-7 place-items-center rounded-full border text-sm", i < at ? "border-[#ff6b00] bg-[#ff6b00] text-navy" : "border-white/35")}>
+            <li key={name} aria-current={i === at ? "step" : undefined} className={cn("flex items-center gap-3.5 rounded-xl px-3 py-2.5", i === at ? "bg-white/10 font-semibold" : "text-white/70")}>
+              <span className={cn("grid size-7 place-items-center rounded-full border text-sm", i < at ? "border-[#6d28d9] bg-[#6d28d9] text-white" : "border-white/35")}>
                 {i < at ? <Check aria-hidden className="size-4" /> : i + 1}
               </span>
               {name}{i < at && <span className="sr-only">, done</span>}

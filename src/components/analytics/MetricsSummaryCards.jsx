@@ -4,7 +4,7 @@ import React from "react";
 import { FiEye, FiTrendingUp, FiUsers, FiSend, FiArrowUpRight, FiArrowDownRight } from "react-icons/fi";
 
 // Mini SVG Sparkline component
-function Sparkline({ points, color = "#612bd3", isPositive = true }) {
+function Sparkline({ points, color = "#6d28d9", isPositive = true }) {
   if (!points || points.length < 2) return null;
   const min = Math.min(...points);
   const max = Math.max(...points);
@@ -108,7 +108,7 @@ export default function MetricsSummaryCards({ kpis, loading = false }) {
         return (
           <div
             key={card.id}
-            className="relative p-4 sm:p-5 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-[#141414] hover:border-zinc-300 dark:hover:border-zinc-700 transition-all shadow-xs group overflow-hidden"
+            className="relative p-4 sm:p-5 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-[#0f0e22] hover:border-zinc-300 dark:hover:border-zinc-700 transition-all shadow-xs group overflow-hidden"
           >
             {/* Top row: Label & Icon */}
             <div className="flex items-center justify-between gap-3 mb-2.5">

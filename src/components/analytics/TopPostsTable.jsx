@@ -66,7 +66,7 @@ export default function TopPostsTable({ posts = [], onRepurpose = null, loading 
   };
 
   return (
-    <div className="p-4 sm:p-5 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-[#141414] shadow-xs space-y-4">
+    <div className="p-4 sm:p-5 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-[#0f0e22] shadow-xs space-y-4">
       {/* Table Header and Search */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-zinc-200 dark:border-zinc-800/80">
         <div>
@@ -87,7 +87,7 @@ export default function TopPostsTable({ posts = [], onRepurpose = null, loading 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search top posts..."
-            className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/60 text-xs text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 focus:outline-none focus:border-[#612bd3] dark:focus:border-zinc-700 transition-colors shadow-2xs"
+            className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/60 text-xs text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 focus:outline-none focus:border-[#6d28d9] dark:focus:border-zinc-700 transition-colors shadow-2xs"
           />
         </div>
       </div>
@@ -198,7 +198,7 @@ export default function TopPostsTable({ posts = [], onRepurpose = null, loading 
                           )}
                         </div>
                         <div className="min-w-0">
-                          <p className="font-semibold text-zinc-900 dark:text-zinc-100 truncate group-hover:text-[#612bd3] dark:group-hover:text-[#a78bfa] transition-colors">
+                          <p className="font-semibold text-zinc-900 dark:text-zinc-100 truncate group-hover:text-[#6d28d9] dark:group-hover:text-[#a78bfa] transition-colors">
                             {post.title}
                           </p>
                           <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate mt-0.5">
@@ -257,7 +257,7 @@ export default function TopPostsTable({ posts = [], onRepurpose = null, loading 
                               window.location.href = `/app?repurpose=${encodeURIComponent(post.id || "")}&title=${encodeURIComponent(post.title || "")}&desc=${encodeURIComponent(post.description || "")}`;
                             }
                           }}
-                          className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-[#612bd3]/10 dark:bg-[#612bd3]/20 hover:bg-[#612bd3] text-[#612bd3] dark:text-[#c4b5fd] hover:text-white border border-[#612bd3]/30 transition-all cursor-pointer flex items-center gap-1 shadow-2xs"
+                          className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-[#6d28d9]/10 dark:bg-[#6d28d9]/20 hover:bg-[#6d28d9] text-[#6d28d9] dark:text-[#c4b5fd] hover:text-white border border-[#6d28d9]/30 transition-all cursor-pointer flex items-center gap-1 shadow-2xs"
                           title="Repurpose this winning post with AI"
                         >
                           <FiRepeat className="text-xs" />

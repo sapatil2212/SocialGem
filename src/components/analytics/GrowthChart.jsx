@@ -7,7 +7,7 @@ import { SiTiktok } from "react-icons/si";
 import { FiTrendingUp, FiActivity, FiLayers } from "react-icons/fi";
 
 const PLATFORM_FILTERS = [
-  { key: "all", name: "All Networks", Icon: FiLayers, color: "text-[#612bd3]" },
+  { key: "all", name: "All Networks", Icon: FiLayers, color: "text-[#6d28d9]" },
   { key: "youtube", name: "YouTube", Icon: FaYoutube, color: "text-red-500" },
   { key: "tiktok", name: "TikTok", Icon: SiTiktok, color: "text-cyan-400" },
   { key: "instagram", name: "Instagram", Icon: FaInstagram, color: "text-pink-500" },
@@ -105,12 +105,12 @@ export default function GrowthChart({ series = [], loading = false }) {
   const activePoint = hoveredIndex !== null ? coords[hoveredIndex] : null;
 
   return (
-    <div className="p-4 sm:p-5 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-[#141414] shadow-xs space-y-4">
+    <div className="p-4 sm:p-5 rounded-xl border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-[#0f0e22] shadow-xs space-y-4">
       {/* Header Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-zinc-200 dark:border-zinc-800/80">
         <div>
           <h3 className="text-sm font-bold text-zinc-900 dark:text-white flex items-center gap-2">
-            <FiTrendingUp className="text-[#612bd3] dark:text-[#a78bfa]" />
+            <FiTrendingUp className="text-[#6d28d9] dark:text-[#a78bfa]" />
             <span>Audience Reach & Performance Velocity</span>
           </h3>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
@@ -168,7 +168,7 @@ export default function GrowthChart({ series = [], loading = false }) {
               onClick={() => setSelectedPlatform(plat.key)}
               className={`px-2.5 py-1 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer shrink-0 border ${
                 isSelected
-                  ? "bg-[#612bd3]/10 dark:bg-[#612bd3]/20 border-[#612bd3] text-[#612bd3] dark:text-[#c4b5fd] font-bold shadow-xs"
+                  ? "bg-[#6d28d9]/10 dark:bg-[#6d28d9]/20 border-[#6d28d9] text-[#6d28d9] dark:text-[#c4b5fd] font-bold shadow-xs"
                   : "border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-50 dark:hover:bg-zinc-900/40"
               }`}
             >
@@ -188,13 +188,13 @@ export default function GrowthChart({ series = [], loading = false }) {
         >
           <defs>
             <linearGradient id="curveGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#612bd3" stopOpacity="0.35" />
-              <stop offset="60%" stopColor="#8c66ff" stopOpacity="0.10" />
-              <stop offset="100%" stopColor="#612bd3" stopOpacity="0.0" />
+              <stop offset="0%" stopColor="#6d28d9" stopOpacity="0.35" />
+              <stop offset="60%" stopColor="#b79bff" stopOpacity="0.10" />
+              <stop offset="100%" stopColor="#6d28d9" stopOpacity="0.0" />
             </linearGradient>
             <linearGradient id="strokeGradient" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#612bd3" />
-              <stop offset="50%" stopColor="#8c66ff" />
+              <stop offset="0%" stopColor="#6d28d9" />
+              <stop offset="50%" stopColor="#b79bff" />
               <stop offset="100%" stopColor="#a855f7" />
             </linearGradient>
           </defs>
@@ -250,8 +250,8 @@ export default function GrowthChart({ series = [], loading = false }) {
                   r={isHovered ? 5.5 : 3.5}
                   className={`transition-all duration-150 ${
                     isHovered
-                      ? "fill-white dark:fill-zinc-950 stroke-[#612bd3] stroke-[3]"
-                      : "fill-[#612bd3] dark:fill-[#8c66ff] stroke-white dark:stroke-[#141414] stroke-2"
+                      ? "fill-white dark:fill-zinc-950 stroke-[#6d28d9] stroke-[3]"
+                      : "fill-[#6d28d9] dark:fill-[#b79bff] stroke-white dark:stroke-[#0f0e22] stroke-2"
                   }`}
                 />
 
@@ -262,7 +262,7 @@ export default function GrowthChart({ series = [], loading = false }) {
                   textAnchor="middle"
                   className={`text-[10px] font-medium transition-colors ${
                     isHovered
-                      ? "fill-[#612bd3] dark:fill-[#a78bfa] font-bold"
+                      ? "fill-[#6d28d9] dark:fill-[#a78bfa] font-bold"
                       : "fill-zinc-500 dark:fill-zinc-400"
                   }`}
                 >
@@ -290,7 +290,7 @@ export default function GrowthChart({ series = [], loading = false }) {
               y1={padTop}
               x2={activePoint.x}
               y2={padTop + plotHeight}
-              stroke="#8c66ff"
+              stroke="#b79bff"
               strokeWidth="1.5"
               strokeDasharray="3 3"
               className="pointer-events-none"
@@ -310,7 +310,7 @@ export default function GrowthChart({ series = [], loading = false }) {
           >
             <div className="font-bold text-zinc-900 dark:text-white flex items-center justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-1">
               <span>{activePoint.item.fullDate || activePoint.item.date}</span>
-              <span className="text-[10px] font-mono text-[#612bd3] dark:text-[#a78bfa] font-black">
+              <span className="text-[10px] font-mono text-[#6d28d9] dark:text-[#a78bfa] font-black">
                 {metricMode === "engagement"
                   ? `${activePoint.val.toFixed(2)}% Eng.`
                   : `${activePoint.val.toLocaleString()} ${metricMode === "reach" ? "Views" : "Interactions"}`}
@@ -358,7 +358,7 @@ export default function GrowthChart({ series = [], loading = false }) {
 
         {/* Empty state overlay when all points are zero */}
         {allZero && !loading && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none bg-white/40 dark:bg-[#141414]/40 backdrop-blur-[1px]">
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none bg-white/40 dark:bg-[#0f0e22]/40 backdrop-blur-[1px]">
             <div className="px-4 py-2.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white/90 dark:bg-zinc-900/90 shadow-md text-center max-w-sm">
               <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">
                 No activity recorded for this period

@@ -5,7 +5,7 @@ import { sendCode, sendNotice } from "./mail";
 import { hashPassword, verifyPassword } from "./password";
 import { allow } from "./rate-limit";
 
-type Purpose = "verify" | "reset";
+type Purpose = "verify" | "reset" | "admin";
 const LIFETIME = 10 * 60_000;
 const MAX_TRIES = 5;
 
@@ -140,3 +140,8 @@ export async function resetPassword(pending: string, code: string, password: str
   const { count } = await prisma.user.updateMany({ where: { id }, data: { passwordHash, emailVerified: new Date(), sessionVersion: { increment: 1 } } });
   if (!count) throw wrong();
 }
+
+/** Admin sign-in uses the same codes under its own purpose, so the two can never be swapped. */
+export const requireAdminAllowance = (email: string) => requireSendAllowance("admin", email);
+export const issueAdminCode = (user: { id: string; email: string }) => issue("admin", user);
+export const redeemAdminCode = (pending: string, code: string) => redeem("admin", pending, code);

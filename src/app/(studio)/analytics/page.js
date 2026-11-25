@@ -84,7 +84,7 @@ export default function AnalyticsPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-zinc-200 dark:border-zinc-800">
           <div>
             <div className="flex items-center gap-2">
-              <span className="p-1.5 rounded-lg bg-[#612bd3]/10 dark:bg-[#612bd3]/20 text-[#612bd3] dark:text-[#a78bfa] border border-[#612bd3]/20">
+              <span className="p-1.5 rounded-lg bg-[#6d28d9]/10 dark:bg-[#6d28d9]/20 text-[#6d28d9] dark:text-[#a78bfa] border border-[#6d28d9]/20">
                 <FiBarChart2 className="text-base font-bold" />
               </span>
               <h1 className="text-lg sm:text-xl font-black text-zinc-900 dark:text-white tracking-tight">
@@ -114,17 +114,17 @@ export default function AnalyticsPage() {
               type="button"
               onClick={() => fetchAnalytics(range)}
               disabled={loading}
-              className="p-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#141414] hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors cursor-pointer shadow-2xs shrink-0"
+              className="p-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#0f0e22] hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors cursor-pointer shadow-2xs shrink-0"
               title="Refresh Analytics"
             >
-              <FiRefreshCw className={`text-xs ${loading ? "animate-spin text-[#612bd3]" : ""}`} />
+              <FiRefreshCw className={`text-xs ${loading ? "animate-spin text-[#6d28d9]" : ""}`} />
             </button>
 
             {/* Export Report */}
             <button
               type="button"
               onClick={handleExport}
-              className="px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#141414] hover:bg-zinc-50 dark:hover:bg-zinc-800 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs shrink-0"
+              className="px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#0f0e22] hover:bg-zinc-50 dark:hover:bg-zinc-800 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs shrink-0"
             >
               <FiDownload className="text-xs" />
               <span>Export</span>
@@ -138,7 +138,7 @@ export default function AnalyticsPage() {
                 setComposerWithAi(false);
                 setComposerOpen(true);
               }}
-              className="px-3.5 py-1.5 rounded-lg bg-[#612bd3] hover:bg-[#7237e8] text-white text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-sm shadow-[#612bd3]/30 shrink-0"
+              className="px-3.5 py-1.5 rounded-lg bg-[#6d28d9] hover:bg-[#5b1fc0] text-white text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-sm shadow-[#6d28d9]/30 shrink-0"
             >
               <FiPlus className="text-xs font-bold" />
               <span>Schedule Post</span>

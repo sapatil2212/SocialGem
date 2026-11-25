@@ -96,7 +96,7 @@ export default function CustomSelect({
           disabled
             ? "opacity-50 cursor-not-allowed bg-zinc-100 dark:bg-zinc-800 text-zinc-400 border-zinc-200 dark:border-zinc-700"
             : isOpen
-            ? "bg-white dark:bg-zinc-900 border-[#612bd3] dark:border-[#8c66ff] ring-2 ring-[#612bd3]/20 dark:ring-[#8c66ff]/20 text-zinc-900 dark:text-zinc-100"
+            ? "bg-white dark:bg-zinc-900 border-[#6d28d9] dark:border-[#b79bff] ring-2 ring-[#6d28d9]/20 dark:ring-[#b79bff]/20 text-zinc-900 dark:text-zinc-100"
             : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 text-zinc-800 dark:text-zinc-200"
         } ${buttonClassName}`}
       >
@@ -123,7 +123,7 @@ export default function CustomSelect({
 
         <FiChevronDown
           className={`shrink-0 text-xs text-zinc-400 transition-transform duration-200 ${
-            isOpen ? "rotate-180 text-[#612bd3] dark:text-[#8c66ff]" : ""
+            isOpen ? "rotate-180 text-[#6d28d9] dark:text-[#b79bff]" : ""
           }`}
         />
       </button>
@@ -152,7 +152,7 @@ export default function CustomSelect({
                   }}
                   className={`flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md text-xs transition-colors cursor-pointer select-none ${
                     isSelected
-                      ? "bg-violet-50 dark:bg-violet-950/50 text-[#612bd3] dark:text-[#a78bfa] font-bold"
+                      ? "bg-violet-50 dark:bg-violet-950/50 text-[#6d28d9] dark:text-[#a78bfa] font-bold"
                       : "text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 hover:text-zinc-900 dark:hover:text-white"
                   }`}
                 >
@@ -168,7 +168,7 @@ export default function CustomSelect({
                   </div>
 
                   {isSelected && (
-                    <FiCheck className="text-xs text-[#612bd3] dark:text-[#a78bfa] shrink-0 font-bold" />
+                    <FiCheck className="text-xs text-[#6d28d9] dark:text-[#a78bfa] shrink-0 font-bold" />
                   )}
                 </div>
               );

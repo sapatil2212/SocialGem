@@ -134,7 +134,7 @@ export default function ContentCalendar({
   const [availableTags, setAvailableTags] = useState([]);
   const [statusFilter, setStatusFilter] = useState("all"); // for list view: "all" | "scheduled" | "draft" | "published"
   const [selectedChannelId, setSelectedChannelId] = useState(null);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
   const [now, setNow] = useState(() => new Date());
   const [draggedPostId, setDraggedPostId] = useState(null);
   const [dragOverKey, setDragOverKey] = useState(null);
@@ -158,7 +158,7 @@ export default function ContentCalendar({
     });
     posts.forEach((p) => {
       if (p.customTag && !map.has(p.customTag.toLowerCase())) {
-        map.set(p.customTag.toLowerCase(), { name: p.customTag, color: p.tagColor || "#612bd3" });
+        map.set(p.customTag.toLowerCase(), { name: p.customTag, color: p.tagColor || "#6d28d9" });
       }
     });
     return Array.from(map.values());
@@ -170,7 +170,7 @@ export default function ContentCalendar({
       ...allTagOptions.map((t) => ({
         value: t.name,
         label: `#${t.name}`,
-        color: t.color || "#612bd3",
+        color: t.color || "#6d28d9",
       })),
     ];
   }, [allTagOptions]);
@@ -467,13 +467,13 @@ export default function ContentCalendar({
   const minuteProgress = (currentMinute / 60) * 100;
 
   return (
-    <div className="flex flex-col lg:flex-row bg-white dark:bg-[#1a1919] border border-zinc-200 dark:border-[#252525] rounded-[14px] overflow-hidden shadow-xs dark:shadow-xl transition-colors">
+    <div className="flex flex-col lg:flex-row bg-white dark:bg-[#15132b] border border-zinc-200 dark:border-[#2a2746] rounded-[14px] overflow-hidden shadow-xs dark:shadow-xl transition-colors">
       
       {/* ============================================================== */}
       {/* 1. LEFT CHANNELS SIDEBAR                                       */}
       {/* ============================================================== */}
       <div
-        className={`bg-zinc-50 dark:bg-[#161515] border-b lg:border-b-0 lg:border-r border-zinc-200 dark:border-[#252525] p-3.5 sm:p-4 flex flex-col gap-3.5 transition-all select-none shrink-0 ${
+        className={`bg-zinc-50 dark:bg-[#131128] border-b lg:border-b-0 lg:border-r border-zinc-200 dark:border-[#2a2746] p-3.5 sm:p-4 flex flex-col gap-3.5 transition-all select-none shrink-0 ${
           isSidebarCollapsed ? "lg:w-[76px]" : "lg:w-[260px]"
         }`}
       >
@@ -487,7 +487,7 @@ export default function ContentCalendar({
           <button
             type="button"
             onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            className="w-6 h-6 rounded-md bg-zinc-200/80 dark:bg-[#201f1f] border border-zinc-300 dark:border-[#2a2929] text-zinc-600 dark:text-[#999999] hover:text-zinc-900 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer mx-auto lg:mx-0"
+            className="w-6 h-6 rounded-md bg-zinc-200/80 dark:bg-[#1c1938] border border-zinc-300 dark:border-[#2a2746] text-zinc-600 dark:text-[#a6a3c2] hover:text-zinc-900 dark:hover:text-white flex items-center justify-center transition-colors cursor-pointer mx-auto lg:mx-0"
             title={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             {isSidebarCollapsed ? (
@@ -503,12 +503,12 @@ export default function ContentCalendar({
           {/* Add Channel Button */}
           <Link
             href="/integrations"
-            className={`h-10 rounded-lg border border-dashed border-zinc-300 dark:border-[#333333] hover:border-zinc-400 dark:hover:border-[#555555] bg-white dark:bg-[#1a1919] hover:bg-zinc-100 dark:hover:bg-[#201f1f] text-zinc-700 dark:text-zinc-300 flex items-center justify-center gap-2 text-xs font-semibold transition-all cursor-pointer shadow-2xs ${
+            className={`h-10 rounded-lg border border-dashed border-zinc-300 dark:border-[#3b3663] hover:border-zinc-400 dark:hover:border-[#555555] bg-white dark:bg-[#15132b] hover:bg-zinc-100 dark:hover:bg-[#1c1938] text-zinc-700 dark:text-zinc-300 flex items-center justify-center gap-2 text-xs font-semibold transition-all cursor-pointer shadow-2xs ${
               isSidebarCollapsed ? "w-10 mx-auto px-0" : "px-3"
             }`}
             title="Add Connected Channel"
           >
-            <FaPlus className="text-[10px] text-[#612bd3] dark:text-[#8c66ff]" />
+            <FaPlus className="text-[10px] text-[#6d28d9] dark:text-[#b79bff]" />
             {!isSidebarCollapsed && <span>Add Channel</span>}
           </Link>
 
@@ -517,7 +517,7 @@ export default function ContentCalendar({
             <button
               type="button"
               onClick={onNewPostClick}
-              className={`flex-1 h-10 rounded-lg bg-[#612bd3] hover:bg-[#7237e8] text-white flex items-center justify-center gap-1.5 text-xs font-bold transition-all shadow-sm shadow-[#612bd3]/30 cursor-pointer active:scale-95 ${
+              className={`flex-1 h-10 rounded-lg bg-[#6d28d9] hover:bg-[#5b1fc0] text-white flex items-center justify-center gap-1.5 text-xs font-bold transition-all shadow-sm shadow-[#6d28d9]/30 cursor-pointer active:scale-95 ${
                 isSidebarCollapsed ? "w-10 mx-auto px-0 flex-none" : "px-3"
               }`}
               title="Create New Post"
@@ -546,18 +546,18 @@ export default function ContentCalendar({
             onClick={() => setSelectedChannelId(null)}
             className={`p-2 rounded-lg border text-xs flex items-center gap-2.5 transition-all cursor-pointer ${
               selectedChannelId === null
-                ? "bg-white dark:bg-[#201f1f] border-[#612bd3] text-zinc-900 dark:text-white font-semibold shadow-xs"
-                : "border-transparent text-zinc-600 dark:text-[#999999] hover:bg-zinc-200/60 dark:hover:bg-[#1a1919]"
+                ? "bg-white dark:bg-[#1c1938] border-[#6d28d9] text-zinc-900 dark:text-white font-semibold shadow-xs"
+                : "border-transparent text-zinc-600 dark:text-[#a6a3c2] hover:bg-zinc-200/60 dark:hover:bg-[#15132b]"
             } ${isSidebarCollapsed ? "justify-center px-1" : ""}`}
             title="All Channels"
           >
-            <div className="w-6 h-6 rounded-md bg-[#612bd3]/15 text-[#612bd3] dark:text-[#8c66ff] flex items-center justify-center shrink-0 text-xs">
+            <div className="w-6 h-6 rounded-md bg-[#6d28d9]/15 text-[#6d28d9] dark:text-[#b79bff] flex items-center justify-center shrink-0 text-xs">
               <FaShareAlt className="text-[11px]" />
             </div>
             {!isSidebarCollapsed && (
               <div className="flex-1 min-w-0 flex items-center justify-between">
                 <span className="truncate">All Channels</span>
-                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-200/80 dark:bg-[#282727] text-zinc-500 dark:text-zinc-400">
+                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-200/80 dark:bg-[#2a2746] text-zinc-500 dark:text-zinc-400">
                   {posts.length}
                 </span>
               </div>
@@ -581,15 +581,15 @@ export default function ContentCalendar({
                   onClick={() => setSelectedChannelId(isSelected ? null : acc.id)}
                   className={`p-2 rounded-lg border text-xs flex items-center gap-2.5 transition-all cursor-pointer group ${
                     isSelected
-                      ? "bg-white dark:bg-[#201f1f] border-[#612bd3] text-zinc-900 dark:text-white font-semibold shadow-xs"
-                      : "border-zinc-200/50 dark:border-[#222222] bg-white/60 dark:bg-[#191919]/60 hover:bg-zinc-100 dark:hover:bg-[#201f1f] text-zinc-700 dark:text-zinc-300"
+                      ? "bg-white dark:bg-[#1c1938] border-[#6d28d9] text-zinc-900 dark:text-white font-semibold shadow-xs"
+                      : "border-zinc-200/50 dark:border-[#2a2746] bg-white/60 dark:bg-[#15132b]/60 hover:bg-zinc-100 dark:hover:bg-[#1c1938] text-zinc-700 dark:text-zinc-300"
                   } ${isSidebarCollapsed ? "justify-center px-1" : ""}`}
                   title={`${acc.account_name || plat.name} (${plat.name})`}
                 >
                   {/* Platform Avatar Icon */}
                   <div className="relative w-6 h-6 rounded-md bg-zinc-100 dark:bg-black/60 border border-zinc-200 dark:border-zinc-800 flex items-center justify-center shrink-0">
                     <Icon className={`text-[12px] ${plat.color}`} />
-                    <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 border border-white dark:border-[#161515]" />
+                    <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 border border-white dark:border-[#131128]" />
                   </div>
 
                   {!isSidebarCollapsed && (
@@ -597,14 +597,14 @@ export default function ContentCalendar({
                       <p className="text-[11px] font-medium truncate leading-tight">
                         {acc.account_name || plat.name}
                       </p>
-                      <span className="text-[9px] text-zinc-400 dark:text-[#777777] capitalize block truncate">
+                      <span className="text-[9px] text-zinc-400 dark:text-[#8c88ac] capitalize block truncate">
                         {plat.name}
                       </span>
                     </div>
                   )}
 
                   {!isSidebarCollapsed && (
-                    <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-200/80 dark:bg-[#282727] text-zinc-500 dark:text-zinc-400">
+                    <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-zinc-200/80 dark:bg-[#2a2746] text-zinc-500 dark:text-zinc-400">
                       {accPostsCount}
                     </span>
                   )}
@@ -614,8 +614,8 @@ export default function ContentCalendar({
           ) : (
             /* Empty State for Channels */
             !isSidebarCollapsed && (
-              <div className="py-6 px-2 text-center rounded-lg border border-dashed border-zinc-200 dark:border-[#252525] bg-white/40 dark:bg-[#141414]/40 mt-1">
-                <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-[#201f1f] text-zinc-400 mx-auto flex items-center justify-center mb-2">
+              <div className="py-6 px-2 text-center rounded-lg border border-dashed border-zinc-200 dark:border-[#2a2746] bg-white/40 dark:bg-[#0f0e22]/40 mt-1">
+                <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-[#1c1938] text-zinc-400 mx-auto flex items-center justify-center mb-2">
                   <FaShareAlt className="text-xs" />
                 </div>
                 <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 mb-0.5">
@@ -626,7 +626,7 @@ export default function ContentCalendar({
                 </p>
                 <Link
                   href="/integrations"
-                  className="inline-flex items-center gap-1 text-[11px] font-bold text-[#612bd3] dark:text-[#8c66ff] hover:underline"
+                  className="inline-flex items-center gap-1 text-[11px] font-bold text-[#6d28d9] dark:text-[#b79bff] hover:underline"
                 >
                   <span>Connect Channels</span>
                   <FaChevronRight className="text-[8px]" />
@@ -638,7 +638,7 @@ export default function ContentCalendar({
 
         {/* Sidebar Footer Indicator */}
         {!isSidebarCollapsed && (
-          <div className="pt-2 border-t border-zinc-200 dark:border-[#222222] text-center">
+          <div className="pt-2 border-t border-zinc-200 dark:border-[#2a2746] text-center">
             <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-mono tracking-wider uppercase">
               Workspace Scheduler
             </span>
@@ -651,28 +651,28 @@ export default function ContentCalendar({
       {/* ============================================================== */}
       <div className="flex-1 min-w-0 flex flex-col">
         {/* Top Toolbar (Filters, Navigation, View Switcher) */}
-        <div className="p-3.5 sm:p-4 border-b border-zinc-200 dark:border-[#252525] flex flex-col md:flex-row md:items-center justify-between gap-3 bg-zinc-50/70 dark:bg-[#161515] transition-colors">
+        <div className="p-3.5 sm:p-4 border-b border-zinc-200 dark:border-[#2a2746] flex flex-col 2xl:flex-row 2xl:items-center justify-between gap-3 bg-zinc-50/70 dark:bg-[#131128] transition-colors">
           
           {/* Left: Date Navigation Segmented Pill & Today */}
           <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-            <div className="flex items-center bg-white dark:bg-[#201f1f] border border-zinc-200 dark:border-[#2a2929] rounded-lg overflow-hidden h-9 shadow-2xs">
+            <div className="flex items-center bg-white dark:bg-[#1c1938] border border-zinc-200 dark:border-[#2a2746] rounded-lg overflow-hidden h-9 shadow-2xs">
               <button
                 type="button"
                 onClick={prevPeriod}
-                className="px-2.5 h-full text-zinc-600 dark:text-[#999999] hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-[#282727] transition-colors cursor-pointer flex items-center justify-center"
+                className="px-2.5 h-full text-zinc-600 dark:text-[#a6a3c2] hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-[#2a2746] transition-colors cursor-pointer flex items-center justify-center"
                 title="Previous period"
               >
                 <FaChevronLeft className="text-[10px]" />
               </button>
 
-              <div className="px-3.5 h-full flex items-center justify-center text-xs sm:text-sm font-semibold text-zinc-800 dark:text-zinc-200 min-w-[150px] sm:min-w-[180px] text-center border-x border-zinc-200 dark:border-[#2a2929] select-none">
+              <div className="px-3.5 h-full flex items-center justify-center text-xs sm:text-sm font-semibold text-zinc-800 dark:text-zinc-200 min-w-[150px] sm:min-w-[180px] text-center border-x border-zinc-200 dark:border-[#2a2746] select-none">
                 {getDisplayText()}
               </div>
 
               <button
                 type="button"
                 onClick={nextPeriod}
-                className="px-2.5 h-full text-zinc-600 dark:text-[#999999] hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-[#282727] transition-colors cursor-pointer flex items-center justify-center"
+                className="px-2.5 h-full text-zinc-600 dark:text-[#a6a3c2] hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-[#2a2746] transition-colors cursor-pointer flex items-center justify-center"
                 title="Next period"
               >
                 <FaChevronRight className="text-[10px]" />
@@ -682,17 +682,17 @@ export default function ContentCalendar({
             <button
               type="button"
               onClick={jumpToToday}
-              className="h-9 px-3 rounded-lg border border-zinc-200 dark:border-[#2a2929] bg-white dark:bg-[#201f1f] hover:bg-zinc-100 dark:hover:bg-[#282727] text-xs font-semibold text-zinc-700 dark:text-zinc-200 hover:text-zinc-900 dark:hover:text-white transition-colors cursor-pointer shadow-2xs flex items-center justify-center"
+              className="h-9 px-3 rounded-lg border border-zinc-200 dark:border-[#2a2746] bg-white dark:bg-[#1c1938] hover:bg-zinc-100 dark:hover:bg-[#2a2746] text-xs font-semibold text-zinc-700 dark:text-zinc-200 hover:text-zinc-900 dark:hover:text-white transition-colors cursor-pointer shadow-2xs flex items-center justify-center"
             >
               Today
             </button>
           </div>
 
           {/* Right: Platform Filters & View Modes */}
-          <div className="flex items-center gap-2.5 flex-wrap justify-between md:justify-end">
+          <div className="flex items-center gap-2.5 flex-wrap justify-between 2xl:justify-end">
             
             {/* Platform Filter Buttons */}
-            <div className="hidden xl:flex items-center gap-1 bg-white dark:bg-[#141414] p-1 rounded-lg border border-zinc-200 dark:border-[#252525] text-xs">
+            <div className="hidden xl:flex items-center gap-1 bg-white dark:bg-[#0f0e22] p-1 rounded-lg border border-zinc-200 dark:border-[#2a2746] text-xs">
               {["all", "youtube", "tiktok", "instagram", "x_twitter", "facebook", "linkedin", "threads"].map((platKey) => {
                 const isActive = platformFilter === platKey;
                 const plat = PLATFORM_CONFIG[platKey];
@@ -706,9 +706,9 @@ export default function ContentCalendar({
                     className={`px-2 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer flex items-center gap-1.5 ${
                       isActive
                         ? platKey === "all"
-                          ? "bg-[#612bd3] text-white font-bold shadow-xs"
-                          : plat?.activePill || "bg-[#612bd3] text-white font-bold"
-                        : "text-zinc-600 dark:text-[#999999] hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-[#201f1f]"
+                          ? "bg-[#6d28d9] text-white font-bold shadow-xs"
+                          : plat?.activePill || "bg-[#6d28d9] text-white font-bold"
+                        : "text-zinc-600 dark:text-[#a6a3c2] hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-[#1c1938]"
                     }`}
                   >
                     {Icon && <Icon className={`text-[10px] ${isActive ? "text-current" : plat.color}`} />}
@@ -734,7 +734,7 @@ export default function ContentCalendar({
                   <button
                     type="button"
                     onClick={() => setTagFilter("all")}
-                    className="h-9 px-2 rounded-lg border border-zinc-200 dark:border-[#2a2929] bg-white dark:bg-[#201f1f] hover:bg-red-50 dark:hover:bg-red-950/30 text-zinc-400 hover:text-red-500 text-xs transition-colors cursor-pointer shadow-2xs flex items-center justify-center"
+                    className="h-9 px-2 rounded-lg border border-zinc-200 dark:border-[#2a2746] bg-white dark:bg-[#1c1938] hover:bg-red-50 dark:hover:bg-red-950/30 text-zinc-400 hover:text-red-500 text-xs transition-colors cursor-pointer shadow-2xs flex items-center justify-center"
                     title="Clear tag filter"
                   >
                     ✕
@@ -744,14 +744,14 @@ export default function ContentCalendar({
             )}
 
             {/* View Mode Switcher: Day | Week | Month */}
-            <div className="flex items-center bg-white dark:bg-[#141414] p-1 rounded-lg border border-zinc-200 dark:border-[#252525] text-xs shadow-2xs">
+            <div className="flex items-center bg-white dark:bg-[#0f0e22] p-1 rounded-lg border border-zinc-200 dark:border-[#2a2746] text-xs shadow-2xs">
               <button
                 type="button"
                 onClick={() => setViewMode("day")}
                 className={`px-2.5 sm:px-3 py-1 rounded-md text-xs transition-all cursor-pointer ${
                   viewMode === "day"
-                    ? "bg-zinc-200 dark:bg-[#201f1f] text-[#fc69ff] font-bold shadow-2xs"
-                    : "text-zinc-600 dark:text-[#999999] hover:text-zinc-900 dark:hover:text-white"
+                    ? "bg-zinc-200 dark:bg-[#1c1938] text-[#8b5cf6] font-bold shadow-2xs"
+                    : "text-zinc-600 dark:text-[#a6a3c2] hover:text-zinc-900 dark:hover:text-white"
                 }`}
               >
                 Day
@@ -761,8 +761,8 @@ export default function ContentCalendar({
                 onClick={() => setViewMode("week")}
                 className={`px-2.5 sm:px-3 py-1 rounded-md text-xs transition-all cursor-pointer ${
                   viewMode === "week"
-                    ? "bg-zinc-200 dark:bg-[#201f1f] text-[#fc69ff] font-bold shadow-2xs"
-                    : "text-zinc-600 dark:text-[#999999] hover:text-zinc-900 dark:hover:text-white"
+                    ? "bg-zinc-200 dark:bg-[#1c1938] text-[#8b5cf6] font-bold shadow-2xs"
+                    : "text-zinc-600 dark:text-[#a6a3c2] hover:text-zinc-900 dark:hover:text-white"
                 }`}
               >
                 Week
@@ -772,8 +772,8 @@ export default function ContentCalendar({
                 onClick={() => setViewMode("month")}
                 className={`px-2.5 sm:px-3 py-1 rounded-md text-xs transition-all cursor-pointer ${
                   viewMode === "month"
-                    ? "bg-zinc-200 dark:bg-[#201f1f] text-[#fc69ff] font-bold shadow-2xs"
-                    : "text-zinc-600 dark:text-[#999999] hover:text-zinc-900 dark:hover:text-white"
+                    ? "bg-zinc-200 dark:bg-[#1c1938] text-[#8b5cf6] font-bold shadow-2xs"
+                    : "text-zinc-600 dark:text-[#a6a3c2] hover:text-zinc-900 dark:hover:text-white"
                 }`}
               >
                 Month
@@ -781,13 +781,13 @@ export default function ContentCalendar({
             </div>
 
             {/* List View Toggle Button */}
-            <div className="flex items-center bg-white dark:bg-[#141414] p-1 rounded-lg border border-zinc-200 dark:border-[#252525] text-xs shadow-2xs">
+            <div className="flex items-center bg-white dark:bg-[#0f0e22] p-1 rounded-lg border border-zinc-200 dark:border-[#2a2746] text-xs shadow-2xs">
               <button
                 type="button"
                 onClick={() => setViewMode("month")}
                 className={`p-1.5 rounded-md transition-all cursor-pointer ${
                   viewMode !== "list"
-                    ? "bg-zinc-200 dark:bg-[#201f1f] text-[#fc69ff] shadow-2xs"
+                    ? "bg-zinc-200 dark:bg-[#1c1938] text-[#8b5cf6] shadow-2xs"
                     : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
                 }`}
                 title="Calendar View"
@@ -799,7 +799,7 @@ export default function ContentCalendar({
                 onClick={() => setViewMode("list")}
                 className={`p-1.5 rounded-md transition-all cursor-pointer ${
                   viewMode === "list"
-                    ? "bg-zinc-200 dark:bg-[#201f1f] text-[#fc69ff] shadow-2xs"
+                    ? "bg-zinc-200 dark:bg-[#1c1938] text-[#8b5cf6] shadow-2xs"
                     : "text-zinc-500 hover:text-zinc-900 dark:hover:text-white"
                 }`}
                 title="List View"
@@ -818,7 +818,7 @@ export default function ContentCalendar({
         {viewMode === "month" && (
           <div className="flex flex-col flex-1">
             {/* Sticky 7-Day Header */}
-            <div className="grid grid-cols-7 border-b border-zinc-200 dark:border-[#252525] bg-zinc-50 dark:bg-[#161515] text-center py-2.5 text-[11px] font-bold text-zinc-500 dark:text-[#999999] uppercase tracking-wider transition-colors select-none">
+            <div className="grid grid-cols-7 border-b border-zinc-200 dark:border-[#2a2746] bg-zinc-50 dark:bg-[#131128] text-center py-2.5 text-[11px] font-bold text-zinc-500 dark:text-[#a6a3c2] uppercase tracking-wider transition-colors select-none">
               <span>MON</span>
               <span>TUE</span>
               <span>WED</span>
@@ -829,7 +829,7 @@ export default function ContentCalendar({
             </div>
 
             {/* 42-Day Grid */}
-            <div className="grid grid-cols-7 divide-x divide-y divide-zinc-200 dark:divide-[#252525] bg-white dark:bg-[#141414] transition-colors flex-1">
+            <div className="grid grid-cols-7 divide-x divide-y divide-zinc-200 dark:divide-[#2a2746] bg-white dark:bg-[#0f0e22] transition-colors flex-1">
               {calendarDays.map((item, idx) => {
                 const dayPosts = getPostsForDay(item.date);
                 const dayIsToday = isToday(item.date);
@@ -859,13 +859,13 @@ export default function ContentCalendar({
                     }}
                     className={`min-h-[96px] sm:min-h-[108px] p-2 flex flex-col justify-between group transition-all cursor-pointer relative ${
                       isDragOver
-                        ? "ring-2 ring-inset ring-[#612bd3] bg-[#612bd3]/15 dark:bg-[#612bd3]/25 border-dashed border-[#612bd3] scale-[1.01] z-10 shadow-md"
+                        ? "ring-2 ring-inset ring-[#6d28d9] bg-[#6d28d9]/15 dark:bg-[#6d28d9]/25 border-dashed border-[#6d28d9] scale-[1.01] z-10 shadow-md"
                         : item.isCurrentMonth
-                        ? "bg-white dark:bg-transparent hover:bg-zinc-50/80 dark:hover:bg-[#1a1919]/60"
-                        : "bg-zinc-50/60 dark:bg-[#0e0e0e]/80 text-zinc-400 dark:text-[#666666] hover:bg-zinc-100/50 dark:hover:bg-[#161515]/50"
+                        ? "bg-white dark:bg-transparent hover:bg-zinc-50/80 dark:hover:bg-[#15132b]/60"
+                        : "bg-zinc-50/60 dark:bg-[#0c0b1d]/80 text-zinc-400 dark:text-[#8c88ac] hover:bg-zinc-100/50 dark:hover:bg-[#131128]/50"
                     } ${
                       dayIsToday && !isDragOver
-                        ? "ring-1 ring-inset ring-[#fc69ff]/70 bg-[#fc69ff]/[0.03] dark:bg-[#fc69ff]/[0.05]"
+                        ? "ring-1 ring-inset ring-[#8b5cf6]/70 bg-[#8b5cf6]/[0.03] dark:bg-[#8b5cf6]/[0.05]"
                         : ""
                     }`}
                   >
@@ -874,10 +874,10 @@ export default function ContentCalendar({
                       <span
                         className={`text-xs h-6 min-w-6 px-1.5 rounded-[6px] flex items-center justify-center font-medium ${
                           dayIsToday
-                            ? "bg-[#fc69ff] text-black font-bold shadow-xs shadow-[#fc69ff]/40"
+                            ? "bg-[#8b5cf6] text-black font-bold shadow-xs shadow-[#8b5cf6]/40"
                             : item.isCurrentMonth
                             ? "text-zinc-800 dark:text-zinc-300"
-                            : "text-zinc-400 dark:text-[#666666]"
+                            : "text-zinc-400 dark:text-[#8c88ac]"
                         }`}
                       >
                         {item.date.getDate()}
@@ -885,7 +885,7 @@ export default function ContentCalendar({
 
                       {/* Drop hint indicator when dragging over */}
                       {isDragOver ? (
-                        <span className="text-[9px] font-bold text-[#612bd3] dark:text-[#8c66ff] uppercase tracking-wider animate-pulse">
+                        <span className="text-[9px] font-bold text-[#6d28d9] dark:text-[#b79bff] uppercase tracking-wider animate-pulse">
                           Drop here
                         </span>
                       ) : (
@@ -896,7 +896,7 @@ export default function ContentCalendar({
                             e.stopPropagation();
                             onDateClick?.(item.date);
                           }}
-                          className="opacity-0 group-hover:opacity-100 w-5 h-5 rounded-[6px] bg-[#612bd3]/20 hover:bg-[#612bd3] text-[#8c66ff] hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-2xs"
+                          className="opacity-0 group-hover:opacity-100 w-5 h-5 rounded-[6px] bg-[#6d28d9]/20 hover:bg-[#6d28d9] text-[#b79bff] hover:text-white flex items-center justify-center transition-all cursor-pointer shadow-2xs"
                           title="Add post on this day"
                         >
                           <FaPlus className="text-[9px]" />
@@ -931,8 +931,8 @@ export default function ContentCalendar({
         {viewMode === "week" && (
           <div className="flex flex-col flex-1 overflow-x-auto">
             {/* Week Days Sticky Header */}
-            <div className="grid grid-cols-[84px_repeat(7,_minmax(120px,_1fr))] border-b border-zinc-200 dark:border-[#252525] bg-zinc-50 dark:bg-[#161515] sticky top-0 z-20">
-              <div className="p-2.5 text-center flex items-center justify-center text-[11px] font-bold text-zinc-400 dark:text-[#777777] border-r border-zinc-200 dark:border-[#252525]">
+            <div className="grid grid-cols-[84px_repeat(7,_minmax(120px,_1fr))] border-b border-zinc-200 dark:border-[#2a2746] bg-zinc-50 dark:bg-[#131128] sticky top-0 z-20">
+              <div className="p-2.5 text-center flex items-center justify-center text-[11px] font-bold text-zinc-400 dark:text-[#8c88ac] border-r border-zinc-200 dark:border-[#2a2746]">
                 TIME
               </div>
 
@@ -941,25 +941,25 @@ export default function ContentCalendar({
                 return (
                   <div
                     key={i}
-                    className={`p-2.5 text-center border-r border-zinc-200 dark:border-[#252525] last:border-r-0 ${
-                      dayIsToday ? "bg-[#fc69ff]/[0.06] dark:bg-[#fc69ff]/[0.08]" : ""
+                    className={`p-2.5 text-center border-r border-zinc-200 dark:border-[#2a2746] last:border-r-0 ${
+                      dayIsToday ? "bg-[#8b5cf6]/[0.06] dark:bg-[#8b5cf6]/[0.08]" : ""
                     }`}
                   >
                     <span
                       className={`text-[11px] font-bold uppercase tracking-wider block ${
-                        dayIsToday ? "text-[#fc69ff]" : "text-zinc-500 dark:text-[#999999]"
+                        dayIsToday ? "text-[#8b5cf6]" : "text-zinc-500 dark:text-[#a6a3c2]"
                       }`}
                     >
                       {d.toLocaleDateString("en-US", { weekday: "short" })}
                     </span>
                     <div className="flex items-center justify-center gap-1 mt-0.5">
                       {dayIsToday && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-[#fc69ff] inline-block" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#8b5cf6] inline-block" />
                       )}
                       <span
                         className={`text-xs font-bold ${
                           dayIsToday
-                            ? "text-[#fc69ff]"
+                            ? "text-[#8b5cf6]"
                             : "text-zinc-800 dark:text-zinc-200"
                         }`}
                       >
@@ -974,7 +974,7 @@ export default function ContentCalendar({
             {/* 24-Hour Vertical Timeline */}
             <div
               ref={weekTimelineRef}
-              className="grid grid-cols-[84px_repeat(7,_minmax(120px,_1fr))] divide-x divide-zinc-200 dark:divide-[#252525] bg-white dark:bg-[#141414] relative max-h-[640px] overflow-y-auto"
+              className="grid grid-cols-[84px_repeat(7,_minmax(120px,_1fr))] divide-x divide-zinc-200 dark:divide-[#2a2746] bg-white dark:bg-[#0f0e22] relative max-h-[640px] overflow-y-auto"
             >
               {HOURS_LIST.map((hour) => {
                 const isCurrentHour = weekTodayIndex !== -1 && currentHour === hour;
@@ -982,13 +982,13 @@ export default function ContentCalendar({
                 return (
                   <div key={hour} className="contents relative">
                     {/* Hour Label */}
-                    <div className="p-2 text-center text-[11px] font-mono text-zinc-400 dark:text-[#777777] border-b border-zinc-200 dark:border-[#252525] flex items-center justify-center min-h-[58px] bg-zinc-50/50 dark:bg-[#161515]/50 relative">
+                    <div className="p-2 text-center text-[11px] font-mono text-zinc-400 dark:text-[#8c88ac] border-b border-zinc-200 dark:border-[#2a2746] flex items-center justify-center min-h-[58px] bg-zinc-50/50 dark:bg-[#131128]/50 relative">
                       {formatHourLabel(hour)}
 
                       {/* NowTime Badge in Timeline Column */}
                       {isCurrentHour && (
                         <div
-                          className="absolute right-1 -translate-y-1/2 z-30 px-1.5 py-0.5 rounded-[4px] bg-[#fc69ff] text-black text-[10px] font-bold whitespace-nowrap shadow-xs"
+                          className="absolute right-1 -translate-y-1/2 z-30 px-1.5 py-0.5 rounded-[4px] bg-[#8b5cf6] text-black text-[10px] font-bold whitespace-nowrap shadow-xs"
                           style={{ top: `${minuteProgress}%` }}
                         >
                           {formatTime(now)}
@@ -1028,12 +1028,12 @@ export default function ContentCalendar({
                               handleDropOnWeekSlot(postId, d, hour);
                             }
                           }}
-                          className={`p-1.5 border-b border-zinc-200 dark:border-[#252525] min-h-[58px] flex flex-col gap-1 relative group cursor-pointer transition-all ${
+                          className={`p-1.5 border-b border-zinc-200 dark:border-[#2a2746] min-h-[58px] flex flex-col gap-1 relative group cursor-pointer transition-all ${
                             isDragOver
-                              ? "ring-2 ring-inset ring-[#612bd3] bg-[#612bd3]/20 dark:bg-[#612bd3]/30 z-20 shadow-md"
+                              ? "ring-2 ring-inset ring-[#6d28d9] bg-[#6d28d9]/20 dark:bg-[#6d28d9]/30 z-20 shadow-md"
                               : isTodaySlot
-                              ? "bg-[#fc69ff]/[0.02] dark:bg-[#fc69ff]/[0.04] hover:bg-[#fc69ff]/[0.05]"
-                              : "hover:bg-zinc-50 dark:hover:bg-[#1a1919]"
+                              ? "bg-[#8b5cf6]/[0.02] dark:bg-[#8b5cf6]/[0.04] hover:bg-[#8b5cf6]/[0.05]"
+                              : "hover:bg-zinc-50 dark:hover:bg-[#15132b]"
                           }`}
                         >
                           {/* WeekNowLine indicator */}
@@ -1044,11 +1044,11 @@ export default function ContentCalendar({
                             >
                               {isTodaySlot ? (
                                 <>
-                                  <div className="w-1.5 h-2 rounded-full bg-[#fc69ff] shadow-sm shadow-[#fc69ff]/60" />
-                                  <div className="flex-1 h-[2px] bg-[#fc69ff] shadow-sm shadow-[#fc69ff]/60" />
+                                  <div className="w-1.5 h-2 rounded-full bg-[#8b5cf6] shadow-sm shadow-[#8b5cf6]/60" />
+                                  <div className="flex-1 h-[2px] bg-[#8b5cf6] shadow-sm shadow-[#8b5cf6]/60" />
                                 </>
                               ) : (
-                                <div className="flex-1 h-[1px] bg-[#fc69ff]/30" />
+                                <div className="flex-1 h-[1px] bg-[#8b5cf6]/30" />
                               )}
                             </div>
                           )}
@@ -1056,7 +1056,7 @@ export default function ContentCalendar({
                           {/* Hover '+' add button for empty slot */}
                           {hourPosts.length === 0 && (
                             <div className="h-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                              <span className="w-5 h-5 rounded-[6px] bg-[#612bd3]/20 hover:bg-[#612bd3] text-[#8c66ff] hover:text-white flex items-center justify-center shadow-2xs">
+                              <span className="w-5 h-5 rounded-[6px] bg-[#6d28d9]/20 hover:bg-[#6d28d9] text-[#b79bff] hover:text-white flex items-center justify-center shadow-2xs">
                                 <FaPlus className="text-[9px]" />
                               </span>
                             </div>
@@ -1090,7 +1090,7 @@ export default function ContentCalendar({
         {viewMode === "day" && (
           <div className="flex flex-col flex-1 p-3 sm:p-4 space-y-3">
             {/* Day Header with Connected Channels Overview */}
-            <div className="p-3 bg-zinc-50 dark:bg-[#161515] rounded-xl border border-zinc-200 dark:border-[#252525] flex items-center justify-between">
+            <div className="p-3 bg-zinc-50 dark:bg-[#131128] rounded-xl border border-zinc-200 dark:border-[#2a2746] flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
                   {currentDate.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
@@ -1108,7 +1108,7 @@ export default function ContentCalendar({
                   return (
                     <div
                       key={acc.id}
-                      className="w-7 h-7 rounded-full bg-white dark:bg-[#201f1f] border-2 border-white dark:border-[#161515] flex items-center justify-center shadow-xs"
+                      className="w-7 h-7 rounded-full bg-white dark:bg-[#1c1938] border-2 border-white dark:border-[#131128] flex items-center justify-center shadow-xs"
                       title={acc.account_name || plat.name}
                     >
                       <Icon className={`text-xs ${plat.color}`} />
@@ -1157,10 +1157,10 @@ export default function ContentCalendar({
                     }}
                     className={`p-2.5 rounded-lg border transition-all cursor-pointer relative group ${
                       isDragOver
-                        ? "ring-2 ring-inset ring-[#612bd3] bg-[#612bd3]/20 dark:bg-[#612bd3]/30 z-20 shadow-md"
+                        ? "ring-2 ring-inset ring-[#6d28d9] bg-[#6d28d9]/20 dark:bg-[#6d28d9]/30 z-20 shadow-md"
                         : isCurrentHour
-                        ? "border-[#fc69ff]/60 bg-[#fc69ff]/[0.03] dark:bg-[#fc69ff]/[0.05]"
-                        : "border-zinc-200/80 dark:border-[#252525] bg-white dark:bg-[#191919] hover:border-zinc-300 dark:hover:border-[#353535]"
+                        ? "border-[#8b5cf6]/60 bg-[#8b5cf6]/[0.03] dark:bg-[#8b5cf6]/[0.05]"
+                        : "border-zinc-200/80 dark:border-[#2a2746] bg-white dark:bg-[#15132b] hover:border-zinc-300 dark:hover:border-[#353535]"
                     }`}
                   >
                     {/* Time Label Row */}
@@ -1170,12 +1170,12 @@ export default function ContentCalendar({
                           {formatHourLabel(hour)}
                         </span>
                         {isCurrentHour && (
-                          <span className="px-1.5 py-0.5 rounded bg-[#fc69ff] text-black text-[10px] font-bold">
+                          <span className="px-1.5 py-0.5 rounded bg-[#8b5cf6] text-black text-[10px] font-bold">
                             Now ({formatTime(now)})
                           </span>
                         )}
                         {isDragOver && (
-                          <span className="px-1.5 py-0.5 rounded bg-[#612bd3] text-white text-[10px] font-bold animate-pulse">
+                          <span className="px-1.5 py-0.5 rounded bg-[#6d28d9] text-white text-[10px] font-bold animate-pulse">
                             Drop to schedule at {formatHourLabel(hour)}
                           </span>
                         )}
@@ -1189,7 +1189,7 @@ export default function ContentCalendar({
                           target.setHours(hour, 0, 0, 0);
                           onDateClick?.(target);
                         }}
-                        className="opacity-0 group-hover:opacity-100 px-2 py-0.5 rounded text-[10px] font-semibold text-[#8c66ff] hover:text-white bg-[#612bd3]/15 hover:bg-[#612bd3] transition-all flex items-center gap-1"
+                        className="opacity-0 group-hover:opacity-100 px-2 py-0.5 rounded text-[10px] font-semibold text-[#b79bff] hover:text-white bg-[#6d28d9]/15 hover:bg-[#6d28d9] transition-all flex items-center gap-1"
                       >
                         <FaPlus className="text-[8px]" />
                         <span>Schedule</span>
@@ -1229,7 +1229,7 @@ export default function ContentCalendar({
         {viewMode === "list" && (
           <div className="flex flex-col flex-1 p-3 sm:p-4 space-y-4">
             {/* Status Filter Tabs (All, Scheduled, Draft, Published) */}
-            <div className="flex items-center gap-2 border-b border-zinc-200 dark:border-[#252525] pb-3">
+            <div className="flex items-center gap-2 border-b border-zinc-200 dark:border-[#2a2746] pb-3">
               {[
                 { key: "all", label: "All Posts" },
                 { key: "scheduled", label: "Scheduled" },
@@ -1242,8 +1242,8 @@ export default function ContentCalendar({
                   onClick={() => setStatusFilter(tab.key)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                     statusFilter === tab.key
-                      ? "bg-[#612bd3] text-white shadow-xs"
-                      : "text-zinc-600 dark:text-[#999999] hover:bg-zinc-100 dark:hover:bg-[#201f1f]"
+                      ? "bg-[#6d28d9] text-white shadow-xs"
+                      : "text-zinc-600 dark:text-[#a6a3c2] hover:bg-zinc-100 dark:hover:bg-[#1c1938]"
                   }`}
                 >
                   {tab.label}
@@ -1264,7 +1264,7 @@ export default function ContentCalendar({
 
                   return (
                     <div key={dateStr} className="space-y-2">
-                      <div className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider sticky top-0 bg-white/90 dark:bg-[#1a1919]/90 py-1 backdrop-blur-xs z-10">
+                      <div className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider sticky top-0 bg-white/90 dark:bg-[#15132b]/90 py-1 backdrop-blur-xs z-10">
                         {dateStr}
                       </div>
 
@@ -1277,7 +1277,7 @@ export default function ContentCalendar({
                             <div
                               key={post.id}
                               onClick={() => onPostClick?.(post)}
-                              className="p-3 rounded-xl border border-zinc-200 dark:border-[#252525] bg-white dark:bg-[#201f1f] hover:border-zinc-300 dark:hover:border-[#353535] transition-all shadow-xs flex items-center justify-between gap-3 cursor-pointer group"
+                              className="p-3 rounded-xl border border-zinc-200 dark:border-[#2a2746] bg-white dark:bg-[#1c1938] hover:border-zinc-300 dark:hover:border-[#353535] transition-all shadow-xs flex items-center justify-between gap-3 cursor-pointer group"
                             >
                               {/* Left Accent & Details */}
                               <div className="flex items-center gap-3 min-w-0">
@@ -1310,7 +1310,7 @@ export default function ContentCalendar({
                                 {post.customTag && (
                                   <span
                                     className="px-2 py-0.5 rounded text-[10px] font-bold text-white shadow-2xs"
-                                    style={{ backgroundColor: post.tagColor || "#612bd3" }}
+                                    style={{ backgroundColor: post.tagColor || "#6d28d9" }}
                                   >
                                     #{post.customTag}
                                   </span>
@@ -1335,7 +1335,7 @@ export default function ContentCalendar({
                                       e.stopPropagation();
                                       onDuplicatePost?.(post);
                                     }}
-                                    className="p-1.5 rounded-md hover:bg-zinc-100 dark:hover:bg-[#282727] hover:text-zinc-900 dark:hover:text-white transition-colors"
+                                    className="p-1.5 rounded-md hover:bg-zinc-100 dark:hover:bg-[#2a2746] hover:text-zinc-900 dark:hover:text-white transition-colors"
                                     title="Duplicate post"
                                   >
                                     <FiCopy className="text-xs" />
@@ -1409,8 +1409,8 @@ function CalendarItemCard({
         e.stopPropagation();
         onPostClick?.(post);
       }}
-      className={`rounded-[10px] overflow-hidden border border-zinc-200 dark:border-[#282828] bg-white dark:bg-[#1c1c1c] hover:border-zinc-300 dark:hover:border-[#383838] transition-all shadow-xs group/card relative cursor-grab active:cursor-grabbing select-none ${
-        isDragging ? "opacity-50 scale-[0.98] ring-2 ring-[#612bd3] shadow-md" : ""
+      className={`rounded-[10px] overflow-hidden border border-zinc-200 dark:border-[#2a2746] bg-white dark:bg-[#181632] hover:border-zinc-300 dark:hover:border-[#3b3663] transition-all shadow-xs group/card relative cursor-grab active:cursor-grabbing select-none ${
+        isDragging ? "opacity-50 scale-[0.98] ring-2 ring-[#6d28d9] shadow-md" : ""
       } ${
         isError
           ? "ring-1 ring-red-500"
@@ -1519,7 +1519,7 @@ function CalendarItemCard({
       </div>
 
       {/* Bottom Body: Platform Avatar + Content Snippet + Time */}
-      <div className="p-1.5 bg-zinc-50 dark:bg-[#201f1f] flex items-center gap-1.5 cursor-pointer hover:bg-zinc-100 dark:hover:bg-[#242323] transition-colors">
+      <div className="p-1.5 bg-zinc-50 dark:bg-[#1c1938] flex items-center gap-1.5 cursor-pointer hover:bg-zinc-100 dark:hover:bg-[#1f1c3d] transition-colors">
         {/* Platform icon avatar */}
         <div className="w-4 h-4 rounded-[4px] bg-white dark:bg-black/60 border border-zinc-200 dark:border-zinc-800 flex items-center justify-center shrink-0">
           <Icon className={`text-[10px] ${plat.color}`} />
