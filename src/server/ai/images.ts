@@ -46,7 +46,8 @@ async function generate(prompt: string) {
   return response.json().catch(() => null) as Promise<unknown>;
 }
 
-const dir = () => resolve(/* turbopackIgnore: true */ process.env.MEDIA_DIR || ".media");
+// STORAGE_PATH is the VPS name; MEDIA_DIR still works. Keep it outside the app folder.
+const dir = () => resolve(/* turbopackIgnore: true */ process.env.STORAGE_PATH || process.env.MEDIA_DIR || ".media");
 const NAME = /^[a-z0-9]{32}\.jpg$/;
 
 export async function readMedia(name: string) {

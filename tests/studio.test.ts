@@ -26,7 +26,7 @@ describe.skipIf(!local)("AI studio (local MySQL, stand-in AI)", async () => {
   process.env.DATABASE_URL = url;
   process.env.NEXTAUTH_URL = "https://app.example.com";
   process.env.PLATFORMS_ENABLED = "facebook,instagram";
-  process.env.MEDIA_DIR = mkdtempSync(join(tmpdir(), "sg-media-"));
+  process.env.STORAGE_PATH = mkdtempSync(join(tmpdir(), "sg-media-"));
   delete process.env.MEDIA_PUBLIC_URL;
   delete process.env.APP_URL;
   const db = new PrismaClient({ datasourceUrl: url });
@@ -194,11 +194,11 @@ describe.skipIf(!local)("AI studio (local MySQL, stand-in AI)", async () => {
     expect(Number((await db.aiUsage.findFirstOrThrow({ where: { provider: "gemini" } })).costUsd)).toBe(0.0336);
     expect(gemini[0].key).toBe("test-gemini");
     for (const name of ["../x.jpg", "..%2f.env", "abc.jpg", `${"a".repeat(32)}.png`]) expect(await images.readMedia(name)).toBeNull();
-    const before = readdirSync(process.env.MEDIA_DIR!).length;
+    const before = readdirSync(process.env.STORAGE_PATH!).length;
     reply.image = { output_image: { type: "image", data: Buffer.from("<svg onload=alert(1)>".repeat(20)).toString("base64") } };
     const job = await run({ kind: "images", planId: plan.id, ideaIds: [plan.ideas[0].id] });
     expect(job.status).toBe("FAILED");
-    expect(readdirSync(process.env.MEDIA_DIR!).length).toBe(before);
+    expect(readdirSync(process.env.STORAGE_PATH!).length).toBe(before);
   });
 
   it("schedules only what was approved and is ready, once, with clear reasons", async () => {

@@ -18,7 +18,7 @@ flowchart LR
   M -->|own Google app| YT[YouTube]
   App -->|AI| C[Claude API]
   App -->|images| G[Gemini API]
-  App -->|/m/ files| Disk[(MEDIA_DIR on VPS)]
+  App -->|/m/ files| Disk[(STORAGE_PATH on VPS)]
   P -->|consent done| CB[/connect/callback/state/]
   CB --> App
 ```
