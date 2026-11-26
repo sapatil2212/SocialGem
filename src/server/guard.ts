@@ -13,7 +13,8 @@ export { HttpError, notFound };
 type User = { id: string; email: string };
 type Context = { params: Promise<Record<string, string>> };
 type Options<B extends z.ZodType> = { body?: B; limit?: { name: string; max: number; seconds: number }; roles?: MemberRole[] };
-type Input<B extends z.ZodType> = { user: User; body: z.infer<B>; params: Record<string, string>; query: URLSearchParams };
+// `request` is for routes that read a body other than JSON, such as uploads. Read it only once.
+type Input<B extends z.ZodType> = { user: User; body: z.infer<B>; params: Record<string, string>; query: URLSearchParams; request: Request };
 
 const MAX_BODY = 64 * 1024;
 const WRITERS: MemberRole[] = ["OWNER", "ADMIN", "EDITOR"];
@@ -85,7 +86,7 @@ async function run<B extends z.ZodType>(
       body = parsed.data;
     }
 
-    const result = await handler({ user, body: body as z.infer<B>, params, query: new URL(request.url).searchParams, workspace });
+    const result = await handler({ user, body: body as z.infer<B>, params, query: new URL(request.url).searchParams, request, workspace });
     return result instanceof Response ? result : NextResponse.json(result, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     if (error instanceof HttpError) return fail(error.status, error.code, error.message);

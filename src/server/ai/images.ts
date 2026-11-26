@@ -1,8 +1,7 @@
-import { randomBytes } from "node:crypto";
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
-import { join, resolve } from "node:path";
+import { readFile } from "node:fs/promises";
 import sharp from "sharp";
 import { HttpError } from "../errors";
+import { mediaBase, openStored, storeBytes } from "../storage";
 import { geminiKey as key, geminiReady } from "./ready";
 import { recordUse, requireBudget, type Actor } from "./client";
 
@@ -46,13 +45,9 @@ async function generate(prompt: string) {
   return response.json().catch(() => null) as Promise<unknown>;
 }
 
-// STORAGE_PATH is the VPS name; MEDIA_DIR still works. Keep it outside the app folder.
-const dir = () => resolve(/* turbopackIgnore: true */ process.env.STORAGE_PATH || process.env.MEDIA_DIR || ".media");
-const NAME = /^[a-z0-9]{32}\.jpg$/;
-
 export async function readMedia(name: string) {
-  if (!NAME.test(name)) return null;
-  return readFile(/* turbopackIgnore: true */ join(dir(), name)).catch(() => null);
+  const file = await openStored(name);
+  return file ? readFile(/* turbopackIgnore: true */ file.path).catch(() => null) : null;
 }
 
 /** Makes one image and stores it. The bytes are decoded and re-encoded, never saved as sent. */
@@ -69,12 +64,6 @@ export async function makeImage(actor: Actor, prompt: string) {
   } catch {
     throw new HttpError(502, "IMAGE_SHAPE", "Gemini sent a file we could not read.");
   }
-  const name = `${randomBytes(16).toString("hex")}.jpg`;
-  const folder = dir();
-  await mkdir(/* turbopackIgnore: true */ folder, { recursive: true });
-  // Written beside and renamed, so a half-written file is never served.
-  await writeFile(/* turbopackIgnore: true */ join(folder, `${name}.part`), jpeg);
-  await rename(/* turbopackIgnore: true */ join(folder, `${name}.part`), join(folder, name));
-  const base = (process.env.MEDIA_PUBLIC_URL || `${(process.env.APP_URL || process.env.NEXTAUTH_URL || "").replace(/\/$/, "")}/m`).replace(/\/$/, "");
-  return { objectKey: name, url: `${base}/${name}`, bytes: jpeg.length, width: 1080, height: 1350 };
+  const name = await storeBytes(jpeg, "jpg");
+  return { objectKey: name, url: `${mediaBase()}/${name}`, bytes: jpeg.length, width: 1080, height: 1350 };
 }
