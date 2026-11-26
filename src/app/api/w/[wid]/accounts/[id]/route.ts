@@ -19,7 +19,7 @@ export const DELETE = guardWorkspace({ limit, roles: ["OWNER", "ADMIN"] }, async
   const { accounts } = dataFor(workspace.id);
   const account = await accounts.get(params.id);
   if (!account) throw notFound();
-  if (account.muapiAccountId) await disconnectRemote(account.muapiAccountId);
+  if (account.muapiAccountId) await disconnectRemote(account.muapiAccountId, workspace.externalUserId);
   await accounts.disconnect(account.id);
   return { success: true };
 });

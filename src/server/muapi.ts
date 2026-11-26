@@ -53,7 +53,9 @@ async function call(path: string, init: RequestInit = {}) {
     throw new HttpError(502, "PROVIDER", "The social service did not respond. Please try again.");
   }
   if (!response.ok) {
-    console.error("[muapi]", path.split("?")[0], response.status);
+    // MuAPI's own reason, kept short; it never holds our key.
+    const reason = (await response.text().catch(() => "")).replace(/\s+/g, " ").slice(0, 200);
+    console.error("[muapi]", init.method || "GET", path.split("?")[0], response.status, reason);
     throw new HttpError(502, "PROVIDER", "The social service could not complete that.");
   }
   return response.json().catch(() => ({}));
@@ -89,7 +91,18 @@ export const renameRemote = (id: number, account_name: string) =>
   call(`/api/v1/social/ext/accounts/${id}`, { method: "PATCH", body: JSON.stringify({ account_name }) });
 
 // The reversible form: the account can be reconnected later.
-export const disconnectRemote = (id: number) => call(`/api/v1/social/ext/accounts/${id}/disconnect`, { method: "POST", body: "{}" });
+export async function disconnectRemote(id: number, externalUserId: string) {
+  try {
+    await call(`/api/v1/social/ext/accounts/${id}/disconnect`, { method: "POST", body: "{}" });
+  } catch (error) {
+    // MuAPI refuses accounts that are already disconnected or removed. That is fine, as long
+    // as it is really no longer connected for this workspace; otherwise keep the error.
+    const stillConnected = await remoteAccounts(externalUserId)
+      .then((rows) => rows.some((a) => a.id === id && a.connected))
+      .catch(() => true);
+    if (stillConnected) throw error;
+  }
+}
 
 export async function generateText(prompt: string, system_prompt: string) {
   const job = await call("/api/v1/gpt-5-mini", { method: "POST", body: JSON.stringify({ prompt, system_prompt }) });
