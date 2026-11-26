@@ -3,12 +3,14 @@
 import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "react-hot-toast";
+import { ConfirmHost } from "@/components/ui/confirm";
 
 export function Providers({ children }) {
   return (
     <SessionProvider>
       <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
         {children}
+        <ConfirmHost />
         <Toaster
           position="bottom-right"
           toastOptions={{

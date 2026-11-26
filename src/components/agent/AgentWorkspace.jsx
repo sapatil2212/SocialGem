@@ -31,6 +31,7 @@ import {
   FiCheckCircle
 } from "react-icons/fi";
 import PostComposerModal from "@/components/composer/PostComposerModal";
+import { askConfirm } from "@/components/ui/confirm";
 
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -504,9 +505,10 @@ export default function AgentWorkspace() {
   };
 
   // Delete Thread
-  const handleDeleteThread = (e, threadId) => {
+  const handleDeleteThread = async (e, threadId) => {
     e.stopPropagation();
-    if (!confirm("Are you sure you want to delete this thread?")) return;
+    const ok = await askConfirm({ title: "Delete this conversation?", body: "Its messages are removed from this browser. This cannot be undone.", confirmLabel: "Delete", tone: "danger" });
+    if (!ok) return;
 
     setThreads((prev) => {
       const remaining = prev.filter((t) => t.id !== threadId);

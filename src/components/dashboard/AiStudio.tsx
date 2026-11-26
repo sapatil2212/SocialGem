@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Check, CircleAlert, CircleCheck, ExternalLink, ImagePlus, LoaderCircle, PenLine, Plus, Search, Sparkles, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Field, FormAlert, Input, NativeSelect } from "@/components/ui/field";
+import { askConfirm } from "@/components/ui/confirm";
 import { inWorkspace } from "@/lib/workspace-client";
 import { cn } from "@/lib/utils";
 
@@ -174,7 +175,7 @@ function BrandTab({ state, start, reload, busy, setProblem }: TabProps) {
     <>
       {remake && (
         <Section title={b ? "Rebuild from your website" : "Start with your business"} text="We read your public website and turn it into brand guidelines for you to review.">
-          <form className="grid gap-4" onSubmit={async (e) => { e.preventDefault(); const f = new FormData(e.currentTarget); if (b && !confirm("Replace your current guidelines? Your edits will be lost.")) return; if (await start({ kind: "brand", website: f.get("website"), about: f.get("about") })) setRemake(false); }}>
+          <form className="grid gap-4" onSubmit={async (e) => { e.preventDefault(); const f = new FormData(e.currentTarget); if (b && !(await askConfirm({ title: "Replace your brand guidelines?", body: "New guidelines are written from your website and notes. Your current edits will be lost.", confirmLabel: "Replace", tone: "danger" }))) return; if (await start({ kind: "brand", website: f.get("website"), about: f.get("about") })) setRemake(false); }}>
             <Field label="Website" hint="Leave empty if you do not have one."><Input name="website" inputMode="url" placeholder="yourbusiness.com" defaultValue={state.brand?.website ?? ""} /></Field>
             <Field label="About the business" hint="What you sell, who for, and anything the AI must get right."><Area name="about" rows={4} maxLength={3000} /></Field>
             <div className="flex gap-2"><Button type="submit" disabled={busy || !state.ready.claude}><Sparkles /> Create brand guidelines</Button>{b && <Button type="button" variant="ghost" onClick={() => setRemake(false)}>Cancel</Button>}</div>
@@ -296,7 +297,9 @@ function PlanView({ id, version, state, start, busy, setProblem, onBack }: TabPr
   const allOn = open.length > 0 && chosen.length === open.length;
 
   const schedule = async () => {
-    if (!confirm(`Approve and schedule ${chosen.length} ${chosen.length === 1 ? "post" : "posts"}?`)) return;
+    const n = chosen.length;
+    const ok = await askConfirm({ title: `Approve and schedule ${n} ${n === 1 ? "post" : "posts"}?`, body: "They go on your calendar at the planned times. Automatic publishing is not switched on yet.", confirmLabel: "Approve and schedule" });
+    if (!ok) return;
     setWorking(true);
     setProblem("");
     setDone("");
@@ -315,7 +318,7 @@ function PlanView({ id, version, state, start, busy, setProblem, onBack }: TabPr
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <label className="mr-2 flex min-h-9 cursor-pointer items-center gap-2 text-sm"><input type="checkbox" className="size-4 accent-[#6d28d9]" checked={allOn} disabled={!open.length} onChange={() => setPicked(allOn ? [] : open.map((i) => i.id))} />{chosen.length ? `${chosen.length} chosen` : "Choose all"}</label>
           <Button variant="outline" disabled={busy || !chosen.length || !state.ready.claude} onClick={() => start({ kind: "write", planId: id, ideaIds: chosen.map((i) => i.id) })}><PenLine /> Write posts</Button>
-          <Button variant="outline" disabled={busy || !imageable.length || imageable.length > 20 || !state.ready.gemini} onClick={() => confirm(`Make ${imageable.length} ${imageable.length === 1 ? "image" : "images"} for about ${usd(imageable.length * state.imageUsd)}?`) && start({ kind: "images", planId: id, ideaIds: imageable.map((i) => i.id) })}><ImagePlus /> Make images{imageable.length ? `, about ${usd(imageable.length * state.imageUsd)}` : ""}</Button>
+          <Button variant="outline" disabled={busy || !imageable.length || imageable.length > 20 || !state.ready.gemini} onClick={async () => { const n = imageable.length; if (await askConfirm({ title: `Make ${n} ${n === 1 ? "image" : "images"}?`, body: `This costs about ${usd(n * state.imageUsd)} from your AI budget.`, confirmLabel: "Make images" })) void start({ kind: "images", planId: id, ideaIds: imageable.map((i) => i.id) }); }}><ImagePlus /> Make images{imageable.length ? `, about ${usd(imageable.length * state.imageUsd)}` : ""}</Button>
           <Button disabled={busy || working || !chosen.length} onClick={schedule}><Check /> Approve and schedule</Button>
         </div>
         {done && <p role="status" className="mt-3 text-sm font-medium text-success">{done} <Link href="/app" className="underline">Open calendar</Link></p>}
@@ -375,7 +378,7 @@ function IdeaCard({ planId, idea, on, onPick, reload, busy, zone, setProblem }: 
             <div className="flex gap-2"><Button type="submit" disabled={saving}>{saving ? "Saving" : "Save"}</Button><Button type="button" variant="ghost" onClick={() => setEdit(false)}><X /> Cancel</Button></div>
           </form>
         )}
-        {!locked && !edit && <div className="mt-3 flex gap-1"><Button variant="ghost" className="min-h-9 px-2.5" disabled={busy} onClick={() => setEdit(true)}><PenLine /> Edit</Button><Button variant="ghost" className="min-h-9 px-2.5 text-destructive" disabled={busy} onClick={async () => { if (!confirm("Remove this post from the plan?")) return; const { error } = await api("DELETE", path); if (error) setProblem(error); await reload(); }}><Trash2 /> Remove</Button></div>}
+        {!locked && !edit && <div className="mt-3 flex gap-1"><Button variant="ghost" className="min-h-9 px-2.5" disabled={busy} onClick={() => setEdit(true)}><PenLine /> Edit</Button><Button variant="ghost" className="min-h-9 px-2.5 text-destructive" disabled={busy} onClick={async () => { if (!(await askConfirm({ title: "Remove this post from the plan?", body: "It is deleted from this plan. This cannot be undone.", confirmLabel: "Remove", tone: "danger" }))) return; const { error } = await api("DELETE", path); if (error) setProblem(error); await reload(); }}><Trash2 /> Remove</Button></div>}
       </div>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       {idea.imageUrl ? <img src={idea.imageUrl} alt={`AI image for ${idea.topic}`} width={144} height={180} loading="lazy" className="h-44 w-36 rounded-lg object-cover max-sm:col-span-full" /> : idea.format === "image" && <span className="grid h-44 w-36 place-items-center rounded-lg border border-dashed border-hairline text-xs text-muted-ink max-sm:hidden"><span className="grid justify-items-center gap-1.5"><Plus aria-hidden className="size-4" />Image needed</span></span>}

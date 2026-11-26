@@ -19,6 +19,7 @@ import {
 } from "react-icons/fi";
 import { toast } from "react-hot-toast";
 import CustomSelect from "@/components/ui/CustomSelect";
+import { askConfirm } from "@/components/ui/confirm";
 
 export default function MediaGrid({
   assets = [],
@@ -67,7 +68,8 @@ export default function MediaGrid({
 
   const handleDelete = async (asset, e) => {
     e?.stopPropagation();
-    if (!confirm(`Delete "${asset.name}" from your media library?`)) return;
+    const ok = await askConfirm({ title: `Delete "${asset.name}"?`, body: "It is removed from your media library. Posts already sent are not affected.", confirmLabel: "Delete", tone: "danger" });
+    if (!ok) return;
 
     try {
       const res = await fetch(inWorkspace(`/media/${asset.id}`), { method: "DELETE" });
@@ -110,7 +112,9 @@ export default function MediaGrid({
   };
 
   const handleBatchDelete = async () => {
-    if (!confirm(`Permanently delete ${selectedIds.size} selected asset(s)?`)) return;
+    const count = selectedIds.size;
+    const ok = await askConfirm({ title: `Delete ${count} ${count === 1 ? "file" : "files"}?`, body: "They are removed from your media library. Files used by a draft or scheduled post are kept.", confirmLabel: `Delete ${count === 1 ? "file" : "files"}`, tone: "danger" });
+    if (!ok) return;
 
     let successCount = 0;
     for (const id of Array.from(selectedIds)) {

@@ -6,6 +6,7 @@ import { useEffect, useState, useCallback } from "react";
 import { FaBolt, FaClock, FaExclamationTriangle } from "react-icons/fa";
 import { FiEdit2, FiExternalLink, FiTrash2, FiX } from "react-icons/fi";
 import Overview from "@/components/dashboard/Overview";
+import { askConfirm, showAlert } from "@/components/ui/confirm";
 import ContentCalendar from "@/components/calendar/ContentCalendar";
 import PostComposerModal from "@/components/composer/PostComposerModal";
 
@@ -117,7 +118,8 @@ export default function WorkspaceDashboard() {
   };
 
   const handleDeletePost = async (postId) => {
-    if (!confirm("Are you sure you want to delete this scheduled post?")) return;
+    const ok = await askConfirm({ title: "Delete this post?", body: "It will be removed from your calendar. This cannot be undone.", confirmLabel: "Delete post", tone: "danger" });
+    if (!ok) return;
 
     try {
       setActionLoading(true);
@@ -130,7 +132,7 @@ export default function WorkspaceDashboard() {
         setViewingPost(null);
       } else {
         const data = await res.json().catch(() => ({}));
-        alert(data.error || "The post could not be deleted.");
+        await showAlert({ title: "The post was not deleted", body: data.error || "Please try again.", tone: "danger" });
       }
     } catch (err) {
       console.error("Failed to delete post:", err);
@@ -153,11 +155,11 @@ export default function WorkspaceDashboard() {
         fetchPosts();
       } else {
         const data = await res.json();
-        alert(data.error || "Failed to publish post.");
+        await showAlert({ title: "The post was not published", body: data.error || "Please try again.", tone: "danger" });
       }
     } catch (err) {
       console.error(err);
-      alert("Error publishing post");
+      await showAlert({ title: "The post was not published", body: "We could not reach the server. Please try again.", tone: "danger" });
     } finally {
       setActionLoading(false);
     }

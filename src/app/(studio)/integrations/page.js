@@ -8,6 +8,7 @@ import { SiTiktok } from "react-icons/si";
 import { FiAlertTriangle, FiCheck, FiEdit2, FiPlus, FiRefreshCw, FiTrash2, FiX } from "react-icons/fi";
 import { announceAccounts, CONNECT_MESSAGES, onAccountsChanged, openConnect } from "@/lib/connect-client";
 import { inWorkspace } from "@/lib/workspace-client";
+import { askConfirm } from "@/components/ui/confirm";
 
 const PLATFORMS = [
   { key: "facebook", name: "Facebook", Icon: FaFacebook, color: "#1877f2", text: "Pages you manage. Personal profiles and Groups are not possible on any tool." },
@@ -53,8 +54,14 @@ function AccountRow({ account, busy, onReconnect, onRenamed, onRemoved }) {
       onRenamed(await json(`/accounts/${account.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body }));
       setEditing(false);
     });
-  const remove = () => {
-    if (!window.confirm(`Disconnect ${account.account_name}? Scheduled posts for it will not go out.`)) return;
+  const remove = async () => {
+    const ok = await askConfirm({
+      title: `Disconnect ${account.account_name}?`,
+      body: "Scheduled posts for this account will not go out. You can connect it again later.",
+      confirmLabel: "Disconnect",
+      tone: "danger",
+    });
+    if (!ok) return;
     run(async () => {
       await json(`/accounts/${account.id}`, { method: "DELETE" });
       onRemoved(account.id);
