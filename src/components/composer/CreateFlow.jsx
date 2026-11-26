@@ -54,6 +54,7 @@ export default function CreateFlow({ date = null, onDone, onClassic }) {
   const [step, setStep] = useState(0);
   const [accounts, setAccounts] = useState(null);
   const [chosen, setChosen] = useState([]);
+  const [pick, setPick] = useState({});
   const [media, setMedia] = useState({ url: "", source: "" });
   const [mode, setMode] = useState("ai");
   const [about, setAbout] = useState("");
@@ -88,12 +89,21 @@ export default function CreateFlow({ date = null, onDone, onClassic }) {
     chatEnd.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, thinking]);
 
-  // One account per channel; the first connected one is used.
+  // One card per channel. A channel with several accounts (say, several Facebook pages)
+  // posts to the one picked; accounts that need reconnecting are shown but cannot be used.
   const channels = useMemo(() => {
-    const seen = new Map();
-    for (const a of accounts || []) if (PLATFORMS[keyOf(a)] && !seen.has(keyOf(a)) && a.connected !== false) seen.set(keyOf(a), a);
-    return [...seen.entries()].map(([key, account]) => ({ key, account, ...PLATFORMS[key] }));
-  }, [accounts]);
+    const byKey = new Map();
+    for (const a of accounts || []) {
+      const key = keyOf(a);
+      if (!PLATFORMS[key]) continue;
+      if (!byKey.has(key)) byKey.set(key, { active: [], stale: [] });
+      byKey.get(key)[a.connected === false ? "stale" : "active"].push(a);
+    }
+    return [...byKey.entries()].map(([key, { active, stale }]) => ({
+      key, active, stale, ...PLATFORMS[key],
+      account: active.find((a) => String(a.id) === pick[key]) ?? active[0] ?? stale[0],
+    }));
+  }, [accounts, pick]);
 
   // What the AI should know about the post, from the chat or the notes.
   const brief = useMemo(() => {
@@ -299,24 +309,49 @@ export default function CreateFlow({ date = null, onDone, onClassic }) {
                 </div>
               ) : (
                 <div className="mt-5 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-                  {channels.map(({ key, account, name, Icon, color }) => {
+                  {channels.map(({ key, account, active, stale, name, Icon, color }) => {
                     const on = chosen.includes(key);
+                    if (!active.length) {
+                      return (
+                        <div key={key} className="flex min-h-16 items-center gap-3 rounded-xl border border-dashed border-hairline bg-card px-4">
+                          <span className="grid size-10 shrink-0 place-items-center rounded-xl border border-hairline bg-background opacity-60"><Icon aria-hidden className={cn("text-lg", color)} /></span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block text-sm font-medium">{name}</span>
+                            <span className="block truncate text-xs text-warning">{stale.length > 1 ? `${stale.length} accounts need` : "Needs"} reconnecting</span>
+                          </span>
+                          <Link href="/integrations" className="shrink-0 text-xs font-medium text-brand-ink hover:underline">Reconnect</Link>
+                        </div>
+                      );
+                    }
                     return (
-                      <button
-                        key={key}
-                        type="button"
-                        role="checkbox"
-                        aria-checked={on}
-                        onClick={() => setChosen((prev) => (on ? prev.filter((p) => p !== key) : [...prev, key]))}
-                        className={cn("flex min-h-16 items-center gap-3 rounded-xl border bg-card px-4 text-left transition-colors cursor-pointer", on ? "border-brand ring-1 ring-brand/30" : "border-hairline hover:border-brand/40")}
-                      >
-                        <span className="grid size-10 shrink-0 place-items-center rounded-xl border border-hairline bg-background"><Icon aria-hidden className={cn("text-lg", color)} /></span>
-                        <span className="min-w-0 flex-1">
-                          <span className="block text-sm font-medium">{name}</span>
-                          <span className="block truncate text-xs text-muted-ink">{account.account_name}{VIDEO_ONLY.includes(key) ? " · video only" : ""}</span>
-                        </span>
-                        <span aria-hidden className={cn("grid size-5 shrink-0 place-items-center rounded-md border", on ? "border-brand bg-brand text-white" : "border-hairline")}>{on && <Check className="size-3.5" />}</span>
-                      </button>
+                      <div key={key} className={cn("rounded-xl border bg-card transition-colors", on ? "border-brand ring-1 ring-brand/30" : "border-hairline hover:border-brand/40")}>
+                        <button
+                          type="button"
+                          role="checkbox"
+                          aria-checked={on}
+                          onClick={() => setChosen((prev) => (on ? prev.filter((p) => p !== key) : [...prev, key]))}
+                          className="flex min-h-16 w-full items-center gap-3 px-4 text-left cursor-pointer"
+                        >
+                          <span className="grid size-10 shrink-0 place-items-center rounded-xl border border-hairline bg-background"><Icon aria-hidden className={cn("text-lg", color)} /></span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block text-sm font-medium">{name}</span>
+                            <span className="block truncate text-xs text-muted-ink">
+                              {active.length > 1 ? `${active.length} accounts` : account.account_name}
+                              {VIDEO_ONLY.includes(key) ? " · video only" : ""}
+                              {stale.length ? ` · ${stale.length} need reconnecting` : ""}
+                            </span>
+                          </span>
+                          <span aria-hidden className={cn("grid size-5 shrink-0 place-items-center rounded-md border", on ? "border-brand bg-brand text-white" : "border-hairline")}>{on && <Check className="size-3.5" />}</span>
+                        </button>
+                        {on && active.length > 1 && (
+                          <label className="flex items-center gap-2 border-t border-hairline px-4 py-2.5">
+                            <span className="shrink-0 text-xs text-muted-ink">Post as</span>
+                            <select value={String(account.id)} onChange={(e) => setPick((prev) => ({ ...prev, [key]: e.target.value }))} className={cn(field, "min-w-0 py-1.5")}>
+                              {active.map((a) => <option key={a.id} value={String(a.id)}>{a.account_name}</option>)}
+                            </select>
+                          </label>
+                        )}
+                      </div>
                     );
                   })}
                   <Link href="/integrations" className="flex min-h-16 items-center justify-center gap-2 rounded-xl border border-dashed border-hairline text-sm font-medium text-muted-ink hover:border-brand/50 hover:text-brand-ink">
