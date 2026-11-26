@@ -107,6 +107,14 @@ async function brandOf(workspaceId: string) {
 const brief = (b: Brand) =>
   JSON.stringify({ name: b.name, what: b.oneLiner, audience: b.audience, positioning: b.positioning, voice: b.voice, pillars: b.pillars, avoid: b.avoid, facts: b.facts, hashtags: b.hashtags.slice(0, 10) });
 
+/** The brand in short, for one-off posts. Empty when there are no guidelines yet. */
+export async function brandNotes(workspaceId: string) {
+  const row = await prisma.brandProfile.findUnique({ where: { workspaceId } });
+  if (!row) return { text: "", imageStyle: "", colours: "" };
+  const b = row.data as unknown as Brand;
+  return { text: brief(b), imageStyle: b.imageStyle || "", colours: b.colors.slice(0, 4).map((c) => `${c.name} ${c.hex}`).join(", ") };
+}
+
 async function brandJob({ actor, workspace, step }: Run, input: Extract<JobInput, { kind: "brand" }>) {
   const business = await prisma.workspace.findUniqueOrThrow({ where: { id: workspace.id }, select: { name: true, businessType: true } });
   let notes = "";

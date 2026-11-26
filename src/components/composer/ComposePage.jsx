@@ -1,17 +1,20 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import CreateFlow from "@/components/composer/CreateFlow";
 import PostComposerModal from "@/components/composer/PostComposerModal";
 
-/** The composer as its own page. Saving or cancelling goes back to the calendar. */
+/** Create post: the guided, AI-assisted flow, with the full editor one click away. */
 export default function ComposePage({ withAi = false, date = null }) {
   const router = useRouter();
+  const [classic, setClassic] = useState(false);
   const saved = useRef(0);
+
+  if (!classic) return <CreateFlow key={date ?? "new"} date={date} onDone={() => router.push("/app")} onClassic={() => setClassic(true)} />;
   return (
     <PostComposerModal
-      // A fresh composer for each visit, including Write with AI from this page.
       key={`${withAi}-${date}`}
       variant="page"
       isOpen

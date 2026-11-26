@@ -59,7 +59,9 @@ function claude() {
 }
 
 type Tools = Anthropic.Beta.BetaToolUnion[];
-type Ask = { system: string; prompt: string; tools?: Tools; schema?: z.ZodType };
+/** A picture for Claude to look at, sent with the prompt. */
+export type Picture = Anthropic.Beta.BetaImageBlockParam;
+type Ask = { system: string; prompt: string; tools?: Tools; schema?: z.ZodType; pictures?: Picture[] };
 
 export function costOf(model: string, u: { input_tokens: number; output_tokens: number; cache_read_input_tokens?: number | null; cache_creation_input_tokens?: number | null }, searches: number) {
   const p = PRICES[model] ?? PRICES["claude-opus-5-5"];
@@ -74,7 +76,8 @@ function shapeOf(schema: z.ZodType) {
 
 async function send(actor: Actor, name: TaskName, ask: Ask): Promise<Anthropic.Beta.BetaMessage[]> {
   const task: Task = TASKS[name];
-  const messages: Anthropic.Beta.BetaMessageParam[] = [{ role: "user", content: ask.prompt }];
+  const content: Anthropic.Beta.BetaMessageParam["content"] = ask.pictures?.length ? [...ask.pictures, { type: "text", text: ask.prompt }] : ask.prompt;
+  const messages: Anthropic.Beta.BetaMessageParam[] = [{ role: "user", content }];
   const replies: Anthropic.Beta.BetaMessage[] = [];
   for (let turn = 0; turn < 3; turn++) {
     await requireBudget(actor.workspaceId, task.reserve);
@@ -120,8 +123,8 @@ async function send(actor: Actor, name: TaskName, ask: Ask): Promise<Anthropic.B
 const textOf = (replies: Anthropic.Beta.BetaMessage[]) => replies.flatMap((r) => r.content).flatMap((b) => (b.type === "text" ? [b.text] : [])).join("").trim();
 
 /** An answer in a fixed shape, checked again here. */
-export async function askJson<S extends z.ZodType>(actor: Actor, task: TaskName, system: string, prompt: string, schema: S): Promise<z.infer<S>> {
-  const raw = textOf(await send(actor, task, { system, prompt, schema }));
+export async function askJson<S extends z.ZodType>(actor: Actor, task: TaskName, system: string, prompt: string, schema: S, pictures?: Picture[]): Promise<z.infer<S>> {
+  const raw = textOf(await send(actor, task, { system, prompt, schema, pictures }));
   try {
     return schema.parse(JSON.parse(raw));
   } catch {
