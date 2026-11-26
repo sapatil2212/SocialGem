@@ -2,6 +2,7 @@
 
 import { inWorkspace } from "@/lib/workspace-client";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 import { FaBolt, FaClock, FaExclamationTriangle } from "react-icons/fa";
 import { FiEdit2, FiExternalLink, FiTrash2, FiX } from "react-icons/fi";
@@ -12,6 +13,7 @@ import PostComposerModal from "@/components/composer/PostComposerModal";
 
 export default function WorkspaceDashboard() {
   const { status } = useSession();
+  const router = useRouter();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [connectedAccounts, setConnectedAccounts] = useState([]);
@@ -62,53 +64,22 @@ export default function WorkspaceDashboard() {
     }
   }, [status, fetchPosts, fetchAccounts]);
 
-  // Global listener for Header actions
+  // Old links that opened the composer here now go to the Create post page.
   useEffect(() => {
-    const handleOpenComposer = (e) => {
-      setSelectedDate(null);
-      setEditingPost(null);
-      setOpenWithAi(!!e.detail?.withAi);
-      setComposerOpen(true);
-    };
-    window.addEventListener("open-composer", handleOpenComposer);
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("compose") === "true") router.replace("/compose");
+    else if (params.get("ai") === "true") router.replace("/compose?ai=1");
+  }, [router]);
 
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get("compose") === "true") {
-        setComposerOpen(true);
-      } else if (params.get("ai") === "true") {
-        setOpenWithAi(true);
-        setComposerOpen(true);
-      }
-    }
-
-    return () => window.removeEventListener("open-composer", handleOpenComposer);
-  }, []);
-
-  const handleDateClick = (date) => {
-    setSelectedDate(date);
-    setEditingPost(null);
-    setOpenWithAi(false);
-    setComposerOpen(true);
-  };
+  // New posts are written on their own page; editing stays here, over the calendar.
+  const handleDateClick = (date) => router.push(`/compose?date=${encodeURIComponent(new Date(date).toISOString())}`);
 
   const handlePostClick = (post) => {
     setViewingPost(post);
   };
 
-  const handleNewPost = () => {
-    setSelectedDate(null);
-    setEditingPost(null);
-    setOpenWithAi(false);
-    setComposerOpen(true);
-  };
-
-  const handleWriteWithAi = () => {
-    setSelectedDate(null);
-    setEditingPost(null);
-    setOpenWithAi(true);
-    setComposerOpen(true);
-  };
+  const handleNewPost = () => router.push("/compose");
+  const handleWriteWithAi = () => router.push("/compose?ai=1");
 
   const handleEditPost = (post) => {
     setViewingPost(null);

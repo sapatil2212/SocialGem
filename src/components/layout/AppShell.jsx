@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { Dialog, DropdownMenu } from "radix-ui";
 import { MotionConfig, motion } from "motion/react";
-import { Bot, CalendarDays, ChartNoAxesColumn, ChevronsUpDown, CircleHelp, CreditCard, Image as ImageIcon, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Plus, Search, Settings, Share2, Sparkles, X } from "lucide-react";
+import { Bot, CalendarDays, ChartNoAxesColumn, ChevronsUpDown, CircleHelp, CreditCard, Image as ImageIcon, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Plus, Search, Settings, Share2, Sparkles, SquarePen, X } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 import WorkspaceSwitcher from "@/components/layout/WorkspaceSwitcher";
 import Logo, { Mark } from "@/components/site/Logo";
@@ -17,6 +17,7 @@ const GROUPS = [
     name: "Workspace",
     items: [
       { name: "Calendar", path: "/app", Icon: CalendarDays, hint: "Plan and schedule your posts" },
+      { name: "Create post", path: "/compose", Icon: SquarePen, hint: "Write, preview and schedule a post" },
       { name: "Analytics", path: "/analytics", Icon: ChartNoAxesColumn, hint: "See how posts are doing" },
       { name: "AI studio", path: "/studio", Icon: Sparkles, hint: "Brand, research, plans and posts" },
       { name: "AI agent", path: "/agents", Icon: Bot, hint: "Draft ideas and captions" },
@@ -39,6 +40,7 @@ const GROUPS = [
   },
 ];
 const ALL = GROUPS.flatMap((g) => g.items);
+const byPath = (path) => ALL.find((i) => i.path === path);
 const isActive = (pathname, path) => pathname === path || pathname.startsWith(`${path}/`) || (path === "/media" && pathname.startsWith("/gallery"));
 
 // The sidebar choice lives in this browser only.
@@ -126,13 +128,12 @@ function Nav({ pathname, compact, id, onGo }) {
   );
 }
 
-function Palette({ open, onOpenChange, onCreate, onAi }) {
+function Palette({ open, onOpenChange, onAi }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [at, setAt] = useState(0);
   const list = useRef(null);
   const actions = [
-    { name: "Create post", hint: "Open the composer", Icon: Plus, run: onCreate },
     { name: "Write with AI", hint: "Start from an idea", Icon: Sparkles, run: onAi },
     ...ALL.map((i) => ({ ...i, run: () => router.push(i.path) })),
   ];
@@ -218,10 +219,8 @@ export default function AppShell({ children }) {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const compose = (withAi) => {
-    if (pathname === "/app") window.dispatchEvent(new CustomEvent("open-composer", { detail: { withAi } }));
-    else router.push(withAi ? "/app?ai=true" : "/app?compose=true");
-  };
+  // Creating a post has its own page now, rather than a pop-up over the calendar.
+  const compose = (withAi) => router.push(withAi ? "/compose?ai=1" : "/compose");
 
   return (
     <MotionConfig reducedMotion="user">
@@ -234,7 +233,6 @@ export default function AppShell({ children }) {
           </div>
           <div className={cn("flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-3.5 pb-4", collapsed && "px-3")}>
             {!collapsed && <WorkspaceSwitcher />}
-            <button type="button" onClick={() => compose(false)} aria-label="Create post" className="shimmer flex min-h-10 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-lg bg-brand text-sm font-medium text-white hover:bg-brand-hover"><Plus aria-hidden className="size-5" />{!collapsed && "Create post"}</button>
             <Nav pathname={pathname} compact={collapsed} id="side" />
           </div>
           <div className={cn("grid shrink-0 gap-3 border-t border-hairline p-3", collapsed && "justify-items-center px-3")}>
@@ -260,9 +258,9 @@ export default function AppShell({ children }) {
         </div>
 
         <nav aria-label="Quick" className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-hairline bg-card pb-[env(safe-area-inset-bottom)] lg:hidden">
-          {[ALL[0], ALL[1]].map((i) => <Tab key={i.path} item={i} on={isActive(pathname, i.path)} />)}
+          {[byPath("/app"), byPath("/analytics")].map((i) => <Tab key={i.path} item={i} on={isActive(pathname, i.path)} />)}
           <button type="button" onClick={() => compose(false)} aria-label="Create post" className="grid min-h-16 cursor-pointer place-items-center"><span className="gradient-brand grid size-12 place-items-center rounded-2xl"><Plus className="size-6" /></span></button>
-          {[ALL[4], ALL[5]].map((i) => <Tab key={i.path} item={i} on={isActive(pathname, i.path)} />)}
+          {[byPath("/integrations"), byPath("/media")].map((i) => <Tab key={i.path} item={i} on={isActive(pathname, i.path)} />)}
         </nav>
 
         <Dialog.Root open={drawer} onOpenChange={setDrawer}>
@@ -277,7 +275,7 @@ export default function AppShell({ children }) {
             </Dialog.Content>
           </Dialog.Portal>
         </Dialog.Root>
-        <Palette open={palette} onOpenChange={setPalette} onCreate={() => compose(false)} onAi={() => compose(true)} />
+        <Palette open={palette} onOpenChange={setPalette} onAi={() => compose(true)} />
       </div>
     </MotionConfig>
   );

@@ -126,7 +126,10 @@ export default function PostComposerModal({
   initialPost = null,
   initialOpenAiWriter = false,
   onPostSaved,
+  // "page" draws it in the main area, for the Create post page, instead of over the screen.
+  variant = "modal",
 }) {
+  const asPage = variant === "page";
   const [selectedPlatforms, setSelectedPlatforms] = useState(["youtube"]);
   const [activePreviewPlatform, setActivePreviewPlatform] = useState("youtube");
   const [connectedAccounts, setConnectedAccounts] = useState([]);
@@ -667,9 +670,11 @@ export default function PostComposerModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 dark:bg-black/80 backdrop-blur-sm overflow-hidden">
-      <div 
-        className="relative w-full max-w-5xl bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[88vh] text-slate-900 dark:text-white transition-colors"
+    <div className={asPage ? "p-3 sm:p-5" : "fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 dark:bg-black/80 backdrop-blur-sm overflow-hidden"}>
+      <div
+        className={`relative w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden flex flex-col text-slate-900 dark:text-white transition-colors ${
+          asPage ? "shadow-sm lg:h-[calc(100dvh-62px-2.5rem)]" : "max-w-5xl shadow-2xl max-h-[88vh]"
+        }`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Top Bar */}
@@ -703,6 +708,8 @@ export default function PostComposerModal({
             <button
               type="button"
               onClick={onClose}
+              aria-label="Close"
+              hidden={asPage}
               className="w-7 h-7 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 flex items-center justify-center transition-colors cursor-pointer"
             >
               <FiX className="text-sm" />
@@ -711,9 +718,9 @@ export default function PostComposerModal({
         </div>
 
         {/* Modal Main Content - 2 Column Split */}
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden divide-y lg:divide-y-0 lg:divide-x divide-zinc-200 dark:divide-zinc-800 bg-[#f8f9fa] dark:bg-zinc-950">
+        <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 overflow-hidden divide-y lg:divide-y-0 lg:divide-x divide-zinc-200 dark:divide-zinc-800 bg-[#f8f9fa] dark:bg-zinc-950">
           {/* LEFT COLUMN: Composer Form (7 cols) */}
-          <div className="lg:col-span-7 p-5 space-y-4 overflow-y-auto overflow-x-hidden max-h-[calc(88vh-110px)]">
+          <div className={`lg:col-span-7 p-5 space-y-4 overflow-y-auto overflow-x-hidden ${asPage ? "lg:min-h-0" : "max-h-[calc(88vh-110px)]"}`}>
             {/* AI Post Writer Assistant (Collapsible) */}
             {aiWriterOpen && (
               <AiPostWriter
@@ -1594,7 +1601,7 @@ export default function PostComposerModal({
           </div>
 
           {/* RIGHT COLUMN: Real-Time Live Feed Mockup (5 cols) */}
-          <div className="lg:col-span-5 p-4 sm:p-5 bg-zinc-50 dark:bg-zinc-950/40 border-l border-zinc-200 dark:border-zinc-800/80 flex flex-col overflow-y-auto overflow-x-hidden max-h-[calc(88vh-110px)]">
+          <div className={`lg:col-span-5 p-4 sm:p-5 bg-zinc-50 dark:bg-zinc-950/40 border-l border-zinc-200 dark:border-zinc-800/80 flex flex-col overflow-y-auto overflow-x-hidden ${asPage ? "lg:min-h-0" : "max-h-[calc(88vh-110px)]"}`}>
             <LiveDevicePreview
               platform={activePreviewPlatform}
               selectedPlatforms={selectedPlatforms}
