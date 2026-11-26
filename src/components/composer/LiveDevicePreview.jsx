@@ -32,6 +32,8 @@ export default function LiveDevicePreview({
   customTag = "",
   tagColor = "",
   overriddenPlatforms = [],
+  // Off when the words are real, so an empty title stays empty.
+  placeholders = true,
 }) {
   const [activePreviewTab, setActivePreviewTab] = useState(platform);
 
@@ -42,8 +44,8 @@ export default function LiveDevicePreview({
     }
   }, [platform]);
 
-  const displayTitle = title || "Your engaging post title goes here...";
-  const displayDescription = description || "Write an engaging description, hook your audience, and add hashtags to boost reach!";
+  const displayTitle = title || (placeholders ? "Your engaging post title goes here..." : "");
+  const displayDescription = description || (placeholders ? "Write an engaging description, hook your audience, and add hashtags to boost reach!" : "");
   const displayMedia = mediaUrl || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=60";
   const displayAccount = accountName || "Creator Studio";
   const handle = "@" + displayAccount.toLowerCase().replace(/[^a-z0-9_]/g, "");
@@ -59,64 +61,47 @@ export default function LiveDevicePreview({
     { key: "pinterest", name: "Pinterest", Icon: FaPinterest, color: "text-rose-500", activeStyle: "bg-rose-500/20 text-rose-400 border border-rose-500/40 shadow-sm shadow-rose-500/20" },
   ];
 
+  const showing = previewTabs.find((t) => t.key === activePreviewTab);
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-zinc-950/50 rounded-xl border border-zinc-200 dark:border-zinc-800 p-3.5 sm:p-4 overflow-hidden shadow-xs">
-      {/* Header & Platform Switcher Tabs */}
-      <div className="flex flex-col justify-between pb-3 mb-3 border-b border-zinc-200 dark:border-zinc-800/80 gap-2">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50 animate-pulse" />
-            <span className="text-[11px] font-semibold text-zinc-800 dark:text-zinc-300">
-              Live Feed Mockup
-            </span>
-            {customTag && (
-              <span
-                className="px-2 py-0.5 rounded-full text-[9px] font-bold text-white shadow-xs ml-1"
-                style={{ backgroundColor: tagColor || "#6d28d9" }}
-              >
-                #{customTag}
-              </span>
-            )}
+    <div className="flex h-full flex-col">
+      {/* Heading and channel switcher */}
+      <div className="mb-4 space-y-3">
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <h3 className="!text-sm !leading-5 !tracking-normal font-semibold">Preview</h3>
+            <p className="text-xs text-muted-ink">How it could look on {showing?.name || "the feed"}. Likes and views are examples.</p>
           </div>
-          {selectedPlatforms && selectedPlatforms.length > 1 && (
-            <span className="text-[10px] text-zinc-500 font-mono">
-              Previewing {activePreviewTab}
+          {customTag && (
+            <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium text-white" style={{ backgroundColor: tagColor || "#6d28d9" }}>
+              {customTag}
             </span>
           )}
         </div>
 
-        {/* Multi-Platform Preview Switcher Tabs */}
         {selectedPlatforms && selectedPlatforms.length > 1 && (
-          <div className="flex items-center gap-1 overflow-x-auto pb-0.5">
+          <div role="tablist" aria-label="Preview channel" className="flex gap-1 overflow-x-auto rounded-lg border border-hairline bg-card p-1">
             {previewTabs
               .filter((tab) => selectedPlatforms.includes(tab.key))
               .map((tab) => {
                 const Icon = tab.Icon;
                 const isActive = activePreviewTab === tab.key;
-                const isOverridden = overriddenPlatforms.includes(tab.key);
                 return (
                   <button
                     key={tab.key}
                     type="button"
+                    role="tab"
+                    aria-selected={isActive}
                     onClick={() => {
                       setActivePreviewTab(tab.key);
                       if (onSelectPlatform) onSelectPlatform(tab.key);
                     }}
-                    className={`px-2 py-1 rounded-md text-[11px] font-medium flex items-center gap-1.5 transition-all cursor-pointer shrink-0 ${
-                      isActive
-                        ? tab.activeStyle
-                        : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800/50"
+                    className={`inline-flex min-h-8 shrink-0 items-center gap-1.5 rounded-md px-2.5 text-xs transition-colors cursor-pointer ${
+                      isActive ? "bg-tint font-medium text-foreground" : "text-muted-ink hover:text-foreground"
                     }`}
-                    title={`Preview on ${tab.name}`}
                   >
-                    <Icon className={`text-xs ${isActive ? "text-current" : tab.color}`} />
-                    <span>{tab.name}</span>
-                    {isOverridden && (
-                      <span
-                        className="w-1.5 h-1.5 rounded-full bg-amber-400 dark:bg-amber-300 ring-1 ring-white dark:ring-zinc-900 shrink-0 ml-0.5"
-                        title="Platform override active"
-                      />
-                    )}
+                    <Icon aria-hidden className={`text-xs ${tab.color}`} />
+                    {tab.name}
+                    {overriddenPlatforms.includes(tab.key) && <span className="size-1.5 rounded-full bg-amber-500" title="Customised for this channel" />}
                   </button>
                 );
               })}

@@ -2,7 +2,7 @@
 
 import { inWorkspace } from "@/lib/workspace-client";
 import { CONNECT_MESSAGES, openConnect } from "@/lib/connect-client";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useSyncExternalStore } from "react";
 import { 
   FaYoutube, 
   FaInstagram, 
@@ -116,6 +116,49 @@ const X_REPLY_OPTIONS = [
 
 const POPULAR_HASHTAGS = ["#trending", "#ai", "#tech", "#innovation", "#growth", "#viral", "#creators"];
 
+// Shared look for the composer, built on the SocialGem theme so light and dark both work.
+const field = "w-full rounded-lg border border-hairline bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-ink/70 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/15";
+const labelText = "mb-1.5 block text-xs font-medium text-muted-ink";
+const tab = "inline-flex min-h-8 shrink-0 items-center gap-1.5 rounded-md px-3 text-sm transition-colors cursor-pointer";
+const tabOn = "bg-card font-medium text-foreground shadow-sm";
+const tabOff = "text-muted-ink hover:text-foreground";
+const chip = "inline-flex min-h-8 items-center gap-1.5 rounded-full border px-3 text-xs transition-colors cursor-pointer";
+const primaryButton = "inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-brand px-4 text-sm font-medium text-white transition-colors hover:bg-brand-hover cursor-pointer disabled:cursor-not-allowed disabled:opacity-50";
+const secondaryButton = "inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-hairline bg-card px-4 text-sm font-medium text-foreground transition-colors hover:border-brand/40 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50";
+
+function Section({ step, title, hint, action, children }) {
+  return (
+    <section className="rounded-xl border border-hairline bg-card p-4 sm:p-5">
+      <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
+        <div className="flex min-w-0 items-start gap-2.5">
+          <span aria-hidden className="mt-px grid size-5 shrink-0 place-items-center rounded-full bg-tint-strong text-[11px] font-semibold text-brand-ink">{step}</span>
+          <div className="min-w-0">
+            <h3 className="!text-sm !leading-5 !tracking-normal font-semibold">{title}</h3>
+            {hint && <p className="text-xs text-muted-ink">{hint}</p>}
+          </div>
+        </div>
+        {action || null}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function Toggle({ label, hint, checked, onChange, className = "" }) {
+  return (
+    <label className={`flex min-h-11 cursor-pointer items-center justify-between gap-3 px-3 py-2 ${className}`}>
+      <span>
+        <span className="block text-sm">{label}</span>
+        {hint && <span className="block text-xs text-muted-ink">{hint}</span>}
+      </span>
+      <input type="checkbox" role="switch" checked={checked} onChange={(e) => onChange(e.target.checked)} className="peer sr-only" />
+      <span aria-hidden className="relative h-5 w-9 shrink-0 rounded-full bg-hairline transition-colors peer-checked:bg-brand peer-focus-visible:ring-2 peer-focus-visible:ring-brand/40 after:absolute after:top-0.5 after:left-0.5 after:size-4 after:rounded-full after:bg-white after:shadow after:transition-transform peer-checked:after:translate-x-4" />
+    </label>
+  );
+}
+
+const noSubscribe = () => () => {};
+
 const localDay = (d) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
@@ -130,6 +173,11 @@ export default function PostComposerModal({
   variant = "modal",
 }) {
   const asPage = variant === "page";
+  const [dragging, setDragging] = useState(false);
+  // When the composer opened; enough to warn about a time that has already passed.
+  const [openedAt] = useState(() => Date.now());
+  // The browser's time zone; empty on the server so the first render matches.
+  const timeZone = useSyncExternalStore(noSubscribe, () => Intl.DateTimeFormat().resolvedOptions().timeZone, () => "");
   const [selectedPlatforms, setSelectedPlatforms] = useState(["youtube"]);
   const [activePreviewPlatform, setActivePreviewPlatform] = useState("youtube");
   const [connectedAccounts, setConnectedAccounts] = useState([]);
@@ -669,1040 +717,569 @@ export default function PostComposerModal({
     }
   };
 
+  const zone = timeZone;
+  const when = scheduledDate && scheduledTime ? new Date(`${scheduledDate}T${scheduledTime}:00`) : null;
+  const whenText = when && !Number.isNaN(when.getTime())
+    ? when.toLocaleString(undefined, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
+    : "";
+  const inPast = isScheduled && when && when.getTime() < openedAt;
+  const channelCount = selectedPlatforms.length;
+  const channelWord = `${channelCount} ${channelCount === 1 ? "channel" : "channels"}`;
+  const overLimit = currentChars > currentTabCharLimit;
+  const mediaIsVideo = /\.(mp4|mov|m4v|webm)(\?|#|$)/i.test(currentTabMediaUrl || "");
+  const dropFile = (e) => {
+    e.preventDefault();
+    setDragging(false);
+    if (e.dataTransfer?.files?.length) handleMediaUpload({ target: { files: e.dataTransfer.files, value: "" } });
+  };
+
   return (
-    <div className={asPage ? "p-3 sm:p-5" : "fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 dark:bg-black/80 backdrop-blur-sm overflow-hidden"}>
+    <div className={asPage ? "p-3 sm:p-5" : "fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-[#080718]/55 backdrop-blur-sm overflow-hidden"}>
       <div
-        className={`relative w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden flex flex-col text-slate-900 dark:text-white transition-colors ${
-          asPage ? "shadow-sm lg:h-[calc(100dvh-62px-2.5rem)]" : "max-w-5xl shadow-2xl max-h-[88vh]"
+        role={asPage ? undefined : "dialog"}
+        aria-modal={asPage ? undefined : true}
+        aria-labelledby="composer-title"
+        className={`brand-themed relative w-full overflow-hidden flex flex-col rounded-2xl border border-hairline bg-card text-foreground ${
+          asPage ? "shadow-sm lg:h-[calc(100dvh-62px-2.5rem)]" : "max-w-6xl shadow-2xl max-h-[90vh]"
         }`}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Modal Top Bar */}
-        <div className="flex items-center justify-between px-5 py-3 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-md bg-[#6d28d9] text-white font-black text-sm flex items-center justify-center shadow-md shadow-[#6d28d9]/30">
-              P
-            </div>
-            <div>
-              <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white tracking-wide uppercase">
-                {initialPost ? "EDIT SCHEDULED POST" : "COMPOSE & SCHEDULE POST"}
-              </h3>
-              <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                Multi-channel scheduling with real-time feed preview
-              </p>
-            </div>
+        {/* Top bar */}
+        <div className="flex items-center justify-between gap-3 px-4 sm:px-5 py-3 border-b border-hairline">
+          <div className="min-w-0">
+            <h2 id="composer-title" className="!text-base !leading-tight !tracking-tight font-semibold">
+              {initialPost ? "Edit post" : "New post"}
+            </h2>
+            <p className="text-xs text-muted-ink truncate">Write once, adjust for each channel and see it before it goes out.</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
               onClick={() => setAiWriterOpen(!aiWriterOpen)}
-              className={`px-3 py-1 rounded-md text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer border ${
-                aiWriterOpen
-                  ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white border-violet-400/40 shadow-md shadow-violet-500/30"
-                  : "bg-gradient-to-r from-violet-600/15 to-indigo-600/15 text-violet-700 dark:text-violet-300 border-violet-500/30 hover:border-violet-500/60 hover:text-[#6d28d9] dark:hover:text-white"
+              aria-pressed={aiWriterOpen}
+              className={`inline-flex min-h-9 items-center gap-2 rounded-lg px-3 text-sm font-medium transition-colors cursor-pointer ${
+                aiWriterOpen ? "bg-brand text-white hover:bg-brand-hover" : "border border-brand/30 bg-tint text-brand-ink hover:border-brand"
               }`}
             >
-              <FaMagic className="text-[11px] text-amber-500 dark:text-amber-300" />
+              <FaMagic aria-hidden className="text-xs" />
               <span>Write with AI</span>
             </button>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Close"
-              hidden={asPage}
-              className="w-7 h-7 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 flex items-center justify-center transition-colors cursor-pointer"
-            >
-              <FiX className="text-sm" />
-            </button>
+            {!asPage && (
+              <button type="button" onClick={onClose} aria-label="Close" className="grid size-9 place-items-center rounded-lg text-muted-ink hover:bg-tint hover:text-foreground cursor-pointer">
+                <FiX />
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Modal Main Content - 2 Column Split */}
-        <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 overflow-hidden divide-y lg:divide-y-0 lg:divide-x divide-zinc-200 dark:divide-zinc-800 bg-[#f8f9fa] dark:bg-zinc-950">
-          {/* LEFT COLUMN: Composer Form (7 cols) */}
-          <div className={`lg:col-span-7 p-5 space-y-4 overflow-y-auto overflow-x-hidden ${asPage ? "lg:min-h-0" : "max-h-[calc(88vh-110px)]"}`}>
-            {/* AI Post Writer Assistant (Collapsible) */}
-            {aiWriterOpen && (
-              <AiPostWriter
-                platform={activePreviewPlatform}
-                onApply={handleApplyAiContent}
-                onClose={() => setAiWriterOpen(false)}
-              />
-            )}
-
-            {errorMsg && (
-              <div className="p-2.5 bg-red-500/10 border border-red-500/20 rounded-md text-xs text-red-400 flex items-center gap-2">
-                <FiInfo className="text-sm shrink-0" />
-                <span>{errorMsg}</span>
-              </div>
-            )}
-
-            {/* 1. Channel Selector with Multi-Select (Connected Channels Only) */}
-            <div className="space-y-2.5">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <label className="text-xs font-bold text-zinc-800 dark:text-zinc-300 tracking-wider uppercase block">
-                    1. SELECT PUBLISHING CHANNELS
-                  </label>
-                  <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
-                    {selectedPlatforms.length} {selectedPlatforms.length === 1 ? "channel" : "channels"} selected
-                  </span>
-                </div>
-                {connectedPlatforms.length > 1 && (
-                  <div className="flex items-center gap-1.5 text-[11px]">
-                    <button
-                      type="button"
-                      onClick={selectAllPlatforms}
-                      className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors cursor-pointer"
-                    >
-                      Select All
-                    </button>
-                    <span className="text-zinc-400 dark:text-zinc-600">|</span>
-                    <button
-                      type="button"
-                      onClick={() => selectSinglePlatform(activePreviewPlatform)}
-                      className="text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 font-medium transition-colors cursor-pointer"
-                    >
-                      Only Current
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {connectedPlatforms.length === 0 ? (
-                /* Empty state when no channels are connected */
-                <div className="p-4 rounded-lg border border-dashed border-zinc-300 dark:border-zinc-800 bg-white dark:bg-zinc-900/30 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left shadow-2xs">
-                  <div>
-                    <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">No social channels connected yet</p>
-                    <p className="text-[11px] text-zinc-500">Connect your accounts to start scheduling and publishing posts.</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setAddChannelModalOpen(true)}
-                    className="px-3.5 py-1.5 rounded-md bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-blue-600/30 shrink-0 cursor-pointer"
-                  >
-                    <FiPlus className="text-xs font-bold" />
-                    <span>Add Channel</span>
-                  </button>
-                </div>
-              ) : (
-                /* Connected channels grid with + Add Channel button */
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-                  {connectedPlatforms.map((plat) => {
-                    const Icon = plat.Icon;
-                    const isSelected = selectedPlatforms.includes(plat.key);
-                    const isCurrent = activePreviewPlatform === plat.key;
-
-                    // Match connected account details for label
-                    const matchingAccounts = connectedAccounts.filter(a => getPlatformKey(a) === plat.key);
-                    const accountLabel = matchingAccounts.length > 0 ? matchingAccounts[0].account_name : plat.name;
-
-                    return (
-                      <div
-                        key={plat.key}
-                        onClick={() => togglePlatform(plat.key)}
-                        className={`relative p-2.5 rounded-md border flex items-center justify-between gap-2 transition-all cursor-pointer select-none ${
-                          isSelected
-                            ? `${plat.activeStyle} ${isCurrent ? "ring-2 ring-[#6d28d9] dark:ring-white/30" : ""}`
-                            : "border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/40 text-zinc-600 dark:text-zinc-500 hover:border-zinc-300 dark:hover:border-zinc-700 hover:text-zinc-900 dark:hover:text-zinc-300 shadow-2xs"
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 min-w-0">
-                          <div className="relative shrink-0">
-                            <div className={`w-7 h-7 rounded-full flex items-center justify-center ${isSelected ? "bg-white/10" : "bg-zinc-100 dark:bg-zinc-800/80"}`}>
-                              <Icon className={`text-xs ${isSelected ? "text-current" : plat.color}`} />
-                            </div>
-                            <span className="w-2 h-2 rounded-full bg-emerald-400 absolute -bottom-0.5 -right-0.5 ring-2 ring-white dark:ring-zinc-950" />
-                          </div>
-                          <div className="min-w-0">
-                            <div className="text-[11px] truncate font-bold text-zinc-900 dark:text-zinc-100">
-                              {plat.name}
-                            </div>
-                            <div className="text-[11px] truncate text-zinc-500 dark:text-zinc-400">
-                              {accountLabel}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center shrink-0">
-                          {isSelected ? (
-                            <span className="w-4 h-4 rounded-full bg-white/20 text-white flex items-center justify-center text-[11px] font-bold">
-                              ✓
-                            </span>
-                          ) : (
-                            <span className="w-4 h-4 rounded-full border border-zinc-300 dark:border-zinc-700 flex items-center justify-center" />
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-
-                  {/* + Add Channel Button (Reference App Style) */}
-                  <button
-                    type="button"
-                    onClick={() => setAddChannelModalOpen(true)}
-                    className="p-2.5 rounded-md border border-dashed border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 bg-white dark:bg-zinc-900/30 hover:bg-zinc-50 dark:hover:bg-zinc-900/60 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 flex items-center justify-center gap-2 transition-all cursor-pointer group min-h-[50px] shadow-2xs"
-                  >
-                    <div className="w-6 h-6 rounded-full bg-zinc-100 dark:bg-zinc-800 group-hover:bg-zinc-200 dark:group-hover:bg-zinc-700 flex items-center justify-center text-zinc-600 dark:text-zinc-300 transition-colors">
-                      <FiPlus className="text-xs font-bold" />
-                    </div>
-                    <span className="text-[11px] font-semibold tracking-wide">
-                      Add Channel
-                    </span>
-                  </button>
-                </div>
+        {/* Body: form and preview */}
+        <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
+          <div className={`lg:col-span-7 overflow-y-auto overflow-x-hidden bg-background/60 ${asPage ? "lg:min-h-0" : "max-h-[calc(90vh-130px)]"}`}>
+            <div className="mx-auto max-w-3xl p-4 sm:p-5 space-y-4">
+              {aiWriterOpen && (
+                <AiPostWriter platform={activePreviewPlatform} onApply={handleApplyAiContent} onClose={() => setAiWriterOpen(false)} />
               )}
 
-              <p className="text-[11px] text-zinc-500">
-                Click any connected channel to toggle. Multiple selected channels will be published in a single click.
-              </p>
-            </div>
-
-            {/* Connected Account Display & Selector */}
-            {(() => {
-              const activePlatAccounts = connectedAccounts.filter((a) => {
-                const pName = (a.platform_name || "").toLowerCase();
-                const normKey = pName === "x" || pName === "twitter" ? "x_twitter" : pName;
-                return normKey === activePreviewPlatform || a.platform === activePreviewPlatform;
-              });
-
-              return (
-                <div className="p-2.5 rounded-md bg-white dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 flex items-center justify-between gap-3 text-xs shadow-2xs">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-zinc-600 dark:text-zinc-400 text-[11px] font-medium shrink-0">Posting to {currentPlatformInfo.name} as:</span>
-                    {activePlatAccounts.length > 0 ? (
-                      <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[11px] font-semibold truncate">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 shrink-0 animate-pulse" />
-                        <span className="truncate">{accountName}</span>
-                      </div>
-                    ) : (
-                      <span className="text-amber-500 dark:text-amber-400/90 text-[11px] font-medium flex items-center gap-1 truncate">
-                        ⚠️ No account connected in Integrations
-                      </span>
-                    )}
+              {/* Channels */}
+              <Section
+                step={1}
+                title="Channels"
+                hint={connectedPlatforms.length ? `${channelWord} selected` : "Connect an account to post"}
+                action={connectedPlatforms.length > 1 && (
+                  <div className="flex items-center gap-3 text-xs font-medium">
+                    <button type="button" onClick={selectAllPlatforms} className="text-brand-ink hover:underline cursor-pointer">Select all</button>
+                    <button type="button" onClick={() => selectSinglePlatform(activePreviewPlatform)} className="text-muted-ink hover:text-foreground cursor-pointer">Only this one</button>
                   </div>
-
-                  {activePlatAccounts.length > 1 && (
-                    <div className="w-44 sm:w-48 shrink-0">
-                      <CustomSelect
-                        value={accountId}
-                        onChange={(val) => {
-                          const sel = activePlatAccounts.find((a) => String(a.id) === String(val));
-                          if (sel) {
-                            setAccountId(String(sel.id));
-                            setAccountName(sel.account_name);
-                            setPlatformAccountMap((prev) => ({ ...prev, [activePreviewPlatform]: sel.id }));
-                          }
-                        }}
-                        options={activePlatAccounts.map((a) => ({
-                          value: String(a.id),
-                          label: a.account_name,
-                        }))}
-                        size="sm"
-                      />
+                )}
+              >
+                {connectedPlatforms.length === 0 ? (
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 rounded-xl border border-dashed border-hairline p-4 text-center sm:text-left">
+                    <div>
+                      <p className="text-sm font-medium">No channels connected yet</p>
+                      <p className="text-xs text-muted-ink">Connect a social account to schedule and publish.</p>
                     </div>
-                  )}
-                </div>
-              );
-            })()}
-
-            {/* Platform Caption & Media Overrides Tab Bar (Phase 2.2) */}
-            <div className="bg-white dark:bg-zinc-900/60 p-2 rounded-lg border border-zinc-200 dark:border-zinc-800 shadow-2xs space-y-1.5">
-              <div className="flex items-center justify-between gap-2 px-1">
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 shrink-0">
-                    Target Content:
-                  </span>
-                  {activeComposerTab === "all" ? (
-                    <span className="text-[11px] text-zinc-600 dark:text-zinc-400 truncate">
-                      Editing base post for all channels
-                    </span>
-                  ) : isCurrentTabOverridden ? (
-                    <span className="text-[11px] font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1.5 truncate">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse shrink-0" />
-                      <span>Custom override active for {currentActivePlatformInfo.name}</span>
-                    </span>
-                  ) : (
-                    <span className="text-[11px] text-zinc-500 truncate">
-                      Syncing with All Channels (type below to customize for {currentActivePlatformInfo.name})
-                    </span>
-                  )}
-                </div>
-
-                {activeComposerTab !== "all" && isCurrentTabOverridden && (
-                  <button
-                    type="button"
-                    onClick={resetCurrentTabOverride}
-                    className="text-[11px] font-semibold text-zinc-500 hover:text-red-500 dark:text-zinc-400 dark:hover:text-red-400 transition-colors cursor-pointer flex items-center gap-1 shrink-0"
-                    title="Reset to All Channels content"
-                  >
-                    <FiRefreshCw className="text-[11px]" />
-                    <span>Reset to Base</span>
-                  </button>
-                )}
-              </div>
-
-              {/* Tabs List */}
-              <div className="flex items-center gap-1 overflow-x-auto pb-0.5 scrollbar-thin">
-                <button
-                  type="button"
-                  onClick={() => setActiveComposerTab("all")}
-                  className={`px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 select-none ${
-                    activeComposerTab === "all"
-                      ? "bg-[#6d28d9] text-white shadow-xs font-bold"
-                      : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                  }`}
-                >
-                  <span>🌐</span>
-                  <span>All Channels</span>
-                </button>
-
-                {selectedPlatforms.map((platKey) => {
-                  const plat = PLATFORMS.find((p) => p.key === platKey);
-                  if (!plat) return null;
-                  const Icon = plat.Icon;
-                  const isCurrent = activeComposerTab === platKey;
-                  const hasOverride = hasPlatformOverride(platKey);
-
-                  return (
-                    <button
-                      key={platKey}
-                      type="button"
-                      onClick={() => {
-                        setActiveComposerTab(platKey);
-                        setActivePreviewPlatform(platKey);
-                      }}
-                      className={`px-2.5 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 shrink-0 select-none relative ${
-                        isCurrent
-                          ? "bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 shadow-xs font-bold"
-                          : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-transparent"
-                      }`}
-                    >
-                      <Icon className={`text-xs ${isCurrent ? (platKey === "x_twitter" ? "text-sky-400" : plat.color) : plat.color}`} />
-                      <span>{plat.name}</span>
-                      {hasOverride && (
-                        <span
-                          className="w-2 h-2 rounded-full bg-amber-400 dark:bg-amber-300 ring-2 ring-white dark:ring-zinc-900 shrink-0"
-                          title="Customized override active"
-                        />
-                      )}
+                    <button type="button" onClick={() => setAddChannelModalOpen(true)} className={primaryButton}>
+                      <FiPlus aria-hidden /> Connect a channel
                     </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* 2. Post Title */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-zinc-800 dark:text-zinc-300 tracking-wider uppercase block">
-                  2. POST TITLE / HEADLINE
-                </label>
-                {activeComposerTab !== "all" && platformOverrides[activeComposerTab]?.title !== undefined && (
-                  <span className="text-[11px] text-amber-600 dark:text-amber-400 font-medium">
-                    (Custom title for {currentActivePlatformInfo.name})
-                  </span>
-                )}
-              </div>
-              <input
-                type="text"
-                value={currentTabTitle}
-                onChange={(e) => handleTitleChange(e.target.value)}
-                placeholder={`Give your ${activeComposerTab !== "all" ? currentActivePlatformInfo.name : ""} post a strong, clickable title...`}
-                className="w-full bg-white dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800 rounded-md px-3.5 py-2 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:border-[#6d28d9] dark:focus:border-zinc-600 transition-colors shadow-2xs"
-              />
-            </div>
-
-            {/* 3. Caption & Content */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <label className="text-xs font-bold text-zinc-800 dark:text-zinc-300 tracking-wider uppercase">
-                    3. CAPTION & DETAILS
-                  </label>
-                  {!aiWriterOpen && (
-                    <button
-                      type="button"
-                      onClick={() => setAiWriterOpen(true)}
-                      className="text-[11px] text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 font-medium flex items-center gap-1 transition-colors cursor-pointer"
-                      title="Write post with AI"
-                    >
-                      <FaMagic className="text-[11px] text-amber-500 dark:text-amber-300" />
-                      <span>Write with AI</span>
-                    </button>
-                  )}
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className={`text-[11px] font-mono ${currentChars > currentTabCharLimit ? "text-red-500 font-bold" : "text-zinc-500 dark:text-zinc-400"}`}>
-                    {currentChars} / {currentTabCharLimit}
-                  </span>
-                  {activeComposerTab === "all" && selectedPlatforms.length > 1 && limitingPlatform && (
-                    <span className="text-[11px] text-zinc-500 font-sans hidden sm:inline">
-                      ({limitingPlatform.name} max)
-                    </span>
-                  )}
-                  {activeComposerTab !== "all" && (
-                    <span className="text-[11px] text-zinc-500 font-sans hidden sm:inline">
-                      ({currentActivePlatformInfo.name} max)
-                    </span>
-                  )}
-                </div>
-              </div>
-              <textarea
-                value={currentTabDescription}
-                onChange={(e) => handleDescriptionChange(e.target.value)}
-                rows={4}
-                placeholder={
-                  activeComposerTab !== "all"
-                    ? `Write custom caption specifically for ${currentActivePlatformInfo.name}...`
-                    : "Write your caption, hook, call to action, and hashtags..."
-                }
-                className={`w-full bg-white dark:bg-zinc-900/60 border rounded-md p-3 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none transition-colors resize-none leading-relaxed shadow-2xs ${
-                  currentChars > currentTabCharLimit
-                    ? "border-red-400 focus:border-red-500 ring-1 ring-red-400/30"
-                    : "border-zinc-200 dark:border-zinc-800 focus:border-[#6d28d9] dark:focus:border-zinc-600"
-                }`}
-              />
-
-              {/* Hashtag Quick Chips */}
-              <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
-                <span className="text-[11px] text-zinc-600 dark:text-zinc-400 flex items-center gap-1 mr-1 font-medium">
-                  <FaMagic className="text-violet-500 dark:text-violet-400 text-[11px]" /> Quick Tags:
-                </span>
-                {POPULAR_HASHTAGS.map((tag) => (
-                  <button
-                    key={tag}
-                    type="button"
-                    onClick={() => addHashtag(tag)}
-                    className="px-2 py-0.5 rounded bg-white dark:bg-zinc-900/80 hover:bg-violet-50 dark:hover:bg-indigo-500/10 border border-zinc-200 dark:border-zinc-800 hover:border-violet-300 dark:hover:border-indigo-500/40 text-[11px] text-zinc-600 dark:text-zinc-400 hover:text-violet-700 dark:hover:text-indigo-300 transition-all cursor-pointer font-mono shadow-2xs"
-                  >
-                    {tag}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* 4. Custom Tag & Category Color Banner */}
-            <div className="space-y-2.5 p-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/30 shadow-xs">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-zinc-800 dark:text-zinc-300 tracking-wider uppercase flex items-center gap-1.5">
-                  <FiTag className="text-[#6d28d9] dark:text-[#8b5cf6]" />
-                  <span>4. CUSTOM TAG & COLOR BANNER</span>
-                </label>
-                {customTag && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCustomTag("");
-                      setTagColor("");
-                    }}
-                    className="text-[11px] text-zinc-500 hover:text-red-500 dark:text-zinc-400 dark:hover:text-red-400 transition-colors cursor-pointer"
-                  >
-                    Clear Tag
-                  </button>
-                )}
-              </div>
-
-              {/* Tag Selection Pills */}
-              <div className="flex items-center gap-1.5 flex-wrap">
-                {/* Default platform color pill */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCustomTag("");
-                    setTagColor("");
-                  }}
-                  className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all cursor-pointer border ${
-                    !customTag
-                      ? "bg-[#6d28d9] text-white border-[#6d28d9] shadow-xs font-bold"
-                      : "bg-zinc-100 dark:bg-zinc-900/60 text-zinc-700 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700"
-                  }`}
-                >
-                  Default (Platform Color)
-                </button>
-
-                {/* Available Tags */}
-                {availableTags.map((t) => {
-                  const isSelected = customTag?.toLowerCase() === t.name.toLowerCase();
-                  return (
-                    <div
-                      key={t.id || t.name}
-                      onClick={() => {
-                        setCustomTag(t.name);
-                        setTagColor(t.color);
-                      }}
-                      className={`group/tag px-2.5 py-1 rounded-full text-[11px] font-medium transition-all cursor-pointer border flex items-center gap-1.5 ${
-                        isSelected
-                          ? "text-white font-bold ring-2 shadow-sm"
-                          : "bg-zinc-100 dark:bg-zinc-900/70 text-zinc-800 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:text-zinc-900 dark:hover:text-white"
-                      }`}
-                      style={{
-                        backgroundColor: isSelected ? t.color : undefined,
-                        borderColor: isSelected ? t.color : undefined,
-                        boxShadow: isSelected ? `0 0 10px ${t.color}40` : undefined,
-                      }}
-                    >
-                      <span
-                        className="w-2 h-2 rounded-full shrink-0"
-                        style={{ backgroundColor: t.color }}
-                      />
-                      <span>#{t.name}</span>
-                      {t.userId && (
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 min-[420px]:grid-cols-2 xl:grid-cols-3 gap-2">
+                    {connectedPlatforms.map((plat) => {
+                      const Icon = plat.Icon;
+                      const isSelected = selectedPlatforms.includes(plat.key);
+                      const account = connectedAccounts.find((a) => getPlatformKey(a) === plat.key);
+                      return (
                         <button
+                          key={plat.key}
                           type="button"
-                          onClick={(e) => handleDeleteTag(e, t.id)}
-                          className="opacity-0 group-hover/tag:opacity-100 hover:text-red-300 text-zinc-400 transition-opacity ml-0.5"
-                          title="Delete tag"
+                          role="checkbox"
+                          aria-checked={isSelected}
+                          onClick={() => togglePlatform(plat.key)}
+                          className={`flex min-h-14 items-center gap-3 rounded-xl border px-3 text-left transition-colors cursor-pointer ${
+                            isSelected ? "border-brand bg-tint ring-1 ring-brand/30" : "border-hairline bg-card hover:border-brand/40"
+                          }`}
                         >
-                          ×
+                          <span className="relative grid size-9 shrink-0 place-items-center rounded-lg bg-background border border-hairline">
+                            <Icon aria-hidden className={`text-base ${plat.color}`} />
+                            <span aria-hidden className="absolute -right-0.5 -bottom-0.5 size-2.5 rounded-full bg-emerald-500 ring-2 ring-card" />
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate text-sm font-medium">{plat.name}</span>
+                            <span className="block truncate text-xs text-muted-ink">{account?.account_name || "Connected"}</span>
+                          </span>
+                          <span aria-hidden className={`grid size-5 shrink-0 place-items-center rounded-md border text-[10px] ${isSelected ? "border-brand bg-brand text-white" : "border-hairline"}`}>
+                            {isSelected && <FaCheck />}
+                          </span>
                         </button>
+                      );
+                    })}
+                    <button
+                      type="button"
+                      onClick={() => setAddChannelModalOpen(true)}
+                      className="flex min-h-14 items-center justify-center gap-2 rounded-xl border border-dashed border-hairline text-sm font-medium text-muted-ink hover:border-brand/50 hover:text-brand-ink cursor-pointer"
+                    >
+                      <FiPlus aria-hidden /> Add channel
+                    </button>
+                  </div>
+                )}
+
+                {(() => {
+                  const activePlatAccounts = connectedAccounts.filter((a) => getPlatformKey(a) === activePreviewPlatform || a.platform === activePreviewPlatform);
+                  if (!connectedPlatforms.length) return null;
+                  return (
+                    <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg bg-background border border-hairline px-3 py-2">
+                      <span className="flex min-w-0 items-center gap-2 text-xs text-muted-ink">
+                        Posting to {currentPlatformInfo.name} as
+                        {activePlatAccounts.length > 0 ? (
+                          <b className="truncate font-medium text-foreground">{accountName}</b>
+                        ) : (
+                          <span className="font-medium text-warning">no connected account</span>
+                        )}
+                      </span>
+                      {activePlatAccounts.length > 1 && (
+                        <div className="w-48 shrink-0">
+                          <CustomSelect
+                            value={accountId}
+                            onChange={(val) => {
+                              const sel = activePlatAccounts.find((a) => String(a.id) === String(val));
+                              if (sel) {
+                                setAccountId(String(sel.id));
+                                setAccountName(sel.account_name);
+                                setPlatformAccountMap((prev) => ({ ...prev, [activePreviewPlatform]: sel.id }));
+                              }
+                            }}
+                            options={activePlatAccounts.map((a) => ({ value: String(a.id), label: a.account_name }))}
+                            size="sm"
+                          />
+                        </div>
                       )}
                     </div>
                   );
-                })}
+                })()}
+              </Section>
 
-                {/* Add Custom Tag Button */}
-                {!isCreatingCustomTag && (
-                  <button
-                    type="button"
-                    onClick={() => setIsCreatingCustomTag(true)}
-                    className="px-2.5 py-1 rounded-full text-[11px] font-medium text-[#6d28d9] dark:text-[#b79bff] hover:text-white bg-[#6d28d9]/10 hover:bg-[#6d28d9] border border-[#6d28d9]/30 transition-all cursor-pointer flex items-center gap-1"
-                  >
-                    <FaPlus className="text-[11px]" />
-                    <span>New Tag</span>
+              {/* Content */}
+              <Section
+                step={2}
+                title="Content"
+                hint={activeComposerTab === "all" ? "Shared by every selected channel" : isCurrentTabOverridden ? `Custom version for ${currentActivePlatformInfo.name}` : `Same as all channels. Type to customise for ${currentActivePlatformInfo.name}`}
+                action={activeComposerTab !== "all" && isCurrentTabOverridden && (
+                  <button type="button" onClick={resetCurrentTabOverride} className="inline-flex items-center gap-1 text-xs font-medium text-muted-ink hover:text-destructive cursor-pointer">
+                    <FiRefreshCw aria-hidden /> Use shared version
                   </button>
                 )}
-              </div>
-
-              {/* Inline Tag Creator Form */}
-              {isCreatingCustomTag && (
-                <div className="mt-2.5 p-3 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/70 space-y-3 shadow-2xs">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">Create Custom Tag</span>
+              >
+                {selectedPlatforms.length > 1 && (
+                  <div role="tablist" aria-label="Edit content for" className="mb-3 flex gap-1 overflow-x-auto rounded-lg bg-background border border-hairline p-1">
                     <button
                       type="button"
-                      onClick={() => setIsCreatingCustomTag(false)}
-                      className="text-zinc-400 hover:text-zinc-800 dark:hover:text-white text-xs cursor-pointer"
+                      role="tab"
+                      aria-selected={activeComposerTab === "all"}
+                      onClick={() => setActiveComposerTab("all")}
+                      className={`${tab} ${activeComposerTab === "all" ? tabOn : tabOff}`}
                     >
-                      ✕
+                      All channels
                     </button>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={newTagName}
-                      onChange={(e) => setNewTagName(e.target.value)}
-                      placeholder="Tag name (e.g. Launch, Promo, Meme)..."
-                      className="flex-1 bg-white dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-800 rounded-md px-3 py-1.5 text-xs text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:border-[#6d28d9]"
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          handleCreateTag();
-                        }
-                      }}
-                    />
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <input
-                        type="color"
-                        value={newTagColor}
-                        onChange={(e) => setNewTagColor(e.target.value)}
-                        className="w-7 h-7 rounded border-0 bg-transparent cursor-pointer"
-                        title="Pick custom color"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleCreateTag}
-                        disabled={!newTagName.trim()}
-                        className="px-3 py-1.5 rounded-md bg-[#6d28d9] hover:bg-[#5b1fc0] disabled:opacity-40 text-white text-xs font-semibold cursor-pointer transition-colors shadow-2xs"
-                      >
-                        Save
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Preset Color Swatches */}
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[11px] text-zinc-500 mr-1">Palette:</span>
-                    {TAG_COLOR_PALETTE.map((c) => (
-                      <button
-                        key={c}
-                        type="button"
-                        onClick={() => setNewTagColor(c)}
-                        className={`w-5 h-5 rounded-full transition-transform cursor-pointer border ${
-                          newTagColor === c ? "scale-110 border-white ring-2 ring-violet-500" : "border-transparent hover:scale-105"
-                        }`}
-                        style={{ backgroundColor: c }}
-                        title={c}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* 5. Media Attachment */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-bold text-zinc-800 dark:text-zinc-300 tracking-wider uppercase block">
-                  5. MEDIA ATTACHMENT (VIDEO / IMAGE)
-                </label>
-                {activeComposerTab !== "all" && (
-                  <div className="flex items-center gap-1.5 text-[11px]">
-                    {currentTabHasMediaOverride ? (
-                      <>
-                        <span className="text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                          Custom {currentActivePlatformInfo.name} Media
-                        </span>
+                    {selectedPlatforms.map((platKey) => {
+                      const plat = PLATFORMS.find((p) => p.key === platKey);
+                      if (!plat) return null;
+                      const Icon = plat.Icon;
+                      const on = activeComposerTab === platKey;
+                      return (
                         <button
+                          key={platKey}
                           type="button"
-                          onClick={resetCurrentTabMediaOverride}
-                          className="text-zinc-500 hover:text-red-500 dark:text-zinc-400 dark:hover:text-red-400 transition-colors cursor-pointer underline ml-1"
-                          title="Revert to All Channels media"
+                          role="tab"
+                          aria-selected={on}
+                          onClick={() => {
+                            setActiveComposerTab(platKey);
+                            setActivePreviewPlatform(platKey);
+                          }}
+                          className={`${tab} ${on ? tabOn : tabOff}`}
                         >
-                          Use Base Media
+                          <Icon aria-hidden className={`text-xs ${plat.color}`} />
+                          {plat.name}
+                          {hasPlatformOverride(platKey) && <span className="size-1.5 rounded-full bg-amber-500" title="Customised" />}
                         </button>
-                      </>
-                    ) : (
-                      <span className="text-zinc-500 dark:text-zinc-400">
-                        Using All Channels media
-                      </span>
-                    )}
+                      );
+                    })}
                   </div>
                 )}
-              </div>
 
-              {currentTabMediaUrl ? (
-                <div className="relative rounded-md overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-black aspect-video max-h-44 group shadow-2xs">
-                  <img
-                    src={currentTabMediaUrl}
-                    alt="Media preview"
-                    className="w-full h-full object-cover"
+                <label className="block">
+                  <span className={labelText}>Title</span>
+                  <input
+                    type="text"
+                    value={currentTabTitle}
+                    onChange={(e) => handleTitleChange(e.target.value)}
+                    placeholder="A clear, specific headline"
+                    className={field}
                   />
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                </label>
+
+                <div className="mt-3">
+                  <div className="flex items-center justify-between">
+                    <label htmlFor="composer-caption" className={labelText}>Caption</label>
+                    {!aiWriterOpen && (
+                      <button type="button" onClick={() => setAiWriterOpen(true)} className="mb-1.5 inline-flex items-center gap-1 text-xs font-medium text-brand-ink hover:underline cursor-pointer">
+                        <FaMagic aria-hidden className="text-[10px]" /> Write with AI
+                      </button>
+                    )}
+                  </div>
+                  <div className={`rounded-lg border bg-background transition focus-within:ring-2 ${overLimit ? "border-destructive focus-within:ring-destructive/20" : "border-hairline focus-within:border-brand focus-within:ring-brand/15"}`}>
+                    <textarea
+                      id="composer-caption"
+                      value={currentTabDescription}
+                      onChange={(e) => handleDescriptionChange(e.target.value)}
+                      rows={6}
+                      placeholder={activeComposerTab !== "all" ? `Caption for ${currentActivePlatformInfo.name}` : "What do you want to say? Add a hook, the details and a call to action."}
+                      className="block w-full resize-y bg-transparent px-3 pt-2.5 pb-1 text-sm leading-relaxed outline-none placeholder:text-muted-ink/70"
+                    />
+                    <div className="flex items-center justify-between gap-2 border-t border-hairline px-3 py-1.5">
+                      <div className="flex min-w-0 items-center gap-1 overflow-x-auto">
+                        {POPULAR_HASHTAGS.map((tag) => (
+                          <button key={tag} type="button" onClick={() => addHashtag(tag)} className="shrink-0 rounded-md px-1.5 py-0.5 text-xs text-muted-ink hover:bg-tint hover:text-brand-ink cursor-pointer">
+                            {tag}
+                          </button>
+                        ))}
+                      </div>
+                      <span className={`shrink-0 text-xs tabular-nums ${overLimit ? "font-semibold text-destructive" : "text-muted-ink"}`} title={limitingPlatform ? `${limitingPlatform.name} limit` : undefined}>
+                        {currentChars.toLocaleString()} / {currentTabCharLimit.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                  {overLimit && limitingPlatform && <p className="mt-1 text-xs text-destructive">Too long for {limitingPlatform.name}. Shorten it, or write a shorter version for that channel.</p>}
+                </div>
+              </Section>
+
+              {/* Media */}
+              <Section
+                step={3}
+                title="Media"
+                hint="Images up to 10 MB, videos up to 50 MB"
+                action={activeComposerTab !== "all" && (currentTabHasMediaOverride ? (
+                  <button type="button" onClick={resetCurrentTabMediaOverride} className="text-xs font-medium text-muted-ink hover:text-destructive cursor-pointer">Use shared media</button>
+                ) : (
+                  <span className="text-xs text-muted-ink">Shared with all channels</span>
+                ))}
+              >
+                {currentTabMediaUrl ? (
+                  <div className="group relative overflow-hidden rounded-xl border border-hairline bg-black">
+                    {mediaIsVideo ? (
+                      <video src={currentTabMediaUrl} controls preload="metadata" className="max-h-72 w-full object-contain" />
+                    ) : (
+                      <img src={currentTabMediaUrl} alt="Attached media" className="max-h-72 w-full object-contain" />
+                    )}
                     <button
                       type="button"
                       onClick={() => handleMediaUrlChange("")}
-                      className="px-3 py-1.5 rounded-md bg-red-600/90 hover:bg-red-600 text-white text-xs font-medium flex items-center gap-1.5 cursor-pointer shadow-sm"
+                      className="absolute top-2 right-2 inline-flex min-h-8 items-center gap-1.5 rounded-lg bg-black/70 px-2.5 text-xs font-medium text-white backdrop-blur hover:bg-[#c4262e] cursor-pointer"
                     >
-                      <FiTrash2 /> Remove
+                      <FiTrash2 aria-hidden /> Remove
                     </button>
                   </div>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <div
-                    onClick={() => fileInputRef.current?.click()}
-                    className="border border-dashed border-zinc-300 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-700 bg-white dark:bg-zinc-900/20 hover:bg-zinc-50 dark:hover:bg-zinc-900/40 rounded-md p-4 text-center cursor-pointer transition-colors flex flex-col items-center justify-center gap-1.5 shadow-2xs"
-                  >
-                    <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800/80 text-zinc-500 dark:text-zinc-400 flex items-center justify-center">
-                      <FiUploadCloud className="text-base" />
+                ) : (
+                  <div className="space-y-2">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setDragging(true);
+                      }}
+                      onDragLeave={() => setDragging(false)}
+                      onDrop={dropFile}
+                      disabled={uploading}
+                      className={`flex w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed px-4 py-7 text-center transition-colors cursor-pointer disabled:cursor-wait ${
+                        dragging ? "border-brand bg-tint" : "border-hairline hover:border-brand/50 hover:bg-tint/50"
+                      }`}
+                    >
+                      <span className="grid size-10 place-items-center rounded-full bg-tint text-brand-ink">
+                        {uploading ? <span className="size-4 rounded-full border-2 border-brand border-t-transparent animate-spin motion-reduce:animate-none" /> : <FiUploadCloud aria-hidden className="text-lg" />}
+                      </span>
+                      <span className="text-sm font-medium">{uploading ? "Uploading…" : <>Drop a file here or <span className="text-brand-ink">browse</span></>}</span>
+                      <span className="text-xs text-muted-ink">JPG, PNG, WebP, GIF, MP4, MOV or WebM</span>
+                    </button>
+                    <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/quicktime,video/webm" onChange={handleMediaUpload} className="hidden" />
+                    <div className="relative">
+                      <FiLink aria-hidden className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-ink" />
+                      <input
+                        type="url"
+                        aria-label="Media link"
+                        value={currentTabMediaUrl}
+                        onChange={(e) => handleMediaUrlChange(e.target.value)}
+                        placeholder="Or paste a public link (https://…)"
+                        className={`${field} pl-9`}
+                      />
                     </div>
-                    <div>
-                      <p className="text-xs font-medium text-zinc-800 dark:text-zinc-300">
-                        {uploading
-                          ? "Uploading..."
-                          : activeComposerTab !== "all"
-                          ? `Upload custom media for ${currentActivePlatformInfo.name}`
-                          : "Click or drag & drop video/image"}
-                      </p>
-                      <p className="text-[11px] text-zinc-500 mt-0.5">
-                        MP4, MOV, JPG, PNG up to 100MB
-                      </p>
-                    </div>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="video/*,image/*"
-                      onChange={handleMediaUpload}
-                      className="hidden"
-                    />
                   </div>
+                )}
+              </Section>
 
-                  <div className="relative">
-                    <FiLink className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 text-xs" />
-                    <input
-                      type="url"
-                      value={currentTabMediaUrl}
-                      onChange={(e) => handleMediaUrlChange(e.target.value)}
-                      placeholder={
-                        activeComposerTab !== "all"
-                          ? `Or paste custom media URL for ${currentActivePlatformInfo.name} (https://...)`
-                          : "Or paste media URL directly (https://...)"
-                      }
-                      className="w-full bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 rounded-md pl-8 pr-3 py-1.5 text-xs text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:border-[#6d28d9] dark:focus:border-zinc-600 transition-colors shadow-2xs"
-                    />
-                  </div>
+              {/* Schedule */}
+              <Section step={4} title="When to publish" hint={isScheduled ? (zone ? `Times are in ${zone}` : "Times are in your local time") : "Goes out as soon as you confirm"}>
+                <div role="radiogroup" aria-label="When to publish" className="grid grid-cols-2 gap-1 rounded-lg bg-background border border-hairline p-1">
+                  {[{ on: true, label: "Schedule", Icon: FiCalendar }, { on: false, label: "Post now", Icon: FiSend }].map(({ on, label, Icon }) => (
+                    <button
+                      key={label}
+                      type="button"
+                      role="radio"
+                      aria-checked={isScheduled === on}
+                      onClick={() => setIsScheduled(on)}
+                      className={`inline-flex min-h-9 items-center justify-center gap-2 rounded-md text-sm transition-colors cursor-pointer ${isScheduled === on ? "bg-card font-medium text-foreground shadow-sm" : "text-muted-ink hover:text-foreground"}`}
+                    >
+                      <Icon aria-hidden /> {label}
+                    </button>
+                  ))}
                 </div>
-              )}
-            </div>
+                {isScheduled && (
+                  <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <label className="block">
+                      <span className={labelText}>Date</span>
+                      <input type="date" value={scheduledDate} min={localDay(new Date())} onChange={(e) => setScheduledDate(e.target.value)} className={field} />
+                    </label>
+                    <label className="block">
+                      <span className={labelText}>Time</span>
+                      <input type="time" value={scheduledTime} onChange={(e) => setScheduledTime(e.target.value)} className={field} />
+                    </label>
+                    {inPast && <p className="sm:col-span-2 text-xs text-warning">That time has already passed. Choose a later time, or post now.</p>}
+                  </div>
+                )}
+              </Section>
 
-            {/* Platform Specific Settings Accordion */}
-            <div className={`border border-zinc-200 dark:border-zinc-800 rounded-md bg-white dark:bg-zinc-900/20 shadow-2xs relative ${advancedOpen ? "z-30" : "overflow-hidden"}`}>
-              <button
-                type="button"
-                onClick={() => setAdvancedOpen(!advancedOpen)}
-                className={`w-full px-3.5 py-2.5 flex items-center justify-between text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors cursor-pointer ${
-                  advancedOpen ? "rounded-t-md" : "rounded-md"
-                }`}
-              >
-                <span>Settings for {currentPlatformInfo.name}</span>
-                {advancedOpen ? <FaChevronUp className="text-[11px]" /> : <FaChevronDown className="text-[11px]" />}
-              </button>
-
-              {advancedOpen && (
-                <div className="p-3.5 pt-2 border-t border-zinc-200 dark:border-zinc-800 space-y-3">
-                  {selectedPlatforms.length > 1 && (
-                    <div className="flex items-center gap-1.5 pb-2 border-b border-zinc-200 dark:border-zinc-800/80 overflow-x-auto">
-                      <span className="text-[11px] text-zinc-500 uppercase font-bold mr-1 shrink-0">Configure:</span>
-                      {selectedPlatforms.map((pKey) => {
-                        const plat = PLATFORMS.find(p => p.key === pKey);
-                        const isCurrent = activePreviewPlatform === pKey;
-                        const Icon = plat?.Icon;
+              {/* Extras */}
+              <details className="group rounded-xl border border-hairline bg-card" open={advancedOpen} onToggle={(e) => setAdvancedOpen(e.currentTarget.open)}>
+                <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 sm:px-5 text-sm font-medium [&::-webkit-details-marker]:hidden">
+                  <span>
+                    More options
+                    <span className="ml-2 font-normal text-muted-ink">Label and {currentPlatformInfo.name} settings</span>
+                  </span>
+                  <FaChevronDown aria-hidden className="text-xs text-muted-ink transition-transform group-open:rotate-180" />
+                </summary>
+                <div className="space-y-5 border-t border-hairline px-4 sm:px-5 py-4">
+                  {/* Label */}
+                  <div>
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="inline-flex items-center gap-1.5 text-sm font-medium"><FiTag aria-hidden className="text-brand-ink" /> Calendar label</span>
+                      {customTag && (
+                        <button type="button" onClick={() => { setCustomTag(""); setTagColor(""); }} className="text-xs text-muted-ink hover:text-destructive cursor-pointer">Clear</button>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => { setCustomTag(""); setTagColor(""); }}
+                        className={`${chip} ${!customTag ? "border-brand bg-brand text-white" : "border-hairline hover:border-brand/40"}`}
+                      >
+                        None
+                      </button>
+                      {availableTags.map((t) => {
+                        const isSelected = customTag?.toLowerCase() === t.name.toLowerCase();
                         return (
-                          <button
-                            key={pKey}
-                            type="button"
-                            onClick={() => setActivePreviewPlatform(pKey)}
-                            className={`px-2 py-0.5 rounded text-[11px] font-medium flex items-center gap-1 transition-colors shrink-0 cursor-pointer ${
-                              isCurrent
-                                ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white font-bold border border-zinc-300 dark:border-zinc-700"
-                                : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200 bg-zinc-50 dark:bg-zinc-900/60"
-                            }`}
-                          >
-                            {Icon && <Icon className={`text-[11px] ${plat.color}`} />}
-                            <span>{plat?.name}</span>
+                          <span key={t.id || t.name} className={`${chip} group/tag ${isSelected ? "text-white" : "border-hairline hover:border-brand/40"}`} style={isSelected ? { backgroundColor: t.color, borderColor: t.color } : undefined}>
+                            <button type="button" onClick={() => { setCustomTag(t.name); setTagColor(t.color); }} className="inline-flex items-center gap-1.5 cursor-pointer">
+                              <span aria-hidden className="size-2 rounded-full" style={{ backgroundColor: isSelected ? "#fff" : t.color }} />
+                              {t.name}
+                            </button>
+                            {t.userId && (
+                              <button type="button" onClick={(e) => handleDeleteTag(e, t.id)} aria-label={`Delete label ${t.name}`} className="opacity-60 hover:opacity-100 cursor-pointer">
+                                <FiX aria-hidden className="text-[11px]" />
+                              </button>
+                            )}
+                          </span>
+                        );
+                      })}
+                      {!isCreatingCustomTag && (
+                        <button type="button" onClick={() => setIsCreatingCustomTag(true)} className={`${chip} border-dashed border-brand/40 text-brand-ink hover:bg-tint`}>
+                          <FiPlus aria-hidden /> New label
+                        </button>
+                      )}
+                    </div>
+                    {isCreatingCustomTag && (
+                      <div className="mt-3 rounded-lg border border-hairline bg-background p-3 space-y-3">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={newTagName}
+                            onChange={(e) => setNewTagName(e.target.value)}
+                            placeholder="Label name, for example Launch"
+                            aria-label="Label name"
+                            className={`${field} flex-1`}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                handleCreateTag();
+                              }
+                            }}
+                          />
+                          <input type="color" value={newTagColor} onChange={(e) => setNewTagColor(e.target.value)} aria-label="Label colour" className="size-9 shrink-0 cursor-pointer rounded-lg border border-hairline bg-transparent" />
+                        </div>
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex items-center gap-1.5">
+                            {TAG_COLOR_PALETTE.map((c) => (
+                              <button key={c} type="button" onClick={() => setNewTagColor(c)} aria-label={`Colour ${c}`} className={`size-5 rounded-full cursor-pointer ${newTagColor === c ? "ring-2 ring-offset-2 ring-offset-background ring-brand" : ""}`} style={{ backgroundColor: c }} />
+                            ))}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button type="button" onClick={() => setIsCreatingCustomTag(false)} className={secondaryButton}>Cancel</button>
+                            <button type="button" onClick={handleCreateTag} disabled={!newTagName.trim()} className={primaryButton}>Save label</button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Platform settings */}
+                  <div>
+                    <div className="mb-2 flex flex-wrap items-center gap-1.5">
+                      <span className="mr-1 text-sm font-medium">Channel settings</span>
+                      {selectedPlatforms.length > 1 && selectedPlatforms.map((pKey) => {
+                        const plat = PLATFORMS.find((p) => p.key === pKey);
+                        const Icon = plat?.Icon;
+                        const on = activePreviewPlatform === pKey;
+                        return (
+                          <button key={pKey} type="button" onClick={() => setActivePreviewPlatform(pKey)} aria-pressed={on} className={`${chip} ${on ? "border-brand bg-tint text-brand-ink font-medium" : "border-hairline hover:border-brand/40"}`}>
+                            {Icon && <Icon aria-hidden className={plat.color} />} {plat?.name}
                           </button>
                         );
                       })}
                     </div>
-                  )}
 
-                  {activePreviewPlatform === "youtube" && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {activePreviewPlatform === "youtube" && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <span className={labelText}>Category</span>
+                          <CustomSelect value={categoryId} onChange={(val) => setCategoryId(val)} options={YOUTUBE_CATEGORIES} size="sm" />
+                        </div>
+                        <div>
+                          <span className={labelText}>Visibility</span>
+                          <CustomSelect value={privacy} onChange={(val) => setPrivacy(val)} options={YOUTUBE_PRIVACY_OPTIONS} size="sm" />
+                        </div>
+                        <Toggle className="sm:col-span-2 !px-0" label="Made for kids" hint="Required by YouTube for children's content" checked={madeForKids} onChange={setMadeForKids} />
+                      </div>
+                    )}
+                    {activePreviewPlatform === "tiktok" && (
+                      <div className="divide-y divide-hairline rounded-lg border border-hairline">
+                        <Toggle label="Turn off comments" checked={disableComment} onChange={setDisableComment} />
+                        <Toggle label="Turn off duets" checked={disableDuet} onChange={setDisableDuet} />
+                        <Toggle label="Turn off stitches" checked={disableStitch} onChange={setDisableStitch} />
+                      </div>
+                    )}
+                    {activePreviewPlatform === "instagram" && (
+                      <div className="space-y-3">
+                        <div>
+                          <span className={labelText}>Placement</span>
+                          <CustomSelect value={placement} onChange={(val) => setPlacement(val)} options={INSTAGRAM_PLACEMENT_OPTIONS} size="sm" />
+                        </div>
+                        <Toggle className="!px-0" label="Also share reels to the main feed" checked={shareToFeed} onChange={setShareToFeed} />
+                      </div>
+                    )}
+                    {activePreviewPlatform === "facebook" && (
                       <div>
-                        <label className="text-[11px] font-medium text-zinc-700 dark:text-zinc-400 block mb-1">
-                          Category
-                        </label>
-                        <CustomSelect
-                          value={categoryId}
-                          onChange={(val) => setCategoryId(val)}
-                          options={YOUTUBE_CATEGORIES}
-                          size="sm"
-                        />
+                        <span className={labelText}>Placement</span>
+                        <CustomSelect value={placement} onChange={(val) => setPlacement(val)} options={FACEBOOK_PLACEMENT_OPTIONS} size="sm" />
                       </div>
+                    )}
+                    {activePreviewPlatform === "x_twitter" && (
                       <div>
-                        <label className="text-[11px] font-medium text-zinc-700 dark:text-zinc-400 block mb-1">
-                          Privacy
-                        </label>
-                        <CustomSelect
-                          value={privacy}
-                          onChange={(val) => setPrivacy(val)}
-                          options={YOUTUBE_PRIVACY_OPTIONS}
-                          size="sm"
-                        />
+                        <span className={labelText}>Who can reply</span>
+                        <CustomSelect value={replySettings} onChange={(val) => setReplySettings(val)} options={X_REPLY_OPTIONS} size="sm" />
                       </div>
-                      <div className="sm:col-span-2 flex items-center gap-2 pt-1">
-                        <input
-                          type="checkbox"
-                          id="kids"
-                          checked={madeForKids}
-                          onChange={(e) => setMadeForKids(e.target.checked)}
-                          className="rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-[#6d28d9] focus:ring-0"
-                        />
-                        <label htmlFor="kids" className="text-xs text-zinc-600 dark:text-zinc-400 cursor-pointer">
-                          Made for Kids (COPPA compliant)
+                    )}
+                    {activePreviewPlatform === "pinterest" && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <label className="block">
+                          <span className={labelText}>Destination link</span>
+                          <input type="url" value={destinationLink} onChange={(e) => setDestinationLink(e.target.value)} placeholder="https://yourwebsite.com/page" className={field} />
+                        </label>
+                        <label className="block">
+                          <span className={labelText}>Board (optional)</span>
+                          <input type="text" value={boardId} onChange={(e) => setBoardId(e.target.value)} placeholder="Default board" className={field} />
                         </label>
                       </div>
-                    </div>
-                  )}
-
-                  {activePreviewPlatform === "tiktok" && (
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-xs text-zinc-700 dark:text-zinc-300">
-                        <span>Disable Comments</span>
-                        <input
-                          type="checkbox"
-                          checked={disableComment}
-                          onChange={(e) => setDisableComment(e.target.checked)}
-                          className="rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-[#6d28d9]"
-                        />
-                      </div>
-                      <div className="flex items-center justify-between text-xs text-zinc-700 dark:text-zinc-300">
-                        <span>Disable Duet</span>
-                        <input
-                          type="checkbox"
-                          checked={disableDuet}
-                          onChange={(e) => setDisableDuet(e.target.checked)}
-                          className="rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-[#6d28d9]"
-                        />
-                      </div>
-                      <div className="flex items-center justify-between text-xs text-zinc-700 dark:text-zinc-300">
-                        <span>Disable Stitch</span>
-                        <input
-                          type="checkbox"
-                          checked={disableStitch}
-                          onChange={(e) => setDisableStitch(e.target.checked)}
-                          className="rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-[#6d28d9]"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {activePreviewPlatform === "instagram" && (
-                    <div className="space-y-3">
-                      <div>
-                        <label className="text-[11px] font-medium text-zinc-700 dark:text-zinc-400 block mb-1">
-                          Placement
-                        </label>
-                        <CustomSelect
-                          value={placement}
-                          onChange={(val) => setPlacement(val)}
-                          options={INSTAGRAM_PLACEMENT_OPTIONS}
-                          size="sm"
-                        />
-                      </div>
-                      <div className="flex items-center justify-between text-xs text-zinc-700 dark:text-zinc-300">
-                        <span>Share Reels to Main Feed</span>
-                        <input
-                          type="checkbox"
-                          checked={shareToFeed}
-                          onChange={(e) => setShareToFeed(e.target.checked)}
-                          className="rounded border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-pink-500"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {activePreviewPlatform === "facebook" && (
-                    <div className="space-y-2">
-                      <div>
-                        <label className="text-[11px] font-medium text-zinc-700 dark:text-zinc-400 block mb-1">
-                          Placement
-                        </label>
-                        <CustomSelect
-                          value={placement}
-                          onChange={(val) => setPlacement(val)}
-                          options={FACEBOOK_PLACEMENT_OPTIONS}
-                          size="sm"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {activePreviewPlatform === "x_twitter" && (
-                    <div className="space-y-2">
-                      <div>
-                        <label className="text-[11px] font-medium text-zinc-700 dark:text-zinc-400 block mb-1">
-                          Who can reply
-                        </label>
-                        <CustomSelect
-                          value={replySettings}
-                          onChange={(val) => setReplySettings(val)}
-                          options={X_REPLY_OPTIONS}
-                          size="sm"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {activePreviewPlatform === "pinterest" && (
-                    <div className="space-y-3">
-                      <div>
-                        <label className="text-[11px] font-medium text-zinc-700 dark:text-zinc-400 block mb-1">
-                          Destination Link
-                        </label>
-                        <input
-                          type="url"
-                          value={destinationLink}
-                          onChange={(e) => setDestinationLink(e.target.value)}
-                          placeholder="https://yourwebsite.com/pin-link"
-                          className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md px-2.5 py-1.5 text-xs text-zinc-800 dark:text-zinc-200 focus:outline-none focus:border-[#6d28d9] dark:focus:border-zinc-700 shadow-2xs"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[11px] font-medium text-zinc-700 dark:text-zinc-400 block mb-1">
-                          Board ID / Name (Optional)
-                        </label>
-                        <input
-                          type="text"
-                          value={boardId}
-                          onChange={(e) => setBoardId(e.target.value)}
-                          placeholder="Default Board or ID"
-                          className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md px-2.5 py-1.5 text-xs text-zinc-800 dark:text-zinc-200 focus:outline-none focus:border-[#6d28d9] dark:focus:border-zinc-700 shadow-2xs"
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {(activePreviewPlatform === "linkedin" || activePreviewPlatform === "threads") && (
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                      Standard optimization and formatting will be automatically applied for {currentPlatformInfo.name}.
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* 6. Scheduling Controls */}
-            <div className="p-3.5 bg-white dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800 rounded-md space-y-2.5 shadow-2xs">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <FiCalendar className="text-zinc-500 dark:text-zinc-400 text-xs" />
-                  <span className="text-xs font-bold text-zinc-800 dark:text-zinc-300 tracking-wider uppercase">
-                    6. SCHEDULE & PUBLISH OPTIONS
-                  </span>
-                </div>
-                <div className="flex items-center bg-zinc-100 dark:bg-zinc-900 p-0.5 rounded-md border border-zinc-200 dark:border-zinc-800 text-xs">
-                  <button
-                    type="button"
-                    onClick={() => setIsScheduled(false)}
-                    className={`px-2.5 py-1 rounded text-xs font-medium transition-colors cursor-pointer ${
-                      !isScheduled ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-2xs font-bold" : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
-                    }`}
-                  >
-                    Post Now
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsScheduled(true)}
-                    className={`px-2.5 py-1 rounded text-xs font-medium transition-colors cursor-pointer ${
-                      isScheduled ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-2xs font-bold" : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
-                    }`}
-                  >
-                    Schedule
-                  </button>
-                </div>
-              </div>
-
-              {isScheduled && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-                  <div className="relative">
-                    <FiCalendar className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 text-xs" />
-                    <input
-                      type="date"
-                      value={scheduledDate}
-                      onChange={(e) => setScheduledDate(e.target.value)}
-                      className="w-full bg-white dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800 rounded-md pl-8 pr-2.5 py-1.5 text-xs text-zinc-900 dark:text-zinc-200 focus:outline-none focus:border-[#6d28d9] dark:focus:border-zinc-600 shadow-2xs"
-                    />
-                  </div>
-                  <div className="relative">
-                    <FiClock className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500 text-xs" />
-                    <input
-                      type="time"
-                      value={scheduledTime}
-                      onChange={(e) => setScheduledTime(e.target.value)}
-                      className="w-full bg-white dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800 rounded-md pl-8 pr-2.5 py-1.5 text-xs text-zinc-900 dark:text-zinc-200 focus:outline-none focus:border-[#6d28d9] dark:focus:border-zinc-600 shadow-2xs"
-                    />
+                    )}
+                    {(activePreviewPlatform === "linkedin" || activePreviewPlatform === "threads") && (
+                      <p className="text-xs text-muted-ink">{currentPlatformInfo.name} has no extra settings.</p>
+                    )}
                   </div>
                 </div>
-              )}
+              </details>
             </div>
           </div>
 
-          {/* RIGHT COLUMN: Real-Time Live Feed Mockup (5 cols) */}
-          <div className={`lg:col-span-5 p-4 sm:p-5 bg-zinc-50 dark:bg-zinc-950/40 border-l border-zinc-200 dark:border-zinc-800/80 flex flex-col overflow-y-auto overflow-x-hidden ${asPage ? "lg:min-h-0" : "max-h-[calc(88vh-110px)]"}`}>
-            <LiveDevicePreview
-              platform={activePreviewPlatform}
-              selectedPlatforms={selectedPlatforms}
-              onSelectPlatform={(plat) => {
-                setActivePreviewPlatform(plat);
-                if (activeComposerTab !== "all") {
-                  setActiveComposerTab(plat);
-                }
-              }}
-              title={getEffectiveContent(activePreviewPlatform).title}
-              description={getEffectiveContent(activePreviewPlatform).description}
-              tags={getEffectiveContent(activePreviewPlatform).tags}
-              customTag={customTag}
-              tagColor={tagColor}
-              mediaUrl={getEffectiveContent(activePreviewPlatform).mediaUrl}
-              accountName={accountName}
-              overriddenPlatforms={Object.keys(platformOverrides).filter(hasPlatformOverride)}
-            />
-          </div>
+          {/* Preview */}
+          <aside aria-label="Preview" className={`lg:col-span-5 border-t lg:border-t-0 lg:border-l border-hairline bg-background overflow-y-auto overflow-x-hidden ${asPage ? "lg:min-h-0" : "max-h-[calc(90vh-130px)]"}`}>
+            <div className="p-4 sm:p-5">
+              <LiveDevicePreview
+                platform={activePreviewPlatform}
+                selectedPlatforms={selectedPlatforms}
+                onSelectPlatform={(plat) => {
+                  setActivePreviewPlatform(plat);
+                  if (activeComposerTab !== "all") setActiveComposerTab(plat);
+                }}
+                title={getEffectiveContent(activePreviewPlatform).title}
+                description={getEffectiveContent(activePreviewPlatform).description}
+                tags={getEffectiveContent(activePreviewPlatform).tags}
+                customTag={customTag}
+                tagColor={tagColor}
+                mediaUrl={getEffectiveContent(activePreviewPlatform).mediaUrl}
+                accountName={accountName}
+                overriddenPlatforms={Object.keys(platformOverrides).filter(hasPlatformOverride)}
+              />
+            </div>
+          </aside>
         </div>
 
-        {/* Modal Bottom Bar / Actions */}
-        <div className="flex items-center justify-between px-5 py-3 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-3.5 py-1.5 rounded-md text-xs font-bold text-zinc-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors cursor-pointer"
-          >
-            Cancel
-          </button>
-
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              disabled={submitting}
-              onClick={() => handleSubmit("draft")}
-              className="px-3.5 py-1.5 rounded-md text-xs font-bold text-zinc-700 dark:text-zinc-300 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-300 dark:border-zinc-800 transition-colors cursor-pointer shadow-2xs"
-            >
-              Save as Draft
-            </button>
-
-            {isScheduled ? (
-              <>
-                <button
-                  type="button"
-                  disabled={submitting}
-                  onClick={() => handleSubmit(null, true)}
-                  className="px-3.5 py-1.5 rounded-md text-xs font-bold text-zinc-700 dark:text-zinc-200 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
-                >
-                  <FiSend className="text-xs text-blue-500" />
-                  <span>Publish Now Instead</span>
-                </button>
-                <button
-                  type="button"
-                  disabled={submitting}
-                  onClick={() => handleSubmit()}
-                  className="px-4 py-1.5 rounded-md text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 transition-all cursor-pointer flex items-center gap-2 shadow-md shadow-blue-600/30 active:scale-95 disabled:opacity-50"
-                >
-                  {submitting ? (
-                    <>
-                      <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      <span>Scheduling...</span>
-                    </>
-                  ) : (
-                    <>
-                      <FiCalendar className="text-xs" />
-                      <span>
-                        {selectedPlatforms.length > 1
-                          ? `Schedule to ${selectedPlatforms.length} Channels`
-                          : "Schedule Post"}
-                      </span>
-                    </>
-                  )}
-                </button>
-              </>
-            ) : (
-              <button
-                type="button"
-                disabled={submitting}
-                onClick={() => handleSubmit()}
-                className="px-4 py-1.5 rounded-md text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 transition-all cursor-pointer flex items-center gap-2 shadow-md shadow-blue-600/30 active:scale-95 disabled:opacity-50"
-              >
-                {submitting ? (
-                  <>
-                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>
-                      Publishing to {selectedPlatforms.length} {selectedPlatforms.length === 1 ? "channel" : "channels"}...
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <FiSend className="text-xs" />
-                    <span>
-                      {selectedPlatforms.length > 1
-                        ? `Publish to ${selectedPlatforms.length} Channels Now`
-                        : "Publish Now"}
-                    </span>
-                  </>
-                )}
+        {/* Footer */}
+        <div className="border-t border-hairline bg-card px-4 sm:px-5 py-3">
+          {errorMsg && (
+            <div role="alert" className="mb-3 flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              <FiInfo aria-hidden className="mt-0.5 shrink-0" />
+              <span>{errorMsg}</span>
+            </div>
+          )}
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3">
+              <button type="button" onClick={onClose} className="text-sm font-medium text-muted-ink hover:text-foreground cursor-pointer">Cancel</button>
+              <span className="hidden text-xs text-muted-ink sm:inline">
+                {connectedPlatforms.length === 0 ? "Connect a channel to post" : channelCount === 0 ? "Choose at least one channel" : isScheduled ? (whenText ? `${channelWord} · ${whenText}` : `${channelWord} · choose a time`) : `${channelWord} · right away`}
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
+              <button type="button" disabled={submitting} onClick={() => handleSubmit("draft")} className={secondaryButton}>
+                Save draft
               </button>
-            )}
+              <button type="button" disabled={submitting || channelCount === 0 || connectedPlatforms.length === 0 || overLimit} onClick={() => handleSubmit()} className={primaryButton}>
+                {submitting ? (
+                  <span aria-hidden className="size-4 rounded-full border-2 border-white border-t-transparent animate-spin motion-reduce:animate-none" />
+                ) : isScheduled ? (
+                  <FiCalendar aria-hidden />
+                ) : (
+                  <FiSend aria-hidden />
+                )}
+                <span>{submitting ? (isScheduled ? "Scheduling…" : "Publishing…") : isScheduled ? "Schedule post" : "Publish now"}</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
