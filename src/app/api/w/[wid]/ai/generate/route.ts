@@ -1,4 +1,5 @@
 import { guardWorkspace } from "@/server/guard";
+import { askText, claudeReady } from "@/server/ai/client";
 import { generateText } from "@/server/muapi";
 import { caption } from "@/server/schemas";
 
@@ -13,8 +14,12 @@ const GUIDES: Record<string, string> = {
   pinterest: "A searchable title and a helpful description under 450 characters.",
 };
 
-export const POST = guardWorkspace({ body: caption, limit: { name: "ai", max: 30, seconds: 86400 } }, async ({ body }) => {
-  const output = await generateText(
+// Claude's cheapest model when its key is set. MuAPI otherwise.
+const writer = (actor: { workspaceId: string; userId: string }) => (prompt: string, system: string) => (claudeReady() ? askText(actor, "write", system, prompt) : generateText(prompt, system));
+
+export const POST = guardWorkspace({ body: caption, limit: { name: "ai", max: 30, seconds: 86400 } }, async ({ user, workspace, body }) => {
+  const write = writer({ workspaceId: workspace.id, userId: user.id });
+  const output = await write(
     body.prompt,
     `You write social media posts for small businesses. Platform: ${body.platform}. ${GUIDES[body.platform]} Tone: ${body.tone}. ` +
       `Never invent prices, offers or facts. Reply only with JSON: {"title": string, "description": string, "tags": "comma, separated"}`

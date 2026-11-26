@@ -1,13 +1,18 @@
 import { guardWorkspace } from "@/server/guard";
+import { askText, claudeReady } from "@/server/ai/client";
 import { generateText } from "@/server/muapi";
 import { chat, PLATFORM_KEYS } from "@/server/schemas";
 
 const FENCE = /```(?:json)?\s*([\s\S]*?)\s*```/g;
 
-export const POST = guardWorkspace({ body: chat, limit: { name: "ai", max: 30, seconds: 86400 } }, async ({ body }) => {
+// Claude's cheapest model when its key is set. MuAPI otherwise.
+const writer = (actor: { workspaceId: string; userId: string }) => (prompt: string, system: string) => (claudeReady() ? askText(actor, "write", system, prompt) : generateText(prompt, system));
+
+export const POST = guardWorkspace({ body: chat, limit: { name: "ai", max: 30, seconds: 86400 } }, async ({ user, workspace, body }) => {
+  const write = writer({ workspaceId: workspace.id, userId: user.id });
   const channels = body.selectedChannels.length ? body.selectedChannels : ["facebook" as const];
   const history = body.history.slice(-10).map((m) => `${m.role === "user" ? "User" : "Assistant"}: ${m.content.slice(0, 800)}`).join("\n\n");
-  const reply = await generateText(
+  const reply = await write(
     body.message,
     `You help small businesses plan social posts. Channels: ${channels.join(", ")}. Never invent prices, offers or facts. ` +
       `When asked for a post, add a \`\`\`json block: {"action":"schedule_post","platforms":[],"title":"","description":"","tags":""}. ` +

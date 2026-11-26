@@ -18,6 +18,7 @@ const GROUPS = [
     items: [
       { name: "Calendar", path: "/app", Icon: CalendarDays, hint: "Plan and schedule your posts" },
       { name: "Analytics", path: "/analytics", Icon: ChartNoAxesColumn, hint: "See how posts are doing" },
+      { name: "AI studio", path: "/studio", Icon: Sparkles, hint: "Brand, research, plans and posts" },
       { name: "AI agent", path: "/agents", Icon: Bot, hint: "Draft ideas and captions" },
     ],
   },
@@ -261,7 +262,7 @@ export default function AppShell({ children }) {
         <nav aria-label="Quick" className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-hairline bg-card pb-[env(safe-area-inset-bottom)] lg:hidden">
           {[ALL[0], ALL[1]].map((i) => <Tab key={i.path} item={i} on={isActive(pathname, i.path)} />)}
           <button type="button" onClick={() => compose(false)} aria-label="Create post" className="grid min-h-16 cursor-pointer place-items-center"><span className="gradient-brand grid size-12 place-items-center rounded-2xl"><Plus className="size-6" /></span></button>
-          {[ALL[3], ALL[4]].map((i) => <Tab key={i.path} item={i} on={isActive(pathname, i.path)} />)}
+          {[ALL[4], ALL[5]].map((i) => <Tab key={i.path} item={i} on={isActive(pathname, i.path)} />)}
         </nav>
 
         <Dialog.Root open={drawer} onOpenChange={setDrawer}>

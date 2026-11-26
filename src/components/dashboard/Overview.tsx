@@ -10,7 +10,7 @@ import { SiTiktok } from "react-icons/si";
 import { Button } from "@/components/ui/button";
 
 type Post = { id: string; title?: string; description?: string; platform: string; status: string; scheduledAt?: string | null };
-type Channel = { id: string; platform: string; accountName?: string };
+type Channel = { id: string; platform_name: string; account_name: string };
 type Props = { posts: Post[]; accounts: Channel[]; loading: boolean; onNew: () => void; onOpen: (post: Post) => void };
 
 const ICONS: Record<string, typeof FaFacebook> = { facebook: FaFacebook, instagram: FaInstagram, linkedin: FaLinkedin, pinterest: FaPinterest, youtube: FaYoutube, threads: FaThreads, x_twitter: FaXTwitter, tiktok: SiTiktok };
@@ -81,8 +81,8 @@ export default function Overview({ posts, accounts, loading, onNew, onOpen }: Pr
             {accounts.length ? (
               <ul className="mt-3 flex flex-wrap gap-2">
                 {accounts.slice(0, 8).map((a) => {
-                  const Icon = ICONS[a.platform] ?? Share2;
-                  return <li key={a.id} className="flex max-w-full items-center gap-2 rounded-xl border border-hairline px-3 py-2 text-sm"><Icon aria-hidden className="shrink-0 text-brand-ink" /><span className="truncate">{a.accountName || a.platform}</span></li>;
+                  const Icon = ICONS[a.platform_name] ?? Share2;
+                  return <li key={a.id} className="flex max-w-full items-center gap-2 rounded-xl border border-hairline px-3 py-2 text-sm"><Icon aria-hidden className="shrink-0 text-brand-ink" /><span className="truncate">{a.account_name || a.platform_name}</span></li>;
                 })}
               </ul>
             ) : (

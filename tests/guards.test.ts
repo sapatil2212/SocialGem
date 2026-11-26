@@ -82,3 +82,32 @@ describe("input rules", () => {
     for (const p of ["short1", "aaaaaaaaaaaa", "password123"]) expect(passwordSchema.safeParse(p).success).toBe(false);
   });
 });
+
+describe("platform rules", async () => {
+  const { mediaProblem, platformStates } = await import("../src/server/muapi");
+  it("needs video and a title where the platform does", () => {
+    expect(mediaProblem("youtube", "https://cdn.example.com/a.jpg", "Hi")).toContain("video");
+    expect(mediaProblem("youtube", "https://cdn.example.com/a.mp4", "")).toContain("title");
+    expect(mediaProblem("youtube", "https://cdn.example.com/a.mp4", "x".repeat(101))).toContain("100");
+    expect(mediaProblem("youtube", "https://cdn.example.com/a.MP4?v=1", "Launch")).toBe("");
+    expect(mediaProblem("tiktok", "", "")).toContain("video");
+    expect(mediaProblem("tiktok", "https://cdn.example.com/a.mov", "")).toBe("");
+    expect(mediaProblem("instagram", "", "")).toContain("Instagram");
+    expect(mediaProblem("facebook", "", "")).toBe("");
+  });
+  it("never offers platforms that would connect to our own shared account", () => {
+    const saved = process.env.PLATFORMS_ENABLED;
+    process.env.PLATFORMS_ENABLED = "facebook,instagram,youtube,tiktok,x,linkedin,threads,pinterest";
+    const states = platformStates();
+    for (const p of ["x_twitter", "linkedin", "threads", "pinterest"]) expect(states[p]).not.toBe("ready");
+    process.env.PLATFORMS_ENABLED = saved;
+  });
+});
+
+describe("AI studio ideas are always scoped", () => {
+  const code = readFileSync("src/server/ai/studio.ts", "utf8");
+  const calls = code.match(/contentIdea\.\w+\(\{[^]*?\}\)/g) ?? [];
+  it("finds the queries", () => expect(calls.length).toBeGreaterThan(8));
+  // Every query names the workspace itself, not only through the plan.
+  it.each(calls.map((c) => [c.slice(0, 70), c]))("%s", (_label, call) => expect(call).toMatch(/where: \{ workspaceId(: workspace\.id)?,/));
+});

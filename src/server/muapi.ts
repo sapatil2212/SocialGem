@@ -5,9 +5,26 @@ const BASE = () => (process.env.MUAPI_BASE_URL || "https://api.muapi.ai").replac
 const key = () => process.env.MUAPI_API_KEY || process.env.MUAPIAPP_API_KEY || "";
 export const muapiReady = () => Boolean(key());
 
+// Only these have a per-customer connect flow (external_user_id). The others would connect
+// to our own MuAPI account, shared by every customer, so they stay off.
 const CONNECTABLE = ["facebook", "instagram", "youtube", "tiktok"];
+
+/** Platforms that only take video. */
+export const VIDEO_ONLY = ["youtube", "tiktok"];
+export const looksLikeVideo = (url: string) => /\.(mp4|mov|m4v|webm)(\?|#|$)/i.test(url);
+
+/** Platform rules shared by every way of scheduling. Returns a reason, or "" when fine. */
+export function mediaProblem(platform: string, mediaUrl: string, title: string) {
+  const name = platformKey(platform);
+  if (name === "instagram" && !mediaUrl) return "Instagram needs a photo or video.";
+  if (VIDEO_ONLY.includes(name) && !looksLikeVideo(mediaUrl)) return `${name === "youtube" ? "YouTube" : "TikTok"} needs a video link ending in .mp4, .mov, .m4v or .webm.`;
+  if (name === "youtube" && !title.trim()) return "YouTube needs a title.";
+  if (name === "youtube" && [...title.trim()].length > 100) return "Keep the YouTube title to 100 characters.";
+  if (name === "tiktok" && [...title.trim()].length > 150) return "Keep the TikTok title to 150 characters.";
+  return "";
+}
 export const enabledPlatforms = () =>
-  (process.env.PLATFORMS_ENABLED || "facebook,instagram").split(",").map((p) => p.trim()).filter(Boolean);
+  (process.env.PLATFORMS_ENABLED || "facebook,instagram,youtube,tiktok").split(",").map((p) => p.trim()).filter(Boolean);
 
 /** Whether each platform can be connected here: ready, setup (no key), testing (no safe connect flow) or off. */
 export function platformStates() {

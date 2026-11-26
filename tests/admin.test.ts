@@ -24,7 +24,7 @@ describe.skipIf(!local)("super admin (local MySQL)", async () => {
     process.env.ADMIN_USER = ME;
     process.env.ADMIN_PASS = PW;
     vi.spyOn(console, "error").mockImplementation(() => {});
-    for (const t of ["PublishAttempt", "PostTarget", "Post", "PostTag", "MediaAsset", "SocialAccount", "ConnectAttempt", "LedgerEntry", "WorkspaceMember", "Workspace", "BillingAccount", "VerificationToken", "RateLimit", "AuditLog", "User"]) await db.$executeRawUnsafe("DELETE FROM " + t);
+    for (const t of ["AiUsage", "AiJob", "ContentIdea", "ContentPlan", "ContentResearch", "BrandProfile", "PublishAttempt", "PostTarget", "Post", "PostTag", "MediaAsset", "SocialAccount", "ConnectAttempt", "LedgerEntry", "WorkspaceMember", "Workspace", "BillingAccount", "VerificationToken", "RateLimit", "AuditLog", "User"]) await db.$executeRawUnsafe("DELETE FROM " + t);
   });
   afterAll(() => db.$disconnect());
 

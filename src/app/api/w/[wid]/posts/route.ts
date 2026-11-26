@@ -1,6 +1,6 @@
 import { dataFor, toPlatform } from "@/server/data";
 import { guardWorkspace, HttpError } from "@/server/guard";
-import { enabledPlatforms, platformKey } from "@/server/muapi";
+import { enabledPlatforms, mediaProblem, platformKey } from "@/server/muapi";
 import { createPost } from "@/server/schemas";
 
 const date = (value: string | null) => {
@@ -26,7 +26,8 @@ export const POST = guardWorkspace({ body: createPost, limit: { name: "post-crea
     if (!draft) {
       if (!enabledPlatforms().includes(platformKey(platform))) throw new HttpError(400, "PLATFORM_OFF", `${platform} is not available yet.`);
       if (account?.status !== "ACTIVE") throw new HttpError(400, "ACCOUNT", `Choose a connected account for ${platform}.`);
-      if (platform === "instagram" && !mediaUrl) throw new HttpError(400, "INVALID", "Instagram needs a photo or video.");
+      const problem = mediaProblem(platform, mediaUrl, own?.title ?? body.title);
+      if (problem) throw new HttpError(400, "INVALID", problem);
       if (!mediaUrl && !text) throw new HttpError(400, "INVALID", "Write something or add media.");
     }
     return {

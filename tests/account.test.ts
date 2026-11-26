@@ -36,7 +36,7 @@ describe.skipIf(!local)("email codes (local MySQL)", async () => {
     mail.codes = [];
     mail.notices = [];
     mail.fail = false;
-    for (const t of ["PublishAttempt", "PostTarget", "Post", "PostTag", "MediaAsset", "SocialAccount", "ConnectAttempt", "LedgerEntry", "WorkspaceMember", "Workspace", "BillingAccount", "VerificationToken", "RateLimit", "User"]) await db.$executeRawUnsafe("DELETE FROM " + t);
+    for (const t of ["AiUsage", "AiJob", "ContentIdea", "ContentPlan", "ContentResearch", "BrandProfile", "PublishAttempt", "PostTarget", "Post", "PostTag", "MediaAsset", "SocialAccount", "ConnectAttempt", "LedgerEntry", "WorkspaceMember", "Workspace", "BillingAccount", "VerificationToken", "RateLimit", "User"]) await db.$executeRawUnsafe("DELETE FROM " + t);
   });
   afterAll(() => db.$disconnect());
 

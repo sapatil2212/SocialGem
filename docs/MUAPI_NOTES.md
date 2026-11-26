@@ -123,3 +123,16 @@ Sandbox keys (`is_test: true`) return mock output without billing. Whether this 
 - `connect-url` for Facebook and Instagram: 200 with a `http://localhost` `redirect_to`.
 - **Confirmed: PostForMe is the upstream.** Both consent links return to `app.postforme.dev`. It must be named in the privacy policy.
 - Still unknown: what reaches our address after consent, and whether its path survives.
+
+## 8. Re-check on 26 Nov 2026: connecting X, LinkedIn, Threads, Pinterest
+
+Sources read: `api.muapi.ai/openapi.json` (1,381 paths), `/docs/social-publishing`, `/docs/teams`, `/docs/white-label`, `/llms.txt`, and the four `/playground/{x,linkedin,threads,pinterest}-publish/llms.txt` pages.
+
+- **Unchanged:** per-customer `connect-url` + `external_user_id` exists only for YouTube, TikTok, Instagram, Facebook. The docs page says so explicitly ("Publishing to your users' accounts (YouTube, TikTok, Instagram, Facebook)"). [DOC][SPEC]
+- The four others have only `GET /social/{platform}/connect?account_name&redirect_to` ("Start … connection flow via PostForMe"). Accounts land under our own MuAPI user and are listed by `GET /social/accounts`, together with every other account of ours. [SPEC]
+- Their publish endpoints exist and take `account_id` (integer) only: `x-publish` (`media_url`, `caption`, `reply_settings`), `linkedin-publish` (`media_url`, `caption`), `threads-publish` (`media_url`, `caption`, `placement`), `pinterest-publish` (`media_url`, `caption`, `title`, `board_id`, `link`). [SPEC][MODEL]
+- **`team_id` is not a way in.** Teams are for sharing one MuAPI dashboard with up to 10 people; an account can own one team. [DOC]
+- **White label is not a way in.** It is a hosted, branded AI studio for end users with MuAPI logins; it does not mention social publishing. Plans $49–$499/month. [DOC]
+- **Lead for the support request:** `GET /social/app/callback` (the PostForMe callback) takes an `external_id`, and delete says PostForMe frees an account "under a different external_id". Facebook, Instagram and TikTok are PostForMe-backed too and already get per-customer connect, so MuAPI appears able to do the same for the other four. [SPEC]
+- The docs page lists only YouTube, Instagram and TikTok as "live and fully supported". [DOC]
+- Still undocumented: what `GET /social/{platform}/connect` returns (redirect or JSON), the `reply_settings` values for X, and Pinterest board listing.

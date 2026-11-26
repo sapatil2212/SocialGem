@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import type { Prisma } from "@prisma/client";
 import { emailSchema } from "@/lib/auth-schemas";
 import { prisma } from "@/lib/prisma";
+import { claudeReady, geminiReady } from "./ai/ready";
 import { googleReady } from "./entry";
 import { HttpError, notFound } from "./errors";
 
@@ -155,6 +156,8 @@ export async function adminHealth() {
       { name: "HTTPS address", ok: secure },
       { name: "Email sending", ok: set("EMAIL_HOST", "EMAIL_USERNAME", "EMAIL_PASSWORD") },
       { name: "MuAPI key", ok: set("MUAPI_API_KEY") || set("MUAPIAPP_API_KEY") },
+      { name: "Claude key", ok: claudeReady() },
+      { name: "Gemini key", ok: geminiReady() },
       { name: "Google sign-in", ok: googleReady() },
     ],
   };

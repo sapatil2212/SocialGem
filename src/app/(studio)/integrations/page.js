@@ -12,14 +12,14 @@ import { inWorkspace } from "@/lib/workspace-client";
 const PLATFORMS = [
   { key: "facebook", name: "Facebook", Icon: FaFacebook, color: "#1877f2", text: "Pages you manage. Personal profiles and Groups are not possible on any tool." },
   { key: "instagram", name: "Instagram", Icon: FaInstagram, color: "#e1306c", text: "Business or Creator accounts." },
-  { key: "youtube", name: "YouTube", Icon: FaYoutube, color: "#ff0000", text: "Videos on your channel." },
-  { key: "tiktok", name: "TikTok", Icon: SiTiktok, color: "currentColor", text: "Short videos." },
+  { key: "youtube", name: "YouTube", Icon: FaYoutube, color: "#ff0000", text: "Videos on your channel. Each post needs a video and a title." },
+  { key: "tiktok", name: "TikTok", Icon: SiTiktok, color: "currentColor", text: "Short videos. Each post needs a video." },
   { key: "x_twitter", name: "X", Icon: FaXTwitter, color: "currentColor", text: "Text, photos and video." },
   { key: "linkedin", name: "LinkedIn", Icon: FaLinkedin, color: "#0a66c2", text: "Profiles and pages." },
   { key: "threads", name: "Threads", Icon: FaThreads, color: "currentColor", text: "Text and media." },
   { key: "pinterest", name: "Pinterest", Icon: FaPinterest, color: "#e60023", text: "Pins." },
 ];
-const STATES = { ready: "", setup: "Not set up on the server yet", off: "Coming later", testing: "In testing" };
+const STATES = { ready: "", setup: "Not set up on the server yet", off: "Not available yet", testing: "Not available yet" };
 const REFRESH = 20_000;
 
 const say = (result) => (result === "connected" ? toast.success : toast)(CONNECT_MESSAGES[result] || CONNECT_MESSAGES.failed, { duration: 6000 });

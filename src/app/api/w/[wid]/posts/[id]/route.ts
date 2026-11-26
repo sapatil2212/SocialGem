@@ -1,6 +1,6 @@
 import { dataFor, fromPlatform, isEditable } from "@/server/data";
 import { guardWorkspace, HttpError, notFound } from "@/server/guard";
-import { enabledPlatforms, platformKey } from "@/server/muapi";
+import { enabledPlatforms, mediaProblem, platformKey } from "@/server/muapi";
 import { updatePost } from "@/server/schemas";
 
 const locked = () => new HttpError(409, "LOCKED", "This post has already been sent, so it cannot be changed. Duplicate it instead.");
@@ -30,7 +30,8 @@ export const PATCH = guardWorkspace({ body: updatePost, limit: { name: "post-edi
     const account = accountId ? await accounts.get(accountId) : null;
     if (account?.status !== "ACTIVE") throw new HttpError(400, "ACCOUNT", "Choose a connected account first.");
     const media = body.mediaUrl ?? shown.mediaUrl;
-    if (platform === "instagram" && !media) throw new HttpError(400, "INVALID", "Instagram needs a photo or video.");
+    const problem = mediaProblem(platform, media, body.title ?? shown.title);
+    if (problem) throw new HttpError(400, "INVALID", problem);
     if (!media && !(body.description ?? shown.description).trim() && !(body.title ?? shown.title).trim()) throw new HttpError(400, "INVALID", "Write something or add media.");
   }
 

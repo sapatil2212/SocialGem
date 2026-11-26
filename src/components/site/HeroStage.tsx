@@ -247,7 +247,7 @@ const NETWORKS = [
 export function NetworkStrip() {
   return (
     <div className="border-b border-hairline bg-card py-8">
-      <p className="mb-5 text-center text-sm text-muted-ink">Facebook and Instagram first. More channels are on the way.</p>
+      <p className="mb-5 text-center text-sm text-muted-ink">Facebook, Instagram, YouTube and TikTok first. More channels are on the way.</p>
       <div className="marquee-wrap overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_12%,#000_88%,transparent)]">
         <div className="marquee">
           {[0, 1].map((copy) => (
