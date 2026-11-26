@@ -50,6 +50,11 @@ describe("no publishing or fake data before M4", () => {
   it("has no publish endpoints", () => expect(all).not.toMatch(/-publish["'`]/));
   it("has no in-memory stores or dummy account", () => expect(all).not.toMatch(/DemoStore|MediaStore|SocialAccountStore|=== 101|\|\| 101/));
   it("calls MuAPI from one module only", () => expect(all.match(/api\.muapi\.ai/g)?.length).toBe(1));
+  // Its disconnect removed every Page on a Facebook login (26 Nov 2026). We switch channels off ourselves.
+  it("never asks MuAPI to disconnect or delete an account", () => {
+    const muapi = readFileSync("src/server/muapi.ts", "utf8");
+    expect(muapi).not.toMatch(/\/disconnect|method: "DELETE"/);
+  });
 });
 
 describe("input rules", () => {

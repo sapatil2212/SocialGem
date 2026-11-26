@@ -194,7 +194,12 @@ export function dataFor(workspaceId: string) {
       list: () => prisma.socialAccount.findMany({ where: { workspaceId, status: { not: "DISCONNECTED" } }, orderBy: { createdAt: "asc" }, take: 200 }),
       get: (id: string) => prisma.socialAccount.findFirst({ where: { id, workspaceId, status: { not: "DISCONNECTED" } } }),
       rename: (id: string, name: string) => prisma.socialAccount.updateMany({ where: { id, workspaceId }, data: { name } }),
-      disconnect: (id: string) => prisma.socialAccount.updateMany({ where: { id, workspaceId }, data: { status: "DISCONNECTED", disconnectedAt: new Date() } }),
+      /** Every account, switched-off ones included. Only for the Channels page. */
+      listAll: () => prisma.socialAccount.findMany({ where: { workspaceId }, orderBy: { createdAt: "asc" }, take: 200 }),
+      // Switched off here only. The connection at the social service is left alone, so it can be turned back on.
+      disconnect: (id: string) => prisma.socialAccount.updateMany({ where: { id, workspaceId, status: { not: "DISCONNECTED" } }, data: { status: "DISCONNECTED", disconnectedAt: new Date() } }),
+      // Back on, and checked again at the social service on the next refresh.
+      enable: (id: string) => prisma.socialAccount.updateMany({ where: { id, workspaceId, status: "DISCONNECTED" }, data: { status: "ACTIVE", disconnectedAt: null, lastCheckedAt: null } }),
     },
   };
 }

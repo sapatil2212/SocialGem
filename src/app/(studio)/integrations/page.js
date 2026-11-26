@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 import { FaFacebook, FaInstagram, FaLinkedin, FaPinterest, FaYoutube } from "react-icons/fa";
 import { FaThreads, FaXTwitter } from "react-icons/fa6";
 import { SiTiktok } from "react-icons/si";
-import { FiAlertTriangle, FiCheck, FiEdit2, FiPlus, FiRefreshCw, FiTrash2, FiX } from "react-icons/fi";
+import { FiAlertTriangle, FiCheck, FiEdit2, FiPlus, FiPower, FiRefreshCw, FiX } from "react-icons/fi";
 import { announceAccounts, CONNECT_MESSAGES, onAccountsChanged, openConnect } from "@/lib/connect-client";
 import { inWorkspace } from "@/lib/workspace-client";
 import { askConfirm } from "@/components/ui/confirm";
@@ -34,7 +34,16 @@ async function json(path, options) {
   return data;
 }
 
-function AccountRow({ account, busy, onReconnect, onRenamed, onRemoved }) {
+// What each saved state means to the person.
+const STATUS = {
+  ACTIVE: { label: "Active", dot: "bg-emerald-500", text: "text-emerald-700 dark:text-emerald-400" },
+  NEEDS_RECONNECT: { label: "Needs reconnecting", dot: "bg-amber-500", text: "text-amber-700 dark:text-amber-400" },
+  DISCONNECTED: { label: "Disconnected", dot: "bg-zinc-400", text: "text-zinc-500 dark:text-zinc-400" },
+};
+
+function AccountRow({ account, busy, onReconnect, onRenamed, onChanged }) {
+  const status = STATUS[account.status] ?? STATUS.NEEDS_RECONNECT;
+  const off = account.status === "DISCONNECTED";
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(account.account_name);
   const [working, setWorking] = useState(false);
@@ -54,24 +63,33 @@ function AccountRow({ account, busy, onReconnect, onRenamed, onRemoved }) {
       onRenamed(await json(`/accounts/${account.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body }));
       setEditing(false);
     });
-  const remove = async () => {
+  const disconnect = async () => {
     const ok = await askConfirm({
       title: `Disconnect ${account.account_name}?`,
-      body: "Scheduled posts for this account will not go out. You can connect it again later.",
+      body: "SocialGem stops posting to it, and scheduled posts for it will not go out. It stays in this list, and you can turn it back on at any time.",
       confirmLabel: "Disconnect",
       tone: "danger",
     });
     if (!ok) return;
     run(async () => {
       await json(`/accounts/${account.id}`, { method: "DELETE" });
-      onRemoved(account.id);
+      onChanged({ ...account, status: "DISCONNECTED", connected: false });
       announceAccounts();
+      toast.success(`${account.account_name} is disconnected.`);
     });
   };
+  const turnOn = () =>
+    run(async () => {
+      const next = await json(`/accounts/${account.id}/enable`, { method: "POST" });
+      onChanged(next);
+      announceAccounts();
+      if (next.connected) toast.success(`${account.account_name} is back on.`);
+      else toast(`${account.account_name} is back on, but needs reconnecting first.`, { duration: 6000 });
+    });
 
   return (
-    <li className="flex flex-wrap items-center gap-3 rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2.5 dark:border-zinc-800 dark:bg-zinc-900/50">
-      <span aria-hidden className={`size-2 rounded-full ${account.connected ? "bg-emerald-500" : "bg-amber-500"}`} />
+    <li className={`flex flex-wrap items-center gap-3 rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2.5 dark:border-zinc-800 dark:bg-zinc-900/50 ${off ? "opacity-75" : ""}`}>
+      <span aria-hidden className={`size-2 rounded-full ${status.dot}`} />
       {editing ? (
         <input
           autoFocus
@@ -88,9 +106,7 @@ function AccountRow({ account, busy, onReconnect, onRenamed, onRemoved }) {
       ) : (
         <span className="min-w-0 flex-1 truncate text-sm font-semibold">
           {account.account_name}
-          <span className={`ml-2 text-xs font-medium ${account.connected ? "text-emerald-700 dark:text-emerald-400" : "text-amber-700 dark:text-amber-400"}`}>
-            {account.connected ? "Active" : "Needs reconnecting"}
-          </span>
+          <span className={`ml-2 text-xs font-medium ${status.text}`}>{status.label}</span>
         </span>
       )}
       {editing ? (
@@ -100,9 +116,15 @@ function AccountRow({ account, busy, onReconnect, onRenamed, onRemoved }) {
         </>
       ) : (
         <>
-          {!account.connected && <button type="button" className={quiet} disabled={busy} onClick={onReconnect}><FiRefreshCw /> Reconnect</button>}
-          <button type="button" className={quiet} disabled={working} aria-label={`Rename ${account.account_name}`} onClick={() => { setName(account.account_name); setEditing(true); }}><FiEdit2 /></button>
-          <button type="button" className={quiet} disabled={working} aria-label={`Disconnect ${account.account_name}`} onClick={remove}><FiTrash2 /></button>
+          {off ? (
+            <button type="button" className={quiet} disabled={working} onClick={turnOn}><FiPower /> Turn back on</button>
+          ) : (
+            <>
+              {account.status === "NEEDS_RECONNECT" && <button type="button" className={quiet} disabled={busy} onClick={onReconnect}><FiRefreshCw /> Reconnect</button>}
+              <button type="button" className={quiet} disabled={working} aria-label={`Rename ${account.account_name}`} title="Rename" onClick={() => { setName(account.account_name); setEditing(true); }}><FiEdit2 /></button>
+              <button type="button" className={quiet} disabled={working} onClick={disconnect}><FiPower /> Disconnect</button>
+            </>
+          )}
         </>
       )}
     </li>
@@ -119,7 +141,7 @@ export default function ChannelsPage() {
 
   const load = useCallback(async (fresh = false) => {
     try {
-      setAccounts(await json(`/accounts${fresh ? "?fresh=1" : ""}`));
+      setAccounts(await json(`/accounts?all=1${fresh ? "&fresh=1" : ""}`));
       setProblem("");
     } catch (error) {
       setProblem(error.message);
@@ -229,7 +251,7 @@ export default function ChannelsPage() {
                       busy={Boolean(connecting) || state !== "ready"}
                       onReconnect={() => connect(key)}
                       onRenamed={(next) => setAccounts((list) => list.map((a) => (a.id === next.id ? next : a)))}
-                      onRemoved={(id) => setAccounts((list) => list.filter((a) => a.id !== id))}
+                      onChanged={(next) => setAccounts((list) => list.map((a) => (a.id === next.id ? next : a)))}
                     />
                   ))}
                 </ul>

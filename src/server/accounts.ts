@@ -24,6 +24,7 @@ export async function syncAccounts(workspace: CurrentWorkspace, maxAgeSeconds = 
   const known = await accounts.list();
   const stale = known.some((a) => !a.lastCheckedAt || a.lastCheckedAt.getTime() < Date.now() - maxAgeSeconds * 1000);
   if (!stale || !muapiReady()) return known;
+  // (Switched-off accounts are not listed here, so a refresh never turns them back on.)
   const remote = await remoteAccounts(workspace.externalUserId).catch(() => null);
   if (!remote) return known;
   for (const a of known) {

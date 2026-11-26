@@ -52,6 +52,26 @@ describe.skipIf(!local)("database rules (local MySQL)", async () => {
     await other.$disconnect();
   });
 
+  describe("switching a channel off", () => {
+    it("keeps it listed for Channels, hides it from posting, and turns back on", async () => {
+      const mine = dataFor(a.id).accounts;
+      expect((await mine.disconnect(a.accountId)).count).toBe(1);
+      expect(await mine.get(a.accountId)).toBeNull();
+      expect((await mine.list()).map((x) => x.id)).not.toContain(a.accountId);
+      expect((await mine.listAll()).find((x) => x.id === a.accountId)?.status).toBe("DISCONNECTED");
+      // (The post routes only offer accounts from list(), so nothing can be scheduled to it while it is off.)
+
+      // Another workspace can neither switch it off nor back on.
+      expect((await dataFor(b.id).accounts.enable(a.accountId)).count).toBe(0);
+      expect((await dataFor(b.id).accounts.disconnect(a.accountId)).count).toBe(0);
+
+      expect((await mine.enable(a.accountId)).count).toBe(1);
+      const back = await mine.get(a.accountId);
+      expect(back).toMatchObject({ status: "ACTIVE", disconnectedAt: null, lastCheckedAt: null });
+      expect((await mine.enable(a.accountId)).count).toBe(0);
+    });
+  });
+
   describe("tenancy", () => {
     it("refuses a target on another workspace's account, media or post", async () => {
       const [mine] = await dataFor(a.id).posts.create(newPost(a));

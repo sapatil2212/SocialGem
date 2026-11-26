@@ -90,19 +90,9 @@ export async function connectUrl(externalUserId: string, platform: string, redir
 export const renameRemote = (id: number, account_name: string) =>
   call(`/api/v1/social/ext/accounts/${id}`, { method: "PATCH", body: JSON.stringify({ account_name }) });
 
-// The reversible form: the account can be reconnected later.
-export async function disconnectRemote(id: number, externalUserId: string) {
-  try {
-    await call(`/api/v1/social/ext/accounts/${id}/disconnect`, { method: "POST", body: "{}" });
-  } catch (error) {
-    // MuAPI refuses accounts that are already disconnected or removed. That is fine, as long
-    // as it is really no longer connected for this workspace; otherwise keep the error.
-    const stillConnected = await remoteAccounts(externalUserId)
-      .then((rows) => rows.some((a) => a.id === id && a.connected))
-      .catch(() => true);
-    if (stillConnected) throw error;
-  }
-}
+// We never ask MuAPI to disconnect or delete an account. On 26 Nov 2026 a "soft" disconnect of two
+// Facebook Pages removed every Page on that Facebook login and blocked reconnecting it. Switching a
+// channel off is done in our own database instead (see accounts.disconnect).
 
 export async function generateText(prompt: string, system_prompt: string) {
   const job = await call("/api/v1/gpt-5-mini", { method: "POST", body: JSON.stringify({ prompt, system_prompt }) });
