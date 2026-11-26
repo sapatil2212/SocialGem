@@ -200,6 +200,9 @@ export function dataFor(workspaceId: string) {
       disconnect: (id: string) => prisma.socialAccount.updateMany({ where: { id, workspaceId, status: { not: "DISCONNECTED" } }, data: { status: "DISCONNECTED", disconnectedAt: new Date() } }),
       // Back on, and checked again at the social service on the next refresh.
       enable: (id: string) => prisma.socialAccount.updateMany({ where: { id, workspaceId, status: "DISCONNECTED" }, data: { status: "ACTIVE", disconnectedAt: null, lastCheckedAt: null } }),
+      /** Every account on one platform at once, for logins shared by all their Pages (Facebook, Instagram). */
+      disconnectPlatform: (platform: Platform) => prisma.socialAccount.updateMany({ where: { workspaceId, platform, status: { not: "DISCONNECTED" } }, data: { status: "DISCONNECTED", disconnectedAt: new Date() } }),
+      enablePlatform: (platform: Platform) => prisma.socialAccount.updateMany({ where: { workspaceId, platform, status: "DISCONNECTED" }, data: { status: "ACTIVE", disconnectedAt: null, lastCheckedAt: null } }),
     },
   };
 }

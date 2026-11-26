@@ -70,6 +70,19 @@ describe.skipIf(!local)("database rules (local MySQL)", async () => {
       expect(back).toMatchObject({ status: "ACTIVE", disconnectedAt: null, lastCheckedAt: null });
       expect((await mine.enable(a.accountId)).count).toBe(0);
     });
+
+    it("switches a whole platform off and on, in this workspace only", async () => {
+      await db.socialAccount.create({ data: { workspaceId: a.id, platform: "FACEBOOK", name: "Page a2", muapiAccountId: 12, claimKey: "facebook:a2" } });
+      const yt = await db.socialAccount.create({ data: { workspaceId: a.id, platform: "YOUTUBE", name: "Channel a", muapiAccountId: 13, claimKey: "youtube:a" } });
+      const mine = dataFor(a.id).accounts;
+      expect((await mine.disconnectPlatform("FACEBOOK")).count).toBe(2);
+      expect((await mine.list()).map((x) => x.id)).toEqual([yt.id]);
+      // Workspace b's Facebook Page is untouched.
+      expect((await dataFor(b.id).accounts.list()).map((x) => x.id)).toEqual([b.accountId]);
+      expect((await dataFor(b.id).accounts.enablePlatform("FACEBOOK")).count).toBe(0);
+      expect((await mine.enablePlatform("FACEBOOK")).count).toBe(2);
+      expect((await mine.list()).length).toBe(3);
+    });
   });
 
   describe("tenancy", () => {

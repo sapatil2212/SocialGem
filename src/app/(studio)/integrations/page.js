@@ -22,6 +22,8 @@ const PLATFORMS = [
 ];
 const STATES = { ready: "", setup: "Not set up on the server yet", off: "Not available yet", testing: "Not available yet" };
 const REFRESH = 20_000;
+// All Pages on these come through one Meta login, so they are switched off and on together.
+const SHARED_LOGIN = ["facebook", "instagram"];
 
 const say = (result) => (result === "connected" ? toast.success : toast)(CONNECT_MESSAGES[result] || CONNECT_MESSAGES.failed, { duration: 6000 });
 const small = "inline-flex min-h-9 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors";
@@ -41,7 +43,7 @@ const STATUS = {
   DISCONNECTED: { label: "Disconnected", dot: "bg-zinc-400", text: "text-zinc-500 dark:text-zinc-400" },
 };
 
-function AccountRow({ account, busy, onReconnect, onRenamed, onChanged }) {
+function AccountRow({ account, busy, shared, onReconnect, onRenamed, onChanged }) {
   const status = STATUS[account.status] ?? STATUS.NEEDS_RECONNECT;
   const off = account.status === "DISCONNECTED";
   const [editing, setEditing] = useState(false);
@@ -122,12 +124,50 @@ function AccountRow({ account, busy, onReconnect, onRenamed, onChanged }) {
             <>
               {account.status === "NEEDS_RECONNECT" && <button type="button" className={quiet} disabled={busy} onClick={onReconnect}><FiRefreshCw /> Reconnect</button>}
               <button type="button" className={quiet} disabled={working} aria-label={`Rename ${account.account_name}`} title="Rename" onClick={() => { setName(account.account_name); setEditing(true); }}><FiEdit2 /></button>
-              <button type="button" className={quiet} disabled={working} onClick={disconnect}><FiPower /> Disconnect</button>
+              {!shared && <button type="button" className={quiet} disabled={working} onClick={disconnect}><FiPower /> Disconnect</button>}
             </>
           )}
         </>
       )}
     </li>
+  );
+}
+
+function PlatformSwitch({ platform, name, accounts, onChanged }) {
+  const [working, setWorking] = useState(false);
+  const allOff = accounts.every((a) => a.status === "DISCONNECTED");
+  const pages = `${accounts.length} ${accounts.length === 1 ? "account" : "accounts"}`;
+  const flip = async () => {
+    if (!allOff) {
+      const ok = await askConfirm({
+        title: `Disconnect ${name}?`,
+        body: `All ${pages} on ${name} are switched off in SocialGem, and scheduled posts for them will not go out. They stay listed, and you can turn ${name} back on at any time.`,
+        confirmLabel: `Disconnect ${name}`,
+        tone: "danger",
+      });
+      if (!ok) return;
+    }
+    setWorking(true);
+    try {
+      if (allOff) {
+        onChanged(await json(`/accounts/by-platform/${platform}`, { method: "POST" }));
+        toast.success(`${name} is back on.`);
+      } else {
+        await json(`/accounts/by-platform/${platform}`, { method: "DELETE" });
+        onChanged(null, platform);
+        toast.success(`${name} is disconnected.`);
+      }
+      announceAccounts();
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setWorking(false);
+    }
+  };
+  return (
+    <button type="button" className={quiet} disabled={working} onClick={flip}>
+      <FiPower /> {allOff ? `Turn ${name} back on` : `Disconnect ${name}`}
+    </button>
   );
 }
 
@@ -234,9 +274,21 @@ export default function ChannelsPage() {
                     <button type="button" className={quiet} onClick={() => { abort.current?.abort(); setConnecting(""); toast("Stopped waiting. You can close the other window."); }}>Cancel</button>
                   </span>
                 ) : state === "ready" ? (
-                  <button type="button" className={`${small} bg-[#6d28d9] text-white hover:bg-[#5b1fc0]`} disabled={Boolean(connecting)} onClick={() => connect(key)}>
-                    <FiPlus /> {mine.length ? "Add another" : "Connect"}
-                  </button>
+                  <span className="flex flex-wrap items-center gap-2">
+                    {SHARED_LOGIN.includes(key) && mine.length > 0 && (
+                      <PlatformSwitch
+                        platform={key}
+                        name={name}
+                        accounts={mine}
+                        onChanged={(list, off) =>
+                          setAccounts((all) => (list ? list : all.map((a) => (a.platform_name === off ? { ...a, status: "DISCONNECTED", connected: false } : a))))
+                        }
+                      />
+                    )}
+                    <button type="button" className={`${small} bg-[#6d28d9] text-white hover:bg-[#5b1fc0]`} disabled={Boolean(connecting)} onClick={() => connect(key)}>
+                      <FiPlus /> {mine.length ? (SHARED_LOGIN.includes(key) ? "Add pages" : "Add another") : "Connect"}
+                    </button>
+                  </span>
                 ) : (
                   <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">{STATES[state] ?? ""}</span>
                 )}
@@ -249,6 +301,7 @@ export default function ChannelsPage() {
                       key={account.id}
                       account={account}
                       busy={Boolean(connecting) || state !== "ready"}
+                      shared={SHARED_LOGIN.includes(key)}
                       onReconnect={() => connect(key)}
                       onRenamed={(next) => setAccounts((list) => list.map((a) => (a.id === next.id ? next : a)))}
                       onChanged={(next) => setAccounts((list) => list.map((a) => (a.id === next.id ? next : a)))}
