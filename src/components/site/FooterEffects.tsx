@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, type PointerEvent, type ReactNode } from "react";
-import { ArrowUp, Check, Copy } from "lucide-react";
+import { type PointerEvent, type ReactNode } from "react";
+import { ArrowUp } from "lucide-react";
 
 function track(event: PointerEvent<HTMLElement>) {
   if (event.pointerType !== "mouse") return;
@@ -30,35 +30,16 @@ export function Wordmark() {
   );
 }
 
-export function CopyEmail({ email }: { email: string }) {
-  const [done, setDone] = useState(false);
-  return (
-    <button
-      type="button"
-      aria-label={done ? "Email copied" : "Copy email address"}
-      onClick={async () => {
-        try {
-          await navigator.clipboard.writeText(email);
-          setDone(true);
-          setTimeout(() => setDone(false), 1800);
-        } catch {}
-      }}
-      className="grid size-9 shrink-0 cursor-pointer place-items-center rounded-lg text-white/60 hover:bg-white/10 hover:text-white"
-    >
-      {done ? <Check className="size-4 text-emerald-300" /> : <Copy className="size-4" />}
-      <span role="status" className="sr-only">{done ? "Email copied" : ""}</span>
-    </button>
-  );
-}
-
 export function BackToTop() {
   return (
     <button
       type="button"
       onClick={() => window.scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" })}
-      className="group flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-white/15 px-4 font-medium text-white hover:bg-white/10"
+      aria-label="Back to top"
+      title="Back to top"
+      className="group grid size-11 cursor-pointer place-items-center rounded-full border border-white/20 text-white hover:border-white/50 hover:bg-white/10"
     >
-      Back to top <ArrowUp aria-hidden className="size-4 transition-transform group-hover:-translate-y-0.5" />
+      <ArrowUp aria-hidden className="size-4 transition-transform group-hover:-translate-y-0.5" />
     </button>
   );
 }

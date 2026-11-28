@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { ArrowRight, Check, Layers, PenLine, Send } from "lucide-react";
 import HeroStage, { NetworkStrip } from "@/components/site/HeroStage";
+import Showcase from "@/components/site/Showcase";
 import FlowDemo from "@/components/site/FlowDemo";
 import Features, { Roles } from "@/components/site/Features";
 import Flight from "@/components/site/Flight";
-import Playground from "@/components/site/Playground";
 import PlatformTable from "@/components/site/PlatformTable";
 import { Button } from "@/components/ui/button";
 import { Faq } from "@/components/ui/accordion";
@@ -26,6 +26,7 @@ export default function LandingPage() {
     <>
       <HeroStage />
       <NetworkStrip />
+      <Showcase />
 
       <section id="features" className="sg-section sg-wrap">
         <header className="sg-head reveal">
@@ -53,13 +54,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section id="make" className="sg-section sg-wrap">
-        <header className="sg-head reveal">
-          <h2>Try the composer</h2>
-          <p>Write a post, check each preview, and place it on the week. Nothing leaves your browser.</p>
-        </header>
-        <Playground />
-      </section>
 
       <div id="reliability" className="sg-tint"><Flight /></div>
 
@@ -101,13 +95,13 @@ export default function LandingPage() {
         <Faq items={FAQ} />
       </section>
 
-      <section className="sg-wrap pb-18">
+      <section className="sg-wrap sg-final-end">
         <div className="sg-final">
           <div aria-hidden className="sg-aurora"><i /><i /><i /></div>
-          <div className="relative grid justify-items-center gap-7 px-6 py-14 text-center sm:py-16">
-            <h2 className="max-w-3xl">Your next week of posts starts with <em className="accent sg-prism">one</em></h2>
-            <p className="max-w-xl text-base text-white/75">SocialGem is in early access. Set up your workspace and help shape what comes next.</p>
-            <Button asChild size="lg" className="shimmer bg-white text-navy hover:bg-[#ece6ff]"><Link href="/signup">Get started free <ArrowRight /></Link></Button>
+          <div className="sg-final-body relative grid justify-items-center gap-6 text-center">
+            <h2 className="max-w-4xl !text-[clamp(2.1rem,4.6vw,3.6rem)] !leading-[1.08]">Your next week of posts starts with <em className="accent sg-prism">one</em></h2>
+            <p className="sg-final-lead max-w-2xl text-white/75">SocialGem is in early access. Set up your workspace and help shape what comes next.</p>
+            <Button asChild size="lg" className="sg-final-cta shimmer bg-white text-navy hover:bg-[#ece6ff]"><Link href="/signup">Get started free <ArrowRight /></Link></Button>
           </div>
         </div>
       </section>

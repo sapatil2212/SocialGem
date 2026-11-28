@@ -28,11 +28,6 @@ const mark = (info) =>
 
 const columns = helper.columns([
   helper.accessor("platform", { header: "Platform", sortFn: "alphanumeric" }),
-  helper.accessor("stage", {
-    header: "Status",
-    enableSorting: false,
-    cell: (info) => <span className={`sg-stage is-${info.getValue().toLowerCase()}`}>{info.getValue()}</span>,
-  }),
   helper.accessor("text", { header: "Text only", enableSorting: false, filterFn: onlyTrue, cell: mark }),
   helper.accessor("photo", { header: "Photo", enableSorting: false, filterFn: onlyTrue, cell: mark }),
   helper.accessor("video", { header: "Video", enableSorting: false, filterFn: onlyTrue, cell: mark }),

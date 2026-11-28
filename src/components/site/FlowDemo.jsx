@@ -10,7 +10,7 @@ const SAMPLE = "Fresh batch at 5 pm. First ten boxes get a free filter coffee.";
 const ENDS = [
   { key: "facebook", name: "Facebook Page", Icon: FaFacebook, color: "#1877f2", shape: (t) => `${/[.!?]$/.test(t) ? t : `${t}.`} Message us to hold yours.` },
   { key: "instagram", name: "Instagram", Icon: FaInstagram, color: "#e1306c", shape: (t) => `${t} #localfavourite` },
-  { key: "x", name: "X, in testing", Icon: FaXTwitter, color: "#111", shape: (t) => t },
+  { key: "x", name: "X", Icon: FaXTwitter, color: "#111", shape: (t) => t },
 ];
 
 function Flow({ text, run, onRun }) {

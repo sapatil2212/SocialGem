@@ -2,16 +2,16 @@ import Link from "next/link";
 import { ArrowUpRight, Mail, MapPin, Phone } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 import { COMPANY, COMPANY_LINKS, telHref } from "@/content/company";
-import { BackToTop, CopyEmail, FooterStage, Wordmark } from "./FooterEffects";
+import { BackToTop, FooterStage, Wordmark } from "./FooterEffects";
 import Logo from "./Logo";
 
-const PRODUCT = [
-  ["/#features", "Features"],
-  ["/#make", "Composer"],
-  ["/#reliability", "Reliability"],
-  ["/#platforms", "Platforms"],
-  ["/help", "Help centre"],
-  ["/data-deletion", "Data deletion"],
+const FEATURES = [
+  ["/#calendar", "Content calendar"],
+  ["/#create", "AI post creator"],
+  ["/#features", "Live previews"],
+  ["/#channels", "Channel manager"],
+  ["/#reliability", "Reliable scheduling"],
+  ["/#platforms", "Platform rules"],
 ] as const;
 
 export function ContactStack() {
@@ -55,14 +55,13 @@ export default function SiteFooter() {
             Create your workspace <ArrowUpRight aria-hidden className="size-4" />
           </Link>
         </div>
-        <Column title="Product" links={PRODUCT} />
+        <Column title="Features" links={FEATURES} />
         <Column title="Company" links={COMPANY_LINKS} />
         <address className="grid content-start gap-4 not-italic">
           <strong className="text-white">Contact Us</strong>
           <div className="flex items-center gap-3">
             <span className={contactIcon}><Mail aria-hidden className="size-4" /></span>
             <a href={`mailto:${COMPANY.email}`} className="min-w-0 text-[0.95rem] text-white/75 [overflow-wrap:anywhere] hover:text-white">{COMPANY.email}</a>
-            <CopyEmail email={COMPANY.email} />
           </div>
           <a href={telHref(COMPANY.phone)} className={contactItem}><span className={contactIcon}><Phone aria-hidden className="size-4" /></span>{COMPANY.phone}</a>
           <p className={contactItem}><span className={contactIcon}><MapPin aria-hidden className="size-4" /></span>{COMPANY.address}</p>

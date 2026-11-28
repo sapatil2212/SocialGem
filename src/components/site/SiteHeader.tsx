@@ -12,10 +12,8 @@ import Logo from "./Logo";
 
 const LINKS = [
   ["/#features", "Features"],
-  ["/#make", "Composer"],
   ["/pricing", "Pricing"],
   ["/help", "Help"],
-  ["/about", "About"],
   ["/contact", "Contact"],
 ];
 

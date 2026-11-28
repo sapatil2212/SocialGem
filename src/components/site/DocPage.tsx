@@ -1,4 +1,3 @@
-import { TriangleAlert } from "lucide-react";
 import type { Doc } from "@/content/pages";
 
 const slug = (text: string) => text.toLowerCase().replace(/[^a-z0-9]+/g, "-");
@@ -14,10 +13,7 @@ export default function DocPage({ doc }: { doc: Doc }) {
       <article className="max-w-2xl">
         <h1 className="!text-[clamp(1.9rem,3.4vw,2.6rem)]">{doc.title}</h1>
         <p className="mt-5 text-base text-muted-ink">{doc.intro}</p>
-        <p className="mt-8 flex gap-3 rounded-xl border border-warning/30 bg-cream p-4 text-warning">
-          <TriangleAlert className="mt-1 size-4 shrink-0" aria-hidden />
-          Draft for legal review. Not yet in force. Details in [brackets] are still to be supplied.
-        </p>
+        <p className="mt-4 text-sm text-muted-ink">Effective and last updated: {doc.updated}</p>
         {doc.sections.map(([title, lines]) => (
           <section key={title} id={slug(title)} className="mt-12">
             <h2 className="!text-[1.3rem]">{title}</h2>
