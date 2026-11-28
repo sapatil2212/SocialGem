@@ -199,134 +199,143 @@ export default function WorkspaceDashboard() {
         onReschedulePost={handleReschedulePost}
       />
 
-      {/* Post Details / Quick Actions Modal */}
-      {viewingPost && (
-        <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 dark:bg-black/80 backdrop-blur-sm"
-          onClick={() => setViewingPost(null)}
-        >
-          <div 
-            className="w-full max-w-md bg-white dark:bg-[#15132b] border border-zinc-200 dark:border-[#2a2746] rounded-[14px] p-5 shadow-2xl space-y-4 text-slate-900 dark:text-white transition-colors"
-            onClick={(e) => e.stopPropagation()}
+      {/* Post Details / Quick Actions Modal: wide and short, the text scrolls inside */}
+      {viewingPost && (() => {
+        const STATUS_LABEL = { draft: "Draft", scheduled: "Scheduled", processing: "Publishing", completed: "Published", failed: "Failed", needs_check: "Needs check", cancelled: "Cancelled" };
+        const STATUS_TONE = {
+          completed: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
+          failed: "bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/30",
+          needs_check: "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30",
+          processing: "bg-violet-500/15 text-violet-600 dark:text-violet-400 border-violet-500/30",
+        };
+        const PLATFORM_TONE = {
+          youtube: "bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/30",
+          instagram: "bg-pink-500/15 text-pink-600 dark:text-pink-400 border-pink-500/30",
+          tiktok: "bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border-cyan-500/30",
+          linkedin: "bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30",
+          threads: "bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30",
+          pinterest: "bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-500/30",
+        };
+        const isVideoUrl = /\.(mp4|mov|m4v|webm)(\?|#|$)/i.test(viewingPost.mediaUrl || "");
+        // A post being sent, already sent or waiting for a check cannot be sent again from here.
+        const canPublish = ["draft", "scheduled", "failed"].includes(viewingPost.status);
+        return (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 dark:bg-black/80 backdrop-blur-sm"
+            onClick={() => setViewingPost(null)}
           >
-            {/* Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-zinc-200 dark:border-[#2a2746]">
-              <div className="flex items-center gap-2">
-                <span className={`px-2.5 py-0.5 rounded text-[11px] font-semibold uppercase tracking-wider ${
-                  viewingPost.platform === "youtube" ? "bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/30" :
-                  viewingPost.platform === "instagram" ? "bg-pink-500/15 text-pink-600 dark:text-pink-400 border border-pink-500/30" :
-                  viewingPost.platform === "tiktok" ? "bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30" :
-                  viewingPost.platform === "linkedin" ? "bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30" :
-                  viewingPost.platform === "threads" ? "bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30" :
-                  "bg-sky-500/15 text-sky-600 dark:text-sky-400 border border-sky-500/30"
-                }`}>
-                  {viewingPost.platform}
-                </span>
-                <span className={`text-[11px] font-medium px-2.5 py-0.5 rounded ${
-                  viewingPost.status === "completed" 
-                    ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30" 
-                    : "bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/30"
-                }`}>
-                  {viewingPost.status}
-                </span>
-              </div>
-              <button
-                onClick={() => setViewingPost(null)}
-                className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 cursor-pointer"
-              >
-                <FiX className="text-base" />
-              </button>
-            </div>
-
-            {/* Media & Title */}
-            {viewingPost.mediaUrl && (
-              <div className="aspect-video rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-black">
-                <img
-                  src={viewingPost.mediaUrl}
-                  alt="Post thumbnail"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            )}
-
-            <div className="space-y-1.5">
-              <h3 className="text-sm font-semibold text-slate-900 dark:text-zinc-100">
-                {viewingPost.title || "Untitled Post"}
-              </h3>
-              <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed whitespace-pre-line">
-                {viewingPost.description || "No description provided."}
-              </p>
-              {viewingPost.tags && (
-                <p className="text-xs text-indigo-600 dark:text-indigo-400 font-mono">
-                  {viewingPost.tags.split(",").map(t => `#${t.trim()}`).join(" ")}
-                </p>
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-label="Post details"
+              className="w-full max-w-4xl max-h-[min(560px,85vh)] flex flex-col md:flex-row overflow-hidden bg-white dark:bg-[#15132b] border border-zinc-200 dark:border-[#2a2746] rounded-[14px] shadow-2xl text-slate-900 dark:text-white transition-colors"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {viewingPost.mediaUrl && (
+                <div className="md:w-[42%] shrink-0 h-48 md:h-auto bg-zinc-100 dark:bg-black flex items-center justify-center border-b md:border-b-0 md:border-r border-zinc-200 dark:border-[#2a2746]">
+                  {isVideoUrl ? (
+                    <video src={viewingPost.mediaUrl} controls preload="metadata" className="max-h-full max-w-full" />
+                  ) : (
+                    <img src={viewingPost.mediaUrl} alt="Post picture" className="h-full w-full object-contain" />
+                  )}
+                </div>
               )}
-            </div>
 
-            {/* Scheduled Date Info */}
-            <div className="p-2.5 bg-zinc-50 dark:bg-zinc-900/60 rounded-lg border border-zinc-200 dark:border-zinc-800 flex items-center justify-between text-xs">
-              <span className="text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5">
-                <FaClock className="text-zinc-400 text-xs" />
-                Scheduled for:
-              </span>
-              <span className="font-medium text-slate-800 dark:text-zinc-200 font-mono">
-                {viewingPost.scheduledAt ? new Date(viewingPost.scheduledAt).toLocaleString() : "Immediate"}
-              </span>
-            </div>
-
-            {/* Error Banner if any */}
-            {viewingPost.error && (
-              <div className="p-2.5 rounded-lg bg-red-500/10 border border-red-500/30 text-xs text-red-600 dark:text-red-400 flex items-start gap-2">
-                <FaExclamationTriangle className="text-red-500 text-xs shrink-0 mt-0.5" />
-                <span className="leading-normal">{viewingPost.error}</span>
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            <div className="flex items-center justify-between pt-1">
-              <button
-                type="button"
-                disabled={actionLoading}
-                onClick={() => handleDeletePost(viewingPost.id)}
-                className="px-3 py-1.5 rounded-lg text-xs font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 transition-colors flex items-center gap-1.5 cursor-pointer"
-              >
-                <FiTrash2 /> Delete
-              </button>
-
-              <div className="flex items-center gap-2">
-                {viewingPost.status !== "completed" && (
-                  <button
-                    type="button"
-                    disabled={actionLoading}
-                    onClick={() => handlePublishNow(viewingPost.id)}
-                    className="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-blue-600 hover:bg-blue-500 transition-colors flex items-center gap-1.5 cursor-pointer shadow-md shadow-blue-600/25 active:scale-95 disabled:opacity-50"
-                  >
-                    <FaBolt className="text-[11px]" />
-                    <span>{actionLoading ? "Publishing..." : "Publish Now"}</span>
+              <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+                {/* Header */}
+                <div className="flex items-center justify-between gap-3 px-5 py-3 border-b border-zinc-200 dark:border-[#2a2746]">
+                  <div className="flex items-center gap-2">
+                    <span className={`px-2.5 py-0.5 rounded border text-[11px] font-semibold uppercase tracking-wider ${PLATFORM_TONE[viewingPost.platform] || "bg-sky-500/15 text-sky-600 dark:text-sky-400 border-sky-500/30"}`}>
+                      {viewingPost.platform === "x_twitter" ? "X" : viewingPost.platform}
+                    </span>
+                    <span className={`text-[11px] font-medium px-2.5 py-0.5 rounded border ${STATUS_TONE[viewingPost.status] || "bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/30"}`}>
+                      {STATUS_LABEL[viewingPost.status] || viewingPost.status}
+                    </span>
+                    {viewingPost.accountName && <span className="hidden sm:inline text-xs text-zinc-500 dark:text-zinc-400 truncate max-w-48">{viewingPost.accountName}</span>}
+                  </div>
+                  <button type="button" aria-label="Close" onClick={() => setViewingPost(null)} className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 cursor-pointer">
+                    <FiX className="text-base" />
                   </button>
-                )}
-                {viewingPost.publishedUrl && (
-                  <a
-                    href={viewingPost.publishedUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 transition-colors flex items-center gap-1.5"
-                  >
-                    <FiExternalLink /> View Live
-                  </a>
-                )}
-                <button
-                  type="button"
-                  onClick={() => handleEditPost(viewingPost)}
-                  className="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-zinc-800 dark:text-zinc-200 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 border border-zinc-200 dark:border-transparent transition-colors flex items-center gap-1.5 cursor-pointer active:scale-95"
-                >
-                  <FiEdit2 /> Edit
-                </button>
+                </div>
+
+                {/* Body: scrolls when the caption is long */}
+                <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 space-y-3">
+                  {viewingPost.title && <h3 className="text-sm font-semibold text-slate-900 dark:text-zinc-100">{viewingPost.title}</h3>}
+                  <p className="text-[13px] text-zinc-700 dark:text-zinc-300 leading-relaxed whitespace-pre-line">
+                    {viewingPost.description || "No caption."}
+                  </p>
+                  {viewingPost.tags && (
+                    <p className="text-xs text-indigo-600 dark:text-indigo-400 font-mono">
+                      {viewingPost.tags.split(",").map(t => `#${t.trim().replace(/^#/, "")}`).join(" ")}
+                    </p>
+                  )}
+                  {viewingPost.error && (
+                    <div className="p-2.5 rounded-lg bg-red-500/10 border border-red-500/30 text-xs text-red-600 dark:text-red-400 flex items-start gap-2">
+                      <FaExclamationTriangle className="text-red-500 text-xs shrink-0 mt-0.5" />
+                      <span className="leading-normal">{viewingPost.error}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer */}
+                <div className="border-t border-zinc-200 dark:border-[#2a2746] px-5 py-3 space-y-3">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5">
+                      <FaClock className="text-zinc-400 text-xs" />
+                      {viewingPost.status === "completed" ? "Published" : "Scheduled for"}
+                    </span>
+                    <span className="font-medium text-slate-800 dark:text-zinc-200">
+                      {viewingPost.scheduledAt ? new Date(viewingPost.scheduledAt).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }) : "Immediately"}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <button
+                      type="button"
+                      disabled={actionLoading}
+                      onClick={() => handleDeletePost(viewingPost.id)}
+                      className="px-3 py-1.5 rounded-lg text-xs font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 transition-colors flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <FiTrash2 /> Delete
+                    </button>
+                    <div className="flex items-center gap-2">
+                      {viewingPost.publishedUrl && (
+                        <a
+                          href={viewingPost.publishedUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-900 hover:bg-zinc-200 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 transition-colors flex items-center gap-1.5"
+                        >
+                          <FiExternalLink /> View live
+                        </a>
+                      )}
+                      {canPublish && (
+                        <button
+                          type="button"
+                          onClick={() => handleEditPost(viewingPost)}
+                          className="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-zinc-800 dark:text-zinc-200 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 border border-zinc-200 dark:border-transparent transition-colors flex items-center gap-1.5 cursor-pointer active:scale-95"
+                        >
+                          <FiEdit2 /> Edit
+                        </button>
+                      )}
+                      {canPublish && (
+                        <button
+                          type="button"
+                          disabled={actionLoading}
+                          onClick={() => handlePublishNow(viewingPost.id)}
+                          className="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-blue-600 hover:bg-blue-500 transition-colors flex items-center gap-1.5 cursor-pointer shadow-md shadow-blue-600/25 active:scale-95 disabled:opacity-50"
+                        >
+                          <FaBolt className="text-[11px]" />
+                          <span>{actionLoading ? "Publishing..." : viewingPost.status === "failed" ? "Try again now" : "Publish now"}</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Post Composer & Multi-Channel Modal */}
       <PostComposerModal
