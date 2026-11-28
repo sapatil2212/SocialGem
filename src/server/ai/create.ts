@@ -7,7 +7,7 @@ import { PLATFORM_KEYS } from "../schemas";
 import { openStored } from "../storage";
 import type { CurrentWorkspace } from "../workspaces";
 import { askJson, claudeReady, type Actor, type Picture } from "./client";
-import { geminiReady, makeImage } from "./images";
+import { geminiReady, makeImage, type Reference } from "./images";
 import { CAPTION_MAX } from "./shapes";
 import { brandNotes } from "./studio";
 
@@ -31,10 +31,16 @@ const GUIDES: Record<string, string> = {
 };
 const NEEDS_TITLE = new Set(["youtube", "pinterest"]);
 
-const message = z.object({ role: z.enum(["user", "assistant"]), text: z.string().trim().max(2000), imageUrl: z.string().max(2083).optional() });
+const message = z.object({ role: z.enum(["user", "assistant"]), text: z.string().trim().max(6000), imageUrl: z.string().max(2083).optional() });
 const platforms = z.array(z.enum(PLATFORM_KEYS)).min(1, "Choose at least one channel.").max(8);
 
-export const chatInput = z.object({ platforms, messages: z.array(message).min(1).max(30) });
+export const chatInput = z.object({
+  platforms,
+  messages: z.array(message).min(1).max(30),
+  // A logo the person uploaded to this workspace; placed in the picture exactly as given.
+  logoUrl: z.string().trim().max(2083).default(""),
+  quality: z.enum(["standard", "sharp"]).default("standard"),
+});
 export const captionInput = z.object({
   platforms,
   about: z.string().trim().max(3000).default(""),
@@ -43,7 +49,7 @@ export const captionInput = z.object({
   only: z.enum(PLATFORM_KEYS).optional(),
 });
 
-const chatShape = z.object({ reply: z.string(), makeImage: z.boolean(), imagePrompt: z.string() });
+const chatShape = z.object({ reply: z.string(), makeImage: z.boolean(), imagePrompt: z.string(), logoPlace: z.string() });
 const captionShape = z.object({ posts: z.array(z.object({ platform: z.string(), title: z.string(), caption: z.string(), hashtags: z.array(z.string()) })) });
 
 function needAi() {
@@ -69,12 +75,30 @@ async function pictureOf(url: string): Promise<Picture | null> {
   return parsed.protocol === "https:" ? { type: "image", source: { type: "url", url } } : null;
 }
 
+/** Our own uploaded image as a reference for Gemini, shrunk and kept as PNG so a logo keeps its transparency. */
+async function referenceOf(url: string): Promise<Reference | null> {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return null;
+  }
+  const own = /^\/m\/([a-f0-9]{32}\.(?:jpg|png|webp))$/.exec(parsed.pathname);
+  const file = own ? await openStored(own[1]) : null;
+  if (!file) return null;
+  const png = await sharp(await readFile(/* turbopackIgnore: true */ file.path), { limitInputPixels: 50_000_000 })
+    .rotate().resize(1024, 1024, { fit: "inside", withoutEnlargement: true }).png().toBuffer().catch(() => null);
+  return png ? { mimeType: "image/png", data: png.toString("base64") } : null;
+}
+
 /** One turn of the creative chat. Makes a picture when the person has said enough to make one. */
 export async function creativeTurn(workspace: CurrentWorkspace, userId: string, input: z.infer<typeof chatInput>) {
   needAi();
   const actor: Actor = { workspaceId: workspace.id, userId };
   const brand = await brandNotes(workspace.id);
   const channels = input.platforms.map((p) => NAMES[p]).join(", ");
+  const logo = input.logoUrl ? await referenceOf(input.logoUrl) : null;
+  if (input.logoUrl && !logo) throw new HttpError(400, "LOGO", "Upload the logo again: it must be a PNG, JPG or WebP uploaded here.");
   const transcript = input.messages
     .map((m) => `${m.role === "user" ? "Person" : "You"}: ${m.text}${m.imageUrl ? " [a picture was made for this]" : ""}`)
     .join("\n");
@@ -85,7 +109,14 @@ export async function creativeTurn(workspace: CurrentWorkspace, userId: string, 
     `You are SocialGem's design assistant. You help a small business make one picture for a social media post on ${channels}. ` +
       "Talk like a helpful designer: short, warm, plain English, at most 3 sentences. " +
       "When you know what the post is about, make the picture straight away: set makeImage to true and write imagePrompt, a detailed description for an image model " +
-      "(subject, setting, composition, lighting, mood, colours, and a portrait 4:5 layout). Do not put words, letters, prices or logos in the picture. " +
+      "(subject, setting, composition, lighting, mood, colours, and a portrait 4:5 layout). " +
+      "Words in the picture: only when the person asks for them (a headline, tagline, offer or call to action). Use their exact wording when they give it; " +
+      "otherwise write it yourself, short and punchy (headline up to 8 words, call to action up to 5). In imagePrompt put each piece of text in double quotes, " +
+      "spelled exactly, and say where it goes and its type style (for example: bold modern sans-serif headline \"Grow faster with AI\" in the upper third). " +
+      "Never invent prices, phone numbers, addresses or web addresses the person did not give. Without such a request, the picture has no words. " +
+      (logo
+        ? "The person's real logo is attached separately. Leave clean space for it and set logoPlace to where it goes (for example: top-left corner, small). Never draw or describe a logo yourself. "
+        : "Never draw a logo or brand mark; leave logoPlace empty. If the person wants their logo in the picture, tell them to add it with the Logo button. ") +
       "When the person asks for a change, write a new imagePrompt that keeps what they liked and applies the change. " +
       "Only ask a question, with makeImage false and imagePrompt empty, when you truly cannot tell what to show. " +
       "In reply, say what you made or what you need, never describe the prompt itself. " +
@@ -99,9 +130,16 @@ export async function creativeTurn(workspace: CurrentWorkspace, userId: string, 
   if (!answer.makeImage || !prompt) return { reply, image: null };
   if (!geminiReady()) return { reply: "I know what to make, but picture making is not set up on this server yet. You can upload your own image instead.", image: null };
 
+  const rules = [
+    "Render any text in double quotes exactly as written: correct spelling, crisp, fully legible, well aligned. Add no other words, letters or numbers.",
+    logo
+      ? `The attached image is the brand's real logo. Place it ${answer.logoPlace.trim().slice(0, 80) || "small in a top corner"}, exactly as given: same shape, colours and lettering, not redrawn. Draw no other logo.`
+      : "Draw no logos, brand marks or watermarks.",
+  ].join(" ");
   const image = await makeImage(
     actor,
-    `${prompt}\n${brand.imageStyle ? `Style: ${brand.imageStyle}\n` : ""}${brand.colours ? `Accent colours: ${brand.colours}.\n` : ""}No text, letters, numbers, logos or watermarks.`.slice(0, 3000)
+    `${prompt}\n${brand.imageStyle ? `Style: ${brand.imageStyle}\n` : ""}${brand.colours ? `Accent colours: ${brand.colours}.\n` : ""}${rules}`.slice(0, 4000),
+    { size: input.quality === "sharp" ? "2K" : "1K", references: logo ? [logo] : [] }
   );
   const name = (input.messages.findLast((m) => m.role === "user")?.text || "AI image").slice(0, 180);
   const media = await prisma.mediaAsset.create({

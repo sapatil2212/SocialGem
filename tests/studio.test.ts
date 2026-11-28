@@ -201,6 +201,41 @@ describe.skipIf(!local)("AI studio (local MySQL, stand-in AI)", async () => {
     expect(readdirSync(process.env.STORAGE_PATH!).length).toBe(before);
   });
 
+  it("sends the real logo and exact-text rules to Gemini, at 2K when asked", async () => {
+    const { creativeTurn, chatInput } = await import("../src/server/ai/create");
+    const { storeBytes } = await import("../src/server/storage");
+    const logoName = await storeBytes(await sharp({ create: { width: 300, height: 120, channels: 4, background: { r: 20, g: 60, b: 200, alpha: 0 } } }).png().toBuffer(), "png");
+    const png = await sharp({ create: { width: 800, height: 1000, channels: 3, background: "#224488" } }).png().toBuffer();
+    reply.image = { output_image: { type: "image", data: png.toString("base64") } };
+    reply.current = () => ({ reply: "Here it is.", makeImage: true, imagePrompt: 'Blue gradient, bold sans-serif headline "Grow with AI" in the upper third', logoPlace: "top-left corner, small" });
+    gemini.length = 0;
+    // Long, detailed briefs fit now.
+    const brief = { role: "user", text: `Premium IT agency post. ${"Detail. ".repeat(600)}` };
+    const out = await creativeTurn(ws, userId, chatInput.parse({ platforms: ["facebook"], messages: [brief], logoUrl: `https://app.example.com/m/${logoName}`, quality: "sharp" }));
+    const sent = JSON.parse(gemini[0].body);
+    expect(sent.response_format.image_size).toBe("2K");
+    expect(sent.input[0].type).toBe("text");
+    expect(sent.input[0].text).toContain('"Grow with AI"');
+    expect(sent.input[0].text).toContain("exactly as written");
+    expect(sent.input[0].text).toContain("top-left corner, small");
+    expect(sent.input[1]).toMatchObject({ type: "image", mime_type: "image/png" });
+    expect(out.image).toMatchObject({ width: 2160, height: 2700 });
+    expect(Number((await db.aiUsage.findFirstOrThrow({ where: { provider: "gemini" } })).costUsd)).toBe(0.0504);
+    expect(seen.at(-1)!.body).toContain("real logo is attached");
+
+    // Without a logo: a plain prompt at 1K, and no logo may be drawn.
+    gemini.length = 0;
+    reply.current = () => ({ reply: "Done.", makeImage: true, imagePrompt: "Blue gradient office scene", logoPlace: "" });
+    await creativeTurn(ws, userId, chatInput.parse({ platforms: ["facebook"], messages: [{ role: "user", text: "Same, no logo" }] }));
+    const plain = JSON.parse(gemini[0].body);
+    expect(plain.response_format.image_size).toBe("1K");
+    expect(typeof plain.input).toBe("string");
+    expect(plain.input).toContain("Draw no logos");
+
+    // Only our own uploads can be used as the logo.
+    await expect(creativeTurn(ws, userId, chatInput.parse({ platforms: ["facebook"], messages: [brief], logoUrl: "https://evil.example/logo.png" }))).rejects.toMatchObject({ code: "LOGO" });
+  });
+
   it("schedules only what was approved and is ready, once, with clear reasons", async () => {
     await makeBrand();
     const plan = await makePlan();

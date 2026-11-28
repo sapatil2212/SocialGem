@@ -36,6 +36,14 @@ const keyOf = (account) => {
   return p === "x" || p === "twitter" ? "x_twitter" : p;
 };
 const fullText = (post) => [post.caption.trim(), post.hashtags.join(" ")].filter(Boolean).join("\n\n");
+// The logo is kept in this browser, per workspace, so it is ready for the next post.
+const logoKey = () => `sg-logo:${inWorkspace("")}`;
+// The request body limit is 64 KB; keep the newest messages that fit.
+function fitHistory(history) {
+  const list = history.slice(-30);
+  while (list.length > 1 && JSON.stringify(list).length > 50_000) list.shift();
+  return list;
+}
 const localDay = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
 async function call(path, body) {
@@ -76,6 +84,10 @@ export default function CreateFlow({ date = null, onDone, onClassic }) {
   const [error, setError] = useState("");
   const requestKey = useRef(typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : String(Date.now()));
   const fileInput = useRef(null);
+  const logoInput = useRef(null);
+  const [logo, setLogo] = useState(null);
+  const [logoBusy, setLogoBusy] = useState(false);
+  const [sharp, setSharp] = useState(false);
   const chatEnd = useRef(null);
 
   useEffect(() => {
@@ -83,6 +95,16 @@ export default function CreateFlow({ date = null, onDone, onClassic }) {
       .then((res) => (res.ok ? res.json() : []))
       .then((rows) => setAccounts(Array.isArray(rows) ? rows : []))
       .catch(() => setAccounts([]));
+  }, []);
+
+  useEffect(() => {
+    // Read after the first paint so the server and browser render the same thing.
+    Promise.resolve().then(() => {
+      try {
+        const saved = JSON.parse(localStorage.getItem(logoKey()) || "null");
+        if (saved?.url) setLogo(saved);
+      } catch {}
+    });
   }, []);
 
   useEffect(() => {
@@ -164,7 +186,12 @@ export default function CreateFlow({ date = null, onDone, onClassic }) {
     setThinking(true);
     setError("");
     try {
-      const data = await call("/create/chat", { platforms: chosen, messages: history.slice(-30).map(({ role, text, imageUrl }) => ({ role, text, ...(imageUrl ? { imageUrl } : {}) })) });
+      const data = await call("/create/chat", {
+        platforms: chosen,
+        messages: fitHistory(history.map(({ role, text, imageUrl }) => ({ role, text, ...(imageUrl ? { imageUrl } : {}) }))),
+        logoUrl: logo?.url || "",
+        quality: sharp ? "sharp" : "standard",
+      });
       setMessages((prev) => [...prev, { role: "assistant", text: data.reply, imageUrl: data.image?.url }]);
       if (data.image?.url) setMedia({ url: data.image.url, source: "ai" });
     } catch (e) {
@@ -190,6 +217,39 @@ export default function CreateFlow({ date = null, onDone, onClassic }) {
     } finally {
       setUploading(false);
     }
+  };
+
+  const uploadLogo = async (file) => {
+    if (!file) return;
+    if (!/^image\/(png|jpeg|webp)$/.test(file.type)) {
+      toast.error("Use a PNG, JPG or WebP logo. PNG with a clear background works best.");
+      return;
+    }
+    setLogoBusy(true);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      const res = await fetch(inWorkspace("/upload"), { method: "POST", body: form });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.url) throw new Error(data.error || "The upload failed.");
+      const next = { url: data.url, name: file.name.slice(0, 60) };
+      setLogo(next);
+      try {
+        localStorage.setItem(logoKey(), JSON.stringify(next));
+      } catch {}
+      toast.success("Logo added. The next picture will include it.");
+    } catch (e) {
+      toast.error(e.message);
+    } finally {
+      setLogoBusy(false);
+    }
+  };
+
+  const removeLogo = () => {
+    setLogo(null);
+    try {
+      localStorage.removeItem(logoKey());
+    } catch {}
   };
 
   // ---- Saving ----
@@ -417,8 +477,27 @@ export default function CreateFlow({ date = null, onDone, onClassic }) {
                       )}
                       <div ref={chatEnd} />
                     </div>
+                    <div className="flex flex-wrap items-center gap-2 border-t border-hairline px-3 pt-3">
+                      <input ref={logoInput} type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" tabIndex={-1} aria-hidden onChange={(e) => { uploadLogo(e.target.files?.[0]); e.target.value = ""; }} />
+                      {logo ? (
+                        <span className="inline-flex min-h-8 items-center gap-2 rounded-full border border-hairline bg-background py-1 pr-1 pl-1.5 text-xs">
+                          <img src={logo.url} alt="" className="size-6 rounded-full border border-hairline bg-white object-contain" />
+                          <span className="max-w-32 truncate">Logo: {logo.name || "added"}</span>
+                          <button type="button" onClick={removeLogo} aria-label="Remove logo" className="grid size-6 place-items-center rounded-full text-muted-ink hover:bg-tint hover:text-foreground cursor-pointer"><X aria-hidden className="size-3.5" /></button>
+                        </span>
+                      ) : (
+                        <button type="button" disabled={logoBusy} onClick={() => logoInput.current?.click()} className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-dashed border-hairline px-3 text-xs text-muted-ink hover:border-brand/40 hover:text-foreground cursor-pointer disabled:opacity-50">
+                          {logoBusy ? <Spinner className="size-3.5" /> : <ImagePlus aria-hidden className="size-3.5" />} Add your logo
+                        </button>
+                      )}
+                      <label className="inline-flex min-h-8 cursor-pointer items-center gap-2 rounded-full border border-hairline px-3 text-xs text-muted-ink has-[:checked]:border-brand/50 has-[:checked]:bg-tint has-[:checked]:text-foreground">
+                        <input type="checkbox" checked={sharp} onChange={(e) => setSharp(e.target.checked)} className="accent-[var(--brand,#6d28d9)]" />
+                        Sharper (2K)
+                      </label>
+                      <span className="text-[11px] text-muted-ink">Ask for a headline or tagline and it is written into the picture.</span>
+                    </div>
                     <form
-                      className="flex items-end gap-2 border-t border-hairline p-3"
+                      className="flex items-end gap-2 p-3"
                       onSubmit={(e) => {
                         e.preventDefault();
                         send();
@@ -434,7 +513,7 @@ export default function CreateFlow({ date = null, onDone, onClassic }) {
                           }
                         }}
                         rows={1}
-                        maxLength={2000}
+                        maxLength={6000}
                         aria-label="Message to the AI designer"
                         placeholder={messages.length ? "Ask for a change, e.g. warmer colours, show a family" : "e.g. 20% off all haircuts this weekend, bright and cheerful"}
                         className="max-h-36 min-h-10 flex-1 resize-none rounded-lg border border-hairline bg-background px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-brand/15"
