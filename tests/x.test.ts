@@ -24,7 +24,9 @@ describe.skipIf(!local)("X connections (local MySQL, stand-in X)", async () => {
   process.env.MUAPI_BASE_URL = "http://127.0.0.1:9";
   const db = new PrismaClient({ datasourceUrl: url });
   const { createWorkspace, membership } = await import("../src/server/workspaces");
-  const { attemptResult, finishXConnect, startConnect, syncAccounts, xAccessToken, sendToX } = await import("../src/server/accounts");
+  const { attemptResult, finishDirectConnect, startConnect, syncAccounts, directAccessToken, sendToX } = await import("../src/server/accounts");
+  const finishXConnect = (userId: string, state: string, code: string | null) => finishDirectConnect("x", userId, state, code);
+  const xAccessToken = async (workspaceId: string, accountId: string) => (await directAccessToken(workspaceId, accountId)).access;
   const { platformStates } = await import("../src/server/muapi");
   const { openTokens } = await import("../src/server/tokens");
 
@@ -153,7 +155,7 @@ describe.skipIf(!local)("X connections (local MySQL, stand-in X)", async () => {
     const account = await db.socialAccount.findFirstOrThrow({ where: { platform: "X" } });
     await db.socialAccount.update({ where: { id: account.id }, data: { tokenCipher: (await import("../src/server/tokens")).sealTokens({ access: "old", refresh: "dead", expiresAt: 0 }) } });
     refreshWorks = false;
-    await expect(xAccessToken(a.id, account.id)).rejects.toMatchObject({ code: "X_SIGNED_OUT" });
+    await expect(xAccessToken(a.id, account.id)).rejects.toMatchObject({ code: "SIGNED_OUT" });
     expect((await db.socialAccount.findUniqueOrThrow({ where: { id: account.id } })).status).toBe("NEEDS_RECONNECT");
   });
 

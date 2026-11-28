@@ -2,11 +2,13 @@ import { createHash, randomBytes } from "node:crypto";
 import type { SocialAccount } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { dataFor, fromPlatform, toPlatform } from "./data";
+import { signedOut, type DirectProvider, type DirectTokens, type DirectUser } from "./direct";
 import { HttpError, isUniqueClash } from "./errors";
+import { linkedinCreatePost, linkedinProvider } from "./linkedin";
 import { connectUrl, muapiReady, platformKey, remoteAccounts, type RemoteAccount } from "./muapi";
 import { openTokens, sealTokens } from "./tokens";
 import type { CurrentWorkspace } from "./workspaces";
-import { pkceVerifier, xAuthorizeUrl, xCreatePost, xExchangeCode, xMe, xReady, xRefresh, type XTokens, type XUser } from "./x";
+import { pkceVerifier, xCreatePost, xProvider } from "./x";
 
 const hash = (value: string) => createHash("sha256").update(value).digest("hex");
 const claimKey = (a: RemoteAccount) => (a.platformUserId ? `${a.platform}:${a.platformUserId}` : `muapi:${a.id}`);
@@ -24,7 +26,7 @@ export const showAccount = (a: SocialAccount) => ({
 export async function syncAccounts(workspace: CurrentWorkspace, maxAgeSeconds = 300) {
   const { accounts } = dataFor(workspace.id);
   const known = await accounts.list();
-  // Direct connections (X) are not held by MuAPI, so MuAPI must not judge them.
+  // Direct connections (X, LinkedIn) are not held by MuAPI, so MuAPI must not judge them.
   const viaMuapi = known.filter((a) => a.muapiAccountId !== null);
   const stale = viaMuapi.some((a) => !a.lastCheckedAt || a.lastCheckedAt.getTime() < Date.now() - maxAgeSeconds * 1000);
   if (!stale || !muapiReady()) return known;
@@ -42,7 +44,8 @@ export async function syncAccounts(workspace: CurrentWorkspace, maxAgeSeconds = 
 }
 
 export async function startConnect(workspace: CurrentWorkspace, userId: string, platform: string) {
-  if (platformKey(platform) === "x") return startXConnect(workspace, userId);
+  const direct = directProvider(platform);
+  if (direct) return startDirectConnect(direct, workspace, userId);
   const nonce = randomBytes(24).toString("base64url");
   const base = (process.env.APP_URL || process.env.NEXTAUTH_URL || "").replace(/\/$/, "");
   const before = await remoteAccounts(workspace.externalUserId);
@@ -107,25 +110,28 @@ export async function finishConnect(userId: string, nonce: string): Promise<{ re
   }
 }
 
-// ---- X: connected directly with each customer's own X sign-in ----
+// ---- Direct connections (X, LinkedIn): each customer's own sign-in, not MuAPI ----
 
-const X_STATE = /^[\w-]{32}$/;
+const DIRECT: Record<string, DirectProvider> = { x: xProvider, linkedin: linkedinProvider };
+export const directProvider = (key: string) => DIRECT[platformKey(key)];
+const STATE = /^[\w-]{32}$/;
 
-async function startXConnect(workspace: CurrentWorkspace, userId: string) {
-  if (!xReady()) throw new HttpError(400, "PLATFORM_OFF", "That platform is not available yet.");
+async function startDirectConnect(provider: DirectProvider, workspace: CurrentWorkspace, userId: string) {
+  if (!provider.ready()) throw new HttpError(400, "PLATFORM_OFF", "That platform is not available yet.");
   const state = randomBytes(24).toString("base64url");
   const verifier = pkceVerifier();
   const attempt = await prisma.connectAttempt.create({
-    data: { workspaceId: workspace.id, userId, platform: "X", nonceHash: hash(state), knownAccounts: [], codeVerifier: verifier, expiresAt: new Date(Date.now() + 15 * 60_000) },
+    data: { workspaceId: workspace.id, userId, platform: provider.platform, nonceHash: hash(state), knownAccounts: [], codeVerifier: verifier, expiresAt: new Date(Date.now() + 15 * 60_000) },
   });
-  return { url: xAuthorizeUrl(state, verifier), attempt: attempt.id };
+  return { url: provider.authorizeUrl(state, verifier), attempt: attempt.id };
 }
 
-/** Same rules as finishConnect: only the person who started, only once. code is null when they said no on X. */
-export async function finishXConnect(userId: string, state: string, code: string | null): Promise<{ result: ConnectResult; workspaceId?: string }> {
-  if (!X_STATE.test(state)) return { result: "expired" };
+/** Same rules as finishConnect: only the person who started, only once. code is null when they said no. */
+export async function finishDirectConnect(providerKey: string, userId: string, state: string, code: string | null): Promise<{ result: ConnectResult; workspaceId?: string }> {
+  const provider = directProvider(providerKey);
+  if (!provider || !STATE.test(state)) return { result: "expired" };
   const attempt = await prisma.connectAttempt.findUnique({ where: { nonceHash: hash(state) }, include: { workspace: { select: { archivedAt: true, members: { where: { userId }, select: { role: true } } } } } });
-  if (!attempt || attempt.platform !== "X" || attempt.userId !== userId || attempt.workspace.archivedAt || !attempt.workspace.members.length) return { result: "expired" };
+  if (!attempt || attempt.platform !== provider.platform || attempt.userId !== userId || attempt.workspace.archivedAt || !attempt.workspace.members.length) return { result: "expired" };
   const claimed = await prisma.connectAttempt.updateMany({ where: { id: attempt.id, status: "PENDING", expiresAt: { gt: new Date() } }, data: { status: "FAILED", error: "working", codeVerifier: null } });
   if (!claimed.count || !attempt.codeVerifier) return { result: "expired" };
   if (!code) {
@@ -133,9 +139,9 @@ export async function finishXConnect(userId: string, state: string, code: string
     return { result: "none", workspaceId: attempt.workspaceId };
   }
   try {
-    const tokens = await xExchangeCode(code, attempt.codeVerifier);
-    const user = await xMe(tokens.access);
-    const result = await adoptX(attempt.workspaceId, user, tokens);
+    const tokens = await provider.exchange(code, attempt.codeVerifier);
+    const user = await provider.me(tokens.access);
+    const result = await adoptDirect(provider, attempt.workspaceId, user, tokens);
     await prisma.connectAttempt.update({ where: { id: attempt.id }, data: result === "added" ? { status: "COMPLETED", error: null } : { error: "taken" } });
     return { result: result === "added" ? "connected" : "taken", workspaceId: attempt.workspaceId };
   } catch (error) {
@@ -144,15 +150,15 @@ export async function finishXConnect(userId: string, state: string, code: string
   }
 }
 
-async function adoptX(workspaceId: string, user: XUser, tokens: XTokens): Promise<"added" | "taken"> {
+async function adoptDirect(provider: DirectProvider, workspaceId: string, user: DirectUser, tokens: DirectTokens): Promise<"added" | "taken"> {
   const data = {
-    name: `@${user.username}`, platformUserId: user.id, claimKey: `x:${user.id}`, avatarUrl: user.avatarUrl,
+    name: user.name, platformUserId: user.id, claimKey: `${provider.key}:${user.id}`, avatarUrl: user.avatarUrl,
     tokenCipher: sealTokens(tokens), tokenExpiresAt: new Date(tokens.expiresAt),
     status: "ACTIVE" as const, connectedAt: new Date(), disconnectedAt: null, lastCheckedAt: new Date(),
   };
   try {
     const own = await prisma.socialAccount.updateMany({ where: { workspaceId, claimKey: data.claimKey }, data });
-    if (!own.count) await prisma.socialAccount.create({ data: { ...data, workspaceId, platform: "X" } });
+    if (!own.count) await prisma.socialAccount.create({ data: { ...data, workspaceId, platform: provider.platform } });
     return "added";
   } catch (error) {
     if (isUniqueClash(error)) return "taken";
@@ -160,18 +166,20 @@ async function adoptX(workspaceId: string, user: XUser, tokens: XTokens): Promis
   }
 }
 
-/** A working X token for one account, refreshed (and saved) when it is about to run out. */
-export async function xAccessToken(workspaceId: string, accountId: string, tries = 0): Promise<string> {
-  const account = await prisma.socialAccount.findFirst({ where: { id: accountId, workspaceId, platform: "X" }, select: { id: true, status: true, tokenCipher: true } });
-  if (!account?.tokenCipher || account.status !== "ACTIVE") throw new HttpError(400, "ACCOUNT", "Choose a connected X account.");
-  const tokens = openTokens<XTokens>(account.tokenCipher);
-  if (tokens.expiresAt > Date.now() + 5 * 60_000) return tokens.access;
-  if (!tokens.refresh) return markXSignedOut(workspaceId, account.id);
-  let fresh: XTokens;
+/** A working token for one directly connected account, refreshed (and saved) when it is about to run out. */
+export async function directAccessToken(workspaceId: string, accountId: string, tries = 0): Promise<{ access: string; memberId: string }> {
+  const account = await prisma.socialAccount.findFirst({ where: { id: accountId, workspaceId, platform: { in: ["X", "LINKEDIN"] } }, select: { id: true, platform: true, status: true, tokenCipher: true, platformUserId: true } });
+  if (!account?.tokenCipher || account.status !== "ACTIVE") throw new HttpError(400, "ACCOUNT", "Choose a connected account.");
+  const provider = directProvider(fromPlatform(account.platform))!;
+  const memberId = account.platformUserId ?? "";
+  const tokens = openTokens<DirectTokens>(account.tokenCipher);
+  if (tokens.expiresAt > Date.now() + 5 * 60_000) return { access: tokens.access, memberId };
+  if (!tokens.refresh || !provider.refresh) return markSignedOut(provider, workspaceId, account.id);
+  let fresh: DirectTokens;
   try {
-    fresh = await xRefresh(tokens.refresh);
+    fresh = await provider.refresh(tokens.refresh);
   } catch (error) {
-    if (error instanceof HttpError && error.code === "X_SIGNED_OUT") return markXSignedOut(workspaceId, account.id);
+    if (error instanceof HttpError && error.code === "SIGNED_OUT") return markSignedOut(provider, workspaceId, account.id);
     throw error;
   }
   // X replaces the refresh token on every use, so the new one must be saved.
@@ -179,18 +187,26 @@ export async function xAccessToken(workspaceId: string, accountId: string, tries
     where: { id: account.id, workspaceId, tokenCipher: account.tokenCipher },
     data: { tokenCipher: sealTokens({ ...fresh, refresh: fresh.refresh ?? tokens.refresh }), tokenExpiresAt: new Date(fresh.expiresAt), lastCheckedAt: new Date() },
   });
-  if (!saved.count && tries < 2) return xAccessToken(workspaceId, accountId, tries + 1); // Another request refreshed it first.
-  return fresh.access;
+  if (!saved.count && tries < 2) return directAccessToken(workspaceId, accountId, tries + 1); // Another request refreshed it first.
+  return { access: fresh.access, memberId };
 }
 
-async function markXSignedOut(workspaceId: string, accountId: string): Promise<never> {
+async function markSignedOut(provider: DirectProvider, workspaceId: string, accountId: string): Promise<never> {
   await prisma.socialAccount.updateMany({ where: { id: accountId, workspaceId, status: "ACTIVE" }, data: { status: "NEEDS_RECONNECT", lastCheckedAt: new Date() } });
-  throw new HttpError(401, "X_SIGNED_OUT", "X has signed this account out. Please reconnect it.");
+  throw signedOut(provider.label);
 }
 
 /** Sends one post to X now. For the publishing engine (M4); no route calls it yet. */
 export async function sendToX(workspaceId: string, accountId: string, text: string) {
   if (!text.trim()) throw new HttpError(400, "EMPTY", "X needs some text.");
   if ([...text].length > 280) throw new HttpError(400, "TOO_LONG", "Keep X posts to 280 characters.");
-  return xCreatePost(await xAccessToken(workspaceId, accountId), text);
+  return xCreatePost((await directAccessToken(workspaceId, accountId)).access, text);
+}
+
+/** Sends one post to a LinkedIn profile now. For the publishing engine (M4); no route calls it yet. */
+export async function sendToLinkedIn(workspaceId: string, accountId: string, text: string) {
+  if (!text.trim()) throw new HttpError(400, "EMPTY", "LinkedIn needs some text.");
+  if ([...text].length > 3000) throw new HttpError(400, "TOO_LONG", "Keep LinkedIn posts to 3,000 characters.");
+  const { access, memberId } = await directAccessToken(workspaceId, accountId);
+  return linkedinCreatePost(access, memberId, text);
 }
