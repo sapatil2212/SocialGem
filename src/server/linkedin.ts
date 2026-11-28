@@ -15,17 +15,31 @@ export function linkedinConfig() {
     clientId: realSetting(process.env.LINKEDIN_CLIENT_ID),
     clientSecret: realSetting(process.env.LINKEDIN_CLIENT_SECRET),
     callback: callbackFor("linkedin", process.env.LINKEDIN_CALLBACK_URL),
-    // LinkedIn retires each monthly API version after about a year; override when needed.
-    version: realSetting(process.env.LINKEDIN_API_VERSION) || "202510",
+    // Optional: pin one monthly API version (YYYYMM). Otherwise a recent active one is found.
+    version: /^\d{6}$/.test(realSetting(process.env.LINKEDIN_API_VERSION)) ? realSetting(process.env.LINKEDIN_API_VERSION) : "",
   };
 }
+
+// LinkedIn releases an API version each month and retires each one after about a year,
+// answering 426 for a retired (or not yet released) one. Try recent months, newest first,
+// and remember the first that works.
+let activeVersion = "";
+export function versionsToTry(today = new Date()) {
+  const months: string[] = [];
+  for (let back = 0; back < 10; back++) {
+    const d = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - back, 1));
+    months.push(`${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, "0")}`);
+  }
+  return [...new Set([linkedinConfig().version, activeVersion, ...months].filter(Boolean))];
+}
+export const resetLinkedInVersion = () => (activeVersion = "");
 
 export const linkedinReady = () => {
   const c = linkedinConfig();
   return Boolean(c.clientId && c.clientSecret && /^https?:\/\/[^/]+/.test(c.callback) && tokenKeyReady());
 };
 
-async function call(url: string, init: { token?: string; form?: Record<string, string>; json?: unknown; rest?: boolean } = {}) {
+async function call(url: string, init: { token?: string; form?: Record<string, string>; json?: unknown; version?: string } = {}) {
   const headers: Record<string, string> = {};
   let body: string | undefined;
   if (init.form) {
@@ -37,8 +51,8 @@ async function call(url: string, init: { token?: string; form?: Record<string, s
     headers["Content-Type"] = "application/json";
     body = JSON.stringify(init.json);
   }
-  if (init.rest) {
-    headers["LinkedIn-Version"] = linkedinConfig().version;
+  if (init.version) {
+    headers["LinkedIn-Version"] = init.version;
     headers["X-Restli-Protocol-Version"] = "2.0.0";
   }
   const method = body ? "POST" : "GET";
@@ -54,8 +68,11 @@ async function call(url: string, init: { token?: string; form?: Record<string, s
     const reason = String(data?.error_description || data?.message || data?.error || "").replace(/\s+/g, " ").slice(0, 200);
     console.error("[linkedin]", method, new URL(url).pathname, response.status, reason);
     if (response.status === 401 || data?.error === "invalid_grant") throw signedOut("LinkedIn");
+    // The version was refused before anything was posted: safe to try another.
+    if (response.status === 426) throw new HttpError(400, "VERSION", reason || "LinkedIn did not accept the API version.");
     if (response.status === 429) throw new HttpError(429, "LIMIT", "LinkedIn's posting limit was reached. Please try again later.");
     if (response.status === 403) throw new HttpError(403, "REFUSED", reason ? `LinkedIn refused: ${reason}` : "LinkedIn refused the request.");
+    if (response.status >= 400 && response.status < 500) throw new HttpError(400, "REFUSED", reason ? `LinkedIn refused: ${reason}` : "LinkedIn refused the post.");
     throw new HttpError(502, "PROVIDER", "LinkedIn could not complete that.");
   }
   return { data, headers: response.headers };
@@ -93,19 +110,27 @@ export const linkedinProvider: DirectProvider = {
 
 /** Posts text to the member's own profile. Returns the new post's id and address. */
 export async function linkedinCreatePost(access: string, memberId: string, text: string) {
-  const { headers } = await call(`${API}/rest/posts`, {
-    token: access,
-    rest: true,
-    json: {
-      author: `urn:li:person:${memberId}`,
-      commentary: text,
-      visibility: "PUBLIC",
-      distribution: { feedDistribution: "MAIN_FEED", targetEntities: [], thirdPartyDistributionChannels: [] },
-      lifecycleState: "PUBLISHED",
-      isReshareDisabledByAuthor: false,
-    },
-  });
-  const id = headers.get("x-restli-id") || headers.get("x-linkedin-id") || "";
-  if (!id) throw new HttpError(502, "PROVIDER", "LinkedIn sent an unexpected reply.");
-  return { id, url: `https://www.linkedin.com/feed/update/${id}/` };
+  const json = {
+    author: `urn:li:person:${memberId}`,
+    commentary: text,
+    visibility: "PUBLIC",
+    distribution: { feedDistribution: "MAIN_FEED", targetEntities: [], thirdPartyDistributionChannels: [] },
+    lifecycleState: "PUBLISHED",
+    isReshareDisabledByAuthor: false,
+  };
+  let last: unknown = null;
+  for (const version of versionsToTry()) {
+    try {
+      const { headers } = await call(`${API}/rest/posts`, { token: access, version, json });
+      activeVersion = version;
+      const id = headers.get("x-restli-id") || headers.get("x-linkedin-id") || "";
+      if (!id) throw new HttpError(502, "PROVIDER", "LinkedIn sent an unexpected reply.");
+      return { id, url: `https://www.linkedin.com/feed/update/${id}/` };
+    } catch (error) {
+      if (!(error instanceof HttpError && error.code === "VERSION")) throw error;
+      if (activeVersion === version) activeVersion = "";
+      last = error;
+    }
+  }
+  throw last instanceof HttpError ? new HttpError(400, "VERSION", "LinkedIn did not accept any recent API version. Set LINKEDIN_API_VERSION to a current one.") : last;
 }

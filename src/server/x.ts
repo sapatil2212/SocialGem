@@ -49,7 +49,10 @@ async function call(path: string, init: { token?: string; form?: Record<string, 
     console.error("[x]", method, path.split("?")[0], response.status, reason);
     if (response.status === 401 || data?.error === "invalid_grant") throw signedOut("X");
     if (response.status === 429) throw new HttpError(429, "LIMIT", "X's posting limit was reached. Please try again later.");
+    if (response.status === 402) throw new HttpError(402, "CREDITS", "X refused: the X developer account has no API credits left. Add credits in the X developer console.");
     if (response.status === 403) throw new HttpError(403, "REFUSED", reason ? `X refused: ${reason}` : "X refused the request.");
+    // Any other 4xx: X looked at the request and said no, so nothing was posted.
+    if (response.status >= 400 && response.status < 500) throw new HttpError(400, "REFUSED", reason ? `X refused: ${reason}` : "X refused the post.");
     throw new HttpError(502, "PROVIDER", "X could not complete that.");
   }
   return data;

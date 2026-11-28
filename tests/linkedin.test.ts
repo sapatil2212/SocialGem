@@ -31,6 +31,9 @@ describe.skipIf(!local)("LinkedIn connections (local MySQL, stand-in LinkedIn)",
   type W = { id: string; userId: string };
   let a: W, b: W;
   let calls: { url: string; init?: RequestInit }[];
+  // API versions LinkedIn says are not active (retired, or not released yet).
+  const inactive = new Set<string>();
+  const { versionsToTry, resetLinkedInVersion } = await import("../src/server/linkedin");
 
   async function seed(name: string): Promise<W> {
     const user = await db.user.create({ data: { email: `${name}@example.com` } });
@@ -47,13 +50,19 @@ describe.skipIf(!local)("LinkedIn connections (local MySQL, stand-in LinkedIn)",
     a = await seed("a");
     b = await seed("b");
     calls = [];
+    inactive.clear();
+    resetLinkedInVersion();
     vi.stubGlobal("fetch", async (input: string, init?: RequestInit) => {
       calls.push({ url: String(input), init });
       const u = new URL(String(input));
       if (u.hostname === "127.0.0.1") return reply(200, []); // MuAPI: holds no accounts
       if (u.pathname === "/oauth/v2/accessToken") return reply(200, { access_token: "li-access", expires_in: 5_184_000, scope: "openid,profile,w_member_social" });
       if (u.pathname === "/v2/userinfo") return reply(200, { sub: "abc123", name: "Asha Patil", picture: "https://media.licdn.com/a.jpg" });
-      if (u.pathname === "/rest/posts") return reply(201, {}, { "x-restli-id": "urn:li:share:999" });
+      if (u.pathname === "/rest/posts") {
+        const version = (init?.headers as Record<string, string>)["LinkedIn-Version"];
+        if (inactive.has(version)) return reply(426, { message: `Requested version ${version}01 is not active` });
+        return reply(201, {}, { "x-restli-id": "urn:li:share:999" });
+      }
       return reply(404, {});
     });
   });
@@ -125,5 +134,27 @@ describe.skipIf(!local)("LinkedIn connections (local MySQL, stand-in LinkedIn)",
     expect(headers.Authorization).toBe("Bearer li-access");
     expect(headers["LinkedIn-Version"]).toMatch(/^\d{6}$/);
     expect(JSON.parse(String(post.init!.body))).toMatchObject({ author: "urn:li:person:abc123", commentary: "We are hiring bakers", visibility: "PUBLIC", lifecycleState: "PUBLISHED" });
+  });
+
+  it("finds an active API version when LinkedIn retires one, and remembers it", async () => {
+    const months = versionsToTry(new Date(Date.UTC(2026, 10, 15)));
+    expect(months.slice(0, 3)).toEqual(["202611", "202610", "202609"]);
+    expect(months).toHaveLength(10);
+
+    await finishDirectConnect("linkedin", a.userId, (await begin(a)).state, "code");
+    const account = await db.socialAccount.findFirstOrThrow({ where: { platform: "LINKEDIN" } });
+    const [newest, second, third] = versionsToTry();
+    inactive.add(newest).add(second);
+    expect((await sendToLinkedIn(a.id, account.id, "Hello")).id).toBe("urn:li:share:999");
+    const tried = calls.filter((c) => c.url.endsWith("/rest/posts")).map((c) => (c.init!.headers as Record<string, string>)["LinkedIn-Version"]);
+    expect(tried).toEqual([newest, second, third]);
+    // The next post goes straight to the version that worked.
+    calls.length = 0;
+    await sendToLinkedIn(a.id, account.id, "Again");
+    expect(calls.filter((c) => c.url.endsWith("/rest/posts")).map((c) => (c.init!.headers as Record<string, string>)["LinkedIn-Version"])).toEqual([third]);
+
+    // Every version refused: a clear failure, never "might have posted".
+    for (const v of versionsToTry()) inactive.add(v);
+    await expect(sendToLinkedIn(a.id, account.id, "Nope")).rejects.toMatchObject({ code: "VERSION", status: 400 });
   });
 });
