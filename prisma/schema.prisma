@@ -210,6 +210,9 @@ model SocialAccount {
   platformUserId String?
   name           String
   avatarUrl      String?       @db.Text
+  /// Direct connections only (X): sign-in tokens, encrypted with TOKEN_KEY.
+  tokenCipher    String?       @db.Text
+  tokenExpiresAt DateTime?
   status         AccountStatus @default(ACTIVE)
   connectedAt    DateTime?
   disconnectedAt DateTime?
@@ -230,6 +233,8 @@ model ConnectAttempt {
   platform      Platform
   nonceHash     String        @unique @db.Char(64)
   knownAccounts Json
+  /// PKCE verifier for direct OAuth connections (X). Single use, deleted on finish.
+  codeVerifier  String?       @db.VarChar(128)
   status        ConnectStatus @default(PENDING)
   error         String?
   expiresAt     DateTime

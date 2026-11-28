@@ -1,4 +1,5 @@
 import { HttpError } from "./errors";
+import { xReady } from "./x";
 
 // Only this module talks to MuAPI. Publishing is deliberately absent until M4.
 const BASE = () => (process.env.MUAPI_BASE_URL || "https://api.muapi.ai").replace(/\/$/, "");
@@ -24,14 +25,14 @@ export function mediaProblem(platform: string, mediaUrl: string, title: string) 
   return "";
 }
 export const enabledPlatforms = () =>
-  (process.env.PLATFORMS_ENABLED || "facebook,instagram,youtube,tiktok").split(",").map((p) => p.trim()).filter(Boolean);
+  (process.env.PLATFORMS_ENABLED || "facebook,instagram,youtube,tiktok,x").split(",").map((p) => p.trim()).filter(Boolean);
 
-/** Whether each platform can be connected here: ready, setup (no key), testing (no safe connect flow) or off. */
+/** Whether each platform can be connected here: ready, setup (no key) or off. X is connected directly, not through MuAPI. */
 export function platformStates() {
   const on = enabledPlatforms();
   return Object.fromEntries(
     ["facebook", "instagram", "youtube", "tiktok", "x", "linkedin", "threads", "pinterest"].map((p) => {
-      const state = p === "x" ? "testing" : !on.includes(p) || !CONNECTABLE.includes(p) ? "off" : muapiReady() ? "ready" : "setup";
+      const state = !on.includes(p) ? "off" : p === "x" ? (xReady() ? "ready" : "setup") : !CONNECTABLE.includes(p) ? "off" : muapiReady() ? "ready" : "setup";
       return [p === "x" ? "x_twitter" : p, state];
     })
   );
