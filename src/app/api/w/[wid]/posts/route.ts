@@ -1,6 +1,7 @@
 import { dataFor, toPlatform } from "@/server/data";
 import { guardWorkspace, HttpError } from "@/server/guard";
 import { enabledPlatforms, mediaProblem, platformKey } from "@/server/muapi";
+import { nudgePublisher } from "@/server/publisher";
 import { createPost } from "@/server/schemas";
 
 const date = (value: string | null) => {
@@ -8,13 +9,15 @@ const date = (value: string | null) => {
   return parsed && !Number.isNaN(parsed.getTime()) ? parsed : undefined;
 };
 
-// Reading never publishes. The worker in M4 does that.
+// Reading never publishes. The publisher (src/server/publisher.ts) does that.
 export const GET = guardWorkspace({}, ({ workspace, query }) => dataFor(workspace.id).posts.list(date(query.get("from")), date(query.get("to"))));
 
 export const POST = guardWorkspace({ body: createPost, limit: { name: "post-create", max: 120, seconds: 3600 } }, async ({ user, workspace, body }) => {
-  if (body.mode === "now") throw new HttpError(503, "PUBLISHING_OFF", "Publishing is not switched on yet. You can save a draft or schedule.");
   const draft = body.mode === "draft";
-  if (!draft && (!body.scheduledAt || body.scheduledAt <= new Date())) throw new HttpError(400, "INVALID", "Choose a time in the future.");
+  const now = body.mode === "now";
+  // "Publish now" is a post scheduled for this moment: the publisher sends it within seconds.
+  const scheduledAt = now ? new Date() : body.scheduledAt;
+  if (!draft && !now && (!scheduledAt || scheduledAt <= new Date())) throw new HttpError(400, "INVALID", "Choose a time in the future.");
 
   const data = dataFor(workspace.id);
   const accounts = await data.accounts.list();
@@ -45,7 +48,8 @@ export const POST = guardWorkspace({ body: createPost, limit: { name: "post-crea
   const posts = await data.posts.create({
     createdById: user.id, requestKey: body.requestKey, title: body.title, caption: body.description, mediaUrl: body.mediaUrl,
     tag: body.customTag ? { name: body.customTag, color: body.tagColor || "#FF6B00" } : null,
-    scheduledAt: body.scheduledAt ?? null, draft, targets,
+    scheduledAt: scheduledAt ?? null, draft, targets,
   });
+  if (now) nudgePublisher();
   return { success: true, posts, count: posts.length };
 });

@@ -46,9 +46,14 @@ describe("admin pages", () => {
   it.each(pages)("%s checks the admin session", (f) => expect(readFileSync(join(base, f), "utf8")).toMatch(/await requireAdmin\(\)/));
 });
 
-describe("no publishing or fake data before M4", () => {
-  const all = readdirSync("src", { recursive: true, encoding: "utf8" }).filter((f) => /\.(js|jsx|ts|tsx)$/.test(f)).map((f) => readFileSync(join("src", f), "utf8")).join("\n");
-  it("has no publish endpoints", () => expect(all).not.toMatch(/-publish["'`]/));
+describe("publishing only through the publisher, and no fake data", () => {
+  const files = readdirSync("src", { recursive: true, encoding: "utf8" }).filter((f) => /\.(js|jsx|ts|tsx)$/.test(f)).map((f) => f.replace(/\\/g, "/"));
+  const all = files.map((f) => readFileSync(join("src", f), "utf8")).join("\n");
+  it("sends posts from the publisher only", () => {
+    const senders = files.filter((f) => /\b(submitPublish|sendToX|sendToLinkedIn|sendToPinterest)\(/.test(readFileSync(join("src", f), "utf8")));
+    expect(senders.sort()).toEqual(["server/accounts.ts", "server/muapi.ts", "server/publisher.ts"]);
+    expect(all.match(/-publish["'`]/g)?.length).toBe(4); // the four MuAPI paths, in muapi.ts
+  });
   it("has no in-memory stores or dummy account", () => expect(all).not.toMatch(/DemoStore|MediaStore|SocialAccountStore|=== 101|\|\| 101/));
   it("calls MuAPI from one module only", () => expect(all.match(/api\.muapi\.ai/g)?.length).toBe(1));
   it("calls LinkedIn from one module only", () => expect(all.match(/api\.linkedin\.com/g)?.length).toBe(1));

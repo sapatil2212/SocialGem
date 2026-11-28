@@ -114,3 +114,65 @@ export async function generateText(prompt: string, system_prompt: string) {
   }
   throw new HttpError(504, "AI_TIMEOUT", "The AI took too long. Please try again.");
 }
+
+// ---- Publishing (used only by the publisher) ----
+
+/** A send either got a request id, or failed. "definite" means MuAPI certainly did not post it. */
+export type Submitted = { ok: true; requestId: string } | { ok: false; definite: boolean; code: string; message: string };
+
+const PUBLISH_PATHS: Record<string, string> = {
+  facebook: "/api/v1/facebook-publish",
+  instagram: "/api/v1/instagram-publish",
+  youtube: "/api/v1/youtube-publish",
+  tiktok: "/api/v1/tiktok-publish",
+};
+
+/** Sends once. Never retried here: a timeout may still have posted, so the caller treats it as unclear. */
+export async function submitPublish(platform: string, body: Record<string, unknown>): Promise<Submitted> {
+  const path = PUBLISH_PATHS[platformKey(platform)];
+  if (!path) return { ok: false, definite: true, code: "PLATFORM_OFF", message: "That platform cannot be published to yet." };
+  if (!key()) return { ok: false, definite: true, code: "NOT_CONFIGURED", message: "Publishing is not set up on the server yet." };
+  let response: Response;
+  try {
+    response = await fetch(BASE() + path, {
+      method: "POST",
+      headers: { "x-api-key": key(), "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      redirect: "error",
+      signal: AbortSignal.timeout(30_000),
+    });
+  } catch {
+    return { ok: false, definite: false, code: "NO_REPLY", message: "The social service did not reply, so we cannot tell whether it was posted." };
+  }
+  const data = await response.json().catch(() => ({}));
+  const id = data?.request_id || data?.id;
+  if (response.ok && typeof id === "string" && id) return { ok: true, requestId: id.slice(0, 190) };
+  const reason = String(data?.detail || data?.error || data?.message || "").replace(/\s+/g, " ").slice(0, 300);
+  console.error("[muapi] publish", path, response.status, reason);
+  if (response.ok) return { ok: false, definite: false, code: "BAD_REPLY", message: "The social service sent an unexpected reply." };
+  if (response.status === 409) return { ok: false, definite: true, code: "ACCOUNT", message: "This account needs reconnecting in Channels." };
+  if (response.status >= 400 && response.status < 500) return { ok: false, definite: true, code: "REFUSED", message: reason ? `Not posted: ${reason}` : "The social service refused this post." };
+  return { ok: false, definite: false, code: "PROVIDER", message: "The social service had a problem, so we cannot tell whether it was posted." };
+}
+
+export type PublishOutcome =
+  | { status: "processing" }
+  | { status: "completed"; url: string | null; postId: string | null }
+  | { status: "failed"; message: string };
+
+/** Asks how a send went. A network problem counts as still processing; the caller gives up after a while. */
+export async function publishOutcome(requestId: string): Promise<PublishOutcome> {
+  const data = await call(`/api/v1/predictions/${encodeURIComponent(requestId)}/result`).catch(() => null);
+  const status = String(data?.status || "").toLowerCase();
+  if (status === "completed" || status === "succeeded") {
+    const out = (data.output && typeof data.output === "object" ? data.output : Array.isArray(data.outputs) && typeof data.outputs[0] === "object" ? data.outputs[0] : {}) as Record<string, unknown>;
+    const url = typeof out.url === "string" && /^https:\/\//.test(out.url) ? out.url.slice(0, 2000) : null;
+    const postId = [out.post_id, out.media_id, out.publish_id, out.video_id, out.id].find((v) => typeof v === "string" || typeof v === "number");
+    return { status: "completed", url, postId: postId === undefined ? null : String(postId).slice(0, 190) };
+  }
+  if (status === "failed" || status === "error" || status === "cancelled") {
+    const reason = String(data?.error || data?.detail || "").replace(/\s+/g, " ").slice(0, 300);
+    return { status: "failed", message: reason ? `Not posted: ${reason}` : "The social service could not post it." };
+  }
+  return { status: "processing" };
+}

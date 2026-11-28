@@ -1,6 +1,7 @@
 import { dataFor, fromPlatform, isEditable } from "@/server/data";
 import { guardWorkspace, HttpError, notFound } from "@/server/guard";
 import { enabledPlatforms, mediaProblem, platformKey } from "@/server/muapi";
+import { nudgePublisher } from "@/server/publisher";
 import { updatePost } from "@/server/schemas";
 
 const locked = () => new HttpError(409, "LOCKED", "This post has already been sent, so it cannot be changed. Duplicate it instead.");
@@ -10,11 +11,12 @@ export const PATCH = guardWorkspace({ body: updatePost, limit: { name: "post-edi
   const current = await posts.raw(params.id);
   if (!current) throw notFound();
   if (!isEditable(current.status)) throw locked();
-  if (body.action) throw new HttpError(503, "PUBLISHING_OFF", "Publishing is not switched on yet.");
 
   const platform = fromPlatform(current.platform);
-  const schedule = body.mode === "schedule" || (body.mode !== "draft" && (current.status === "SCHEDULED" || (current.status === "FAILED" && Boolean(body.scheduledAt))));
-  const time = body.scheduledAt ?? current.scheduledAt;
+  // Publish now (also how a failed post is tried again): scheduled for this moment.
+  const now = body.action === "publish_now";
+  const schedule = now || body.mode === "schedule" || (body.mode !== "draft" && (current.status === "SCHEDULED" || (current.status === "FAILED" && Boolean(body.scheduledAt))));
+  const time = now ? new Date() : body.scheduledAt ?? current.scheduledAt;
   const shown = posts.show(current);
 
   let accountId = body.platformAccountMap?.[platform];
@@ -25,7 +27,7 @@ export const PATCH = guardWorkspace({ body: updatePost, limit: { name: "post-edi
   accountId ??= current.socialAccountId ?? undefined;
 
   if (schedule) {
-    if (!time || time <= new Date()) throw new HttpError(400, "INVALID", "Choose a time in the future.");
+    if (!now && (!time || time <= new Date())) throw new HttpError(400, "INVALID", "Choose a time in the future.");
     if (!enabledPlatforms().includes(platformKey(platform))) throw new HttpError(400, "PLATFORM_OFF", "That platform is not available yet.");
     const account = accountId ? await accounts.get(accountId) : null;
     if (account?.status !== "ACTIVE") throw new HttpError(400, "ACCOUNT", "Choose a connected account first.");
@@ -45,6 +47,7 @@ export const PATCH = guardWorkspace({ body: updatePost, limit: { name: "post-edi
     tag: body.customTag === undefined ? undefined : body.customTag ? { name: body.customTag, color: body.tagColor || "#FF6B00" } : null,
   });
   if (!updated) throw locked();
+  if (now) nudgePublisher();
   return updated;
 });
 
