@@ -18,7 +18,7 @@ const PLATFORMS = [
   { key: "x_twitter", name: "X", Icon: FaXTwitter, color: "currentColor", text: "Text, photos and video." },
   { key: "linkedin", name: "LinkedIn", Icon: FaLinkedin, color: "#0a66c2", text: "Your personal profile. Company Pages come later." },
   { key: "threads", name: "Threads", Icon: FaThreads, color: "currentColor", text: "Text and media." },
-  { key: "pinterest", name: "Pinterest", Icon: FaPinterest, color: "#e60023", text: "Pins." },
+  { key: "pinterest", name: "Pinterest", Icon: FaPinterest, color: "#e60023", text: "Pins on your boards. Each Pin needs a photo." },
 ];
 const STATES = { ready: "", setup: "Not set up on the server yet", off: "Not available yet", testing: "Not available yet" };
 const REFRESH = 20_000;

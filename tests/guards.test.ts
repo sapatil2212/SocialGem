@@ -15,7 +15,7 @@ const OWN_PROTECTION: Record<string, string> = {
   "account/[action]/route.ts": "public by design: origin check, zod and rate limits",
   "admin/auth/[action]/route.ts": "admin sign-in: origin check, zod, rate limits",
   "stripe/webhook/route.ts": "switched off until M6",
-  "social/[provider]/callback/route.ts": "OAuth return from X or LinkedIn: signed-in user, single-use state tied to that user",
+  "social/[provider]/callback/route.ts": "OAuth return from X, LinkedIn or Pinterest: signed-in user, single-use state tied to that user",
 };
 
 describe("every API route", () => {
@@ -52,6 +52,7 @@ describe("no publishing or fake data before M4", () => {
   it("has no in-memory stores or dummy account", () => expect(all).not.toMatch(/DemoStore|MediaStore|SocialAccountStore|=== 101|\|\| 101/));
   it("calls MuAPI from one module only", () => expect(all.match(/api\.muapi\.ai/g)?.length).toBe(1));
   it("calls LinkedIn from one module only", () => expect(all.match(/api\.linkedin\.com/g)?.length).toBe(1));
+  it("calls Pinterest from one module only", () => expect(all.match(/api\.pinterest\.com/g)?.length).toBe(1));
   it("calls X from one module only", () => expect(all.match(/api\.x\.com/g)?.length).toBe(1));
   // Its disconnect removed every Page on a Facebook login (26 Nov 2026). We switch channels off ourselves.
   it("never asks MuAPI to disconnect or delete an account", () => {
@@ -102,12 +103,15 @@ describe("platform rules", async () => {
     expect(mediaProblem("tiktok", "https://cdn.example.com/a.mov", "")).toBe("");
     expect(mediaProblem("instagram", "", "")).toContain("Instagram");
     expect(mediaProblem("facebook", "", "")).toBe("");
+    expect(mediaProblem("pinterest", "", "Title")).toContain("photo");
+    expect(mediaProblem("pinterest", "https://cdn.example.com/a.mp4", "Title")).toContain("photo");
+    expect(mediaProblem("pinterest", "https://cdn.example.com/a.jpg", "Title")).toBe("");
   });
   it("never offers platforms that would connect to our own shared account", () => {
     const saved = process.env.PLATFORMS_ENABLED;
     process.env.PLATFORMS_ENABLED = "facebook,instagram,youtube,tiktok,x,linkedin,threads,pinterest";
     const states = platformStates();
-    for (const p of ["threads", "pinterest"]) expect(states[p]).not.toBe("ready");
+    expect(states.threads).not.toBe("ready");
     process.env.PLATFORMS_ENABLED = saved;
   });
 });

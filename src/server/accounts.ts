@@ -6,6 +6,7 @@ import { signedOut, type DirectProvider, type DirectTokens, type DirectUser } fr
 import { HttpError, isUniqueClash } from "./errors";
 import { linkedinCreatePost, linkedinProvider } from "./linkedin";
 import { connectUrl, muapiReady, platformKey, remoteAccounts, type RemoteAccount } from "./muapi";
+import { pinterestBoards, pinterestCreatePin, pinterestProvider, type PinInput } from "./pinterest";
 import { openTokens, sealTokens } from "./tokens";
 import type { CurrentWorkspace } from "./workspaces";
 import { pkceVerifier, xCreatePost, xProvider } from "./x";
@@ -26,7 +27,7 @@ export const showAccount = (a: SocialAccount) => ({
 export async function syncAccounts(workspace: CurrentWorkspace, maxAgeSeconds = 300) {
   const { accounts } = dataFor(workspace.id);
   const known = await accounts.list();
-  // Direct connections (X, LinkedIn) are not held by MuAPI, so MuAPI must not judge them.
+  // Direct connections (X, LinkedIn, Pinterest) are not held by MuAPI, so MuAPI must not judge them.
   const viaMuapi = known.filter((a) => a.muapiAccountId !== null);
   const stale = viaMuapi.some((a) => !a.lastCheckedAt || a.lastCheckedAt.getTime() < Date.now() - maxAgeSeconds * 1000);
   if (!stale || !muapiReady()) return known;
@@ -110,9 +111,9 @@ export async function finishConnect(userId: string, nonce: string): Promise<{ re
   }
 }
 
-// ---- Direct connections (X, LinkedIn): each customer's own sign-in, not MuAPI ----
+// ---- Direct connections (X, LinkedIn, Pinterest): each customer's own sign-in, not MuAPI ----
 
-const DIRECT: Record<string, DirectProvider> = { x: xProvider, linkedin: linkedinProvider };
+const DIRECT: Record<string, DirectProvider> = { x: xProvider, linkedin: linkedinProvider, pinterest: pinterestProvider };
 export const directProvider = (key: string) => DIRECT[platformKey(key)];
 const STATE = /^[\w-]{32}$/;
 
@@ -168,7 +169,7 @@ async function adoptDirect(provider: DirectProvider, workspaceId: string, user: 
 
 /** A working token for one directly connected account, refreshed (and saved) when it is about to run out. */
 export async function directAccessToken(workspaceId: string, accountId: string, tries = 0): Promise<{ access: string; memberId: string }> {
-  const account = await prisma.socialAccount.findFirst({ where: { id: accountId, workspaceId, platform: { in: ["X", "LINKEDIN"] } }, select: { id: true, platform: true, status: true, tokenCipher: true, platformUserId: true } });
+  const account = await prisma.socialAccount.findFirst({ where: { id: accountId, workspaceId, platform: { in: ["X", "LINKEDIN", "PINTEREST"] } }, select: { id: true, platform: true, status: true, tokenCipher: true, platformUserId: true } });
   if (!account?.tokenCipher || account.status !== "ACTIVE") throw new HttpError(400, "ACCOUNT", "Choose a connected account.");
   const provider = directProvider(fromPlatform(account.platform))!;
   const memberId = account.platformUserId ?? "";
@@ -182,7 +183,7 @@ export async function directAccessToken(workspaceId: string, accountId: string, 
     if (error instanceof HttpError && error.code === "SIGNED_OUT") return markSignedOut(provider, workspaceId, account.id);
     throw error;
   }
-  // X replaces the refresh token on every use, so the new one must be saved.
+  // X replaces the refresh token on every use, so the new one must be saved (others keep the old one).
   const saved = await prisma.socialAccount.updateMany({
     where: { id: account.id, workspaceId, tokenCipher: account.tokenCipher },
     data: { tokenCipher: sealTokens({ ...fresh, refresh: fresh.refresh ?? tokens.refresh }), tokenExpiresAt: new Date(fresh.expiresAt), lastCheckedAt: new Date() },
@@ -209,4 +210,18 @@ export async function sendToLinkedIn(workspaceId: string, accountId: string, tex
   if ([...text].length > 3000) throw new HttpError(400, "TOO_LONG", "Keep LinkedIn posts to 3,000 characters.");
   const { access, memberId } = await directAccessToken(workspaceId, accountId);
   return linkedinCreatePost(access, memberId, text);
+}
+
+/** The boards of a connected Pinterest account, for choosing where a Pin goes. */
+export async function pinterestBoardsFor(workspaceId: string, accountId: string) {
+  return pinterestBoards((await directAccessToken(workspaceId, accountId)).access);
+}
+
+/** Creates one Pin now. Pinterest needs a public image and a board. For the publishing engine (M4); no route calls it yet. */
+export async function sendToPinterest(workspaceId: string, accountId: string, pin: PinInput) {
+  if (!/^https:\/\//.test(pin.imageUrl)) throw new HttpError(400, "MEDIA", "Pinterest needs a photo.");
+  if (!pin.boardId) throw new HttpError(400, "BOARD", "Choose a Pinterest board.");
+  if ([...pin.title].length > 100) throw new HttpError(400, "TOO_LONG", "Keep the Pinterest title to 100 characters.");
+  if ([...pin.description].length > 500) throw new HttpError(400, "TOO_LONG", "Keep the Pinterest description to 500 characters.");
+  return pinterestCreatePin((await directAccessToken(workspaceId, accountId)).access, pin);
 }

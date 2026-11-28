@@ -1,12 +1,12 @@
 import type { Platform } from "@prisma/client";
 import { HttpError } from "./errors";
 
-// Platforms we connect to directly, with each customer's own sign-in, instead of through MuAPI.
+// Platforms we connect to directly (X, LinkedIn, Pinterest), with each customer's own sign-in, instead of through MuAPI.
 export type DirectTokens = { access: string; refresh: string | null; expiresAt: number };
 export type DirectUser = { id: string; name: string; avatarUrl: string | null };
 
 export type DirectProvider = {
-  key: "x" | "linkedin";
+  key: "x" | "linkedin" | "pinterest";
   platform: Platform;
   label: string;
   ready(): boolean;

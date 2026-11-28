@@ -1,5 +1,6 @@
 import { HttpError } from "./errors";
 import { linkedinReady } from "./linkedin";
+import { pinterestReady } from "./pinterest";
 import { xReady } from "./x";
 
 // Only this module talks to MuAPI. Publishing is deliberately absent until M4.
@@ -19,6 +20,8 @@ export const looksLikeVideo = (url: string) => /\.(mp4|mov|m4v|webm)(\?|#|$)/i.t
 export function mediaProblem(platform: string, mediaUrl: string, title: string) {
   const name = platformKey(platform);
   if (name === "instagram" && !mediaUrl) return "Instagram needs a photo or video.";
+  if (name === "pinterest" && !mediaUrl) return "Pinterest needs a photo.";
+  if (name === "pinterest" && looksLikeVideo(mediaUrl)) return "Pinterest Pins from SocialGem need a photo, not a video.";
   if (VIDEO_ONLY.includes(name) && !looksLikeVideo(mediaUrl)) return `${name === "youtube" ? "YouTube" : "TikTok"} needs a video link ending in .mp4, .mov, .m4v or .webm.`;
   if (name === "youtube" && !title.trim()) return "YouTube needs a title.";
   if (name === "youtube" && [...title.trim()].length > 100) return "Keep the YouTube title to 100 characters.";
@@ -26,14 +29,14 @@ export function mediaProblem(platform: string, mediaUrl: string, title: string) 
   return "";
 }
 export const enabledPlatforms = () =>
-  (process.env.PLATFORMS_ENABLED || "facebook,instagram,youtube,tiktok,x,linkedin").split(",").map((p) => p.trim()).filter(Boolean);
+  (process.env.PLATFORMS_ENABLED || "facebook,instagram,youtube,tiktok,x,linkedin,pinterest").split(",").map((p) => p.trim()).filter(Boolean);
 
-/** Whether each platform can be connected here: ready, setup (no key) or off. X and LinkedIn are connected directly, not through MuAPI. */
+/** Whether each platform can be connected here: ready, setup (no key) or off. X, LinkedIn and Pinterest are connected directly, not through MuAPI. */
 export function platformStates() {
   const on = enabledPlatforms();
   return Object.fromEntries(
     ["facebook", "instagram", "youtube", "tiktok", "x", "linkedin", "threads", "pinterest"].map((p) => {
-      const state = !on.includes(p) ? "off" : p === "x" ? (xReady() ? "ready" : "setup") : p === "linkedin" ? (linkedinReady() ? "ready" : "setup") : !CONNECTABLE.includes(p) ? "off" : muapiReady() ? "ready" : "setup";
+      const state = !on.includes(p) ? "off" : p === "x" ? (xReady() ? "ready" : "setup") : p === "linkedin" ? (linkedinReady() ? "ready" : "setup") : p === "pinterest" ? (pinterestReady() ? "ready" : "setup") : !CONNECTABLE.includes(p) ? "off" : muapiReady() ? "ready" : "setup";
       return [p === "x" ? "x_twitter" : p, state];
     })
   );
